@@ -3,7 +3,7 @@
 # GNUmakefile for examples module.  Gabriele Cosmo, 06/04/98.
 # --------------------------------------------------------------
 
-name		:= hyptpc1
+name		:= hyptpc
 G4TARGET	:= $(name)
 G4EXLIB		:= true
 # CPPVERBOSE	:= true

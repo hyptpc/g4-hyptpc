@@ -3,7 +3,7 @@ k18geant4
 
 K1.8 geant4 simulation tool.
 
-
+**Note that this README needs to be modified.**
 
 ## Platform
 
@@ -60,4 +60,3 @@ ln -s /group/had/sks/E42/software/param/BEAM/* param/BEAM/
 ln -s /group/had/sks/E42/software/param/JAM/* param/JAM/
 ln -s /group/had/sks/E42/software/fieldmap .
 ```
-
