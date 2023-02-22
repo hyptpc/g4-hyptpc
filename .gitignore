@@ -18,4 +18,5 @@ obj/
 rootfiles/
 rootfiles
 tmp/
+G4History.macro
 !.gitkeep

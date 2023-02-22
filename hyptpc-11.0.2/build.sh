@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-type cmake3 2>&1 >/dev/null && alias cmake=cmake3
+type cmake3 >/dev/null 2>&1 && alias cmake=cmake3
 
 main_dir=$(dirname `readlink -f $0`)
 obj_dir=$main_dir/obj
