@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-#include "TPCPrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
 
 #include <G4Event.hh>
 #include <G4IonTable.hh>
@@ -11,6 +11,7 @@
 #include <G4IonConstructor.hh>
 #include <Randomize.hh>
 
+#include "AnaManager.hh"
 #include "BeamMan.hh"
 #include "ConfMan.hh"
 #include "DCGeomMan.hh"
@@ -25,25 +26,24 @@
 #include "KinemaHweak.hh"
 #include "KinemaFermi.hh"
 #include "KinemaKstar.hh"
-#include "TPCAnaManager.hh"
 
 namespace
 {
-  using CLHEP::GeV;
-  using CLHEP::keV;
-  using CLHEP::mm;
-  auto& gAnaMan = TPCAnaManager::GetInstance();
-  const auto& gBeam = BeamMan::GetInstance();
-  const auto& gConf = ConfMan::GetInstance();
-  const auto& gGeom = DCGeomMan::GetInstance();
-  const auto& gSize = DetSizeMan::GetInstance();
-  const auto& gJam  = JamMan::GetInstance();
+using CLHEP::GeV;
+using CLHEP::keV;
+using CLHEP::mm;
+auto& gAnaMan = AnaManager::GetInstance();
+const auto& gBeam = BeamMan::GetInstance();
+const auto& gConf = ConfMan::GetInstance();
+const auto& gGeom = DCGeomMan::GetInstance();
+const auto& gSize = DetSizeMan::GetInstance();
+const auto& gJam  = JamMan::GetInstance();
 }
 
 //_____________________________________________________________________________
 // E45 elastic scattering pip
 void
-TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE45ElasticPionPlus(G4Event* anEvent)
 {
   G4double mom[3];
   G4double Ebeam, pbeam=0.;
@@ -55,44 +55,44 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
   G4double pipMass=m_PionPlus->GetPDGMass()/GeV;//unit GeV
 
   /*
-///first w/o beam
-  ///beam optics from simulation file.
-  char fname[100] ;
-  FILE *fp;
-  sprintf(fname,"./beam_simulation/profile_ve07-5.dat.txt");
-  if ((fp = fopen(fname,"r")) == NULL){
-    fprintf(stderr, ": Cannot open file: %s\n", fname);
-    exit(-1);
-  }
+ ///first w/o beam
+ ///beam optics from simulation file.
+ char fname[100] ;
+ FILE *fp;
+ sprintf(fname,"./beam_simulation/profile_ve07-5.dat.txt");
+ if ((fp = fopen(fname,"r")) == NULL){
+ fprintf(stderr, ": Cannot open file: %s\n", fname);
+ exit(-1);
+ }
 
-  double data[100]={-9999.9999};
-  int check;
-  int ran;
-  int res;
+ double data[100]={-9999.9999};
+ int check;
+ int ran;
+ int res;
  up1:
-  check=0.;
-  ran=G4RandFlat::shoot(1,17005);
+ check=0.;
+ ran=G4RandFlat::shoot(1,17005);
 
 
-  while(1){
-    /// file structure : x, u, y, v, p, PID, ???
-    /// unit           : cm, mrad, cm, mrad, gev, PID, ???
-    res=fscanf(fp,"%lf \t %lf \t %lf \t %lf \t %lf \t %lf \t %lf",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5], &data[6]);
-    check=check+1.;
-    if(check==ran) break;
-    //    if(res==EOF) break;
-  }
+ while(1){
+ /// file structure : x, u, y, v, p, PID, ???
+ /// unit           : cm, mrad, cm, mrad, gev, PID, ???
+ res=fscanf(fp,"%lf \t %lf \t %lf \t %lf \t %lf \t %lf \t %lf",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5], &data[6]);
+ check=check+1.;
+ if(check==ran) break;
+ //    if(res==EOF) break;
+ }
 
-  G4double dxdz,dydz,pp;
-  dxdz=atan(data[1]*0.001);
-  dydz=atan(data[3]*0.001);
-  pp=data[4]/1.8*m_beam_p0;
+ G4double dxdz,dydz,pp;
+ dxdz=atan(data[1]*0.001);
+ dydz=atan(data[3]*0.001);
+ pp=data[4]/1.8*m_beam_p0;
 
-  //  G4cout<<"pp:"<<pp<<G4endl;
-  //  G4cout<<"data 4:"<<data[4]<<G4endl;
+ //  G4cout<<"pp:"<<pp<<G4endl;
+ //  G4cout<<"data 4:"<<data[4]<<G4endl;
 
 
-  */
+ */
   // G4double x0;
   // G4double y0;
   // G4double z0;
@@ -106,24 +106,24 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
   ///for E45
   G4double rn_vtx,rn_vtz;
   while(1){
-    rn_vtx = G4RandFlat::shoot( -m_target_size.x(), m_target_size.x() );
-    rn_vtz = G4RandFlat::shoot( -m_target_size.x(), m_target_size.x() );
+    rn_vtx = G4RandFlat::shoot(-m_target_size.x(), m_target_size.x());
+    rn_vtz = G4RandFlat::shoot(-m_target_size.x(), m_target_size.x());
     //    G4cout<<rn_vtx<<G4endl;
-    if( (rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_target_size.x()*m_target_size.x()) break;
+    if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_target_size.x()*m_target_size.x()) break;
   }
-  vty = G4RandFlat::shoot( -m_target_size.z(), m_target_size.z() );
+  vty = G4RandFlat::shoot(-m_target_size.z(), m_target_size.z());
   vtx=rn_vtx;
   vtz=rn_vtz+env_target_pos_z;
   /*   ///E42
-  vtz= G4RandFlat::shoot(env_Target_pos_z-env_Target_width/2.,env_Target_pos_z+env_Target_width/2.)*mm;
-  vtx = (data[0]*10.+dxdz*(vtz-env_Target_pos_z))*mm;
-  vty = (data[2]*10.+dydz*(vtz-env_Target_pos_z))*mm;
+       vtz= G4RandFlat::shoot(env_Target_pos_z-env_Target_width/2.,env_Target_pos_z+env_Target_width/2.)*mm;
+       vtx = (data[0]*10.+dxdz*(vtz-env_Target_pos_z))*mm;
+       vty = (data[2]*10.+dydz*(vtz-env_Target_pos_z))*mm;
 
-  //  G4cout<<"vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
-  //  G4cout<<"target_x, target_y::"<<env_Target_x<<", "<<env_Target_y<<G4endl;
-  if(fabs(vtx)>env_Target_x/2. || fabs(vty)>env_Target_y/2.){
-    goto up1;
-  }
+       //  G4cout<<"vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
+       //  G4cout<<"target_x, target_y::"<<env_Target_x<<", "<<env_Target_y<<G4endl;
+       if(fabs(vtx)>env_Target_x/2. || fabs(vty)>env_Target_y/2.){
+       goto up1;
+       }
   */
   //  G4cout<<"passed-->vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
 
@@ -152,10 +152,10 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
   pbm[3]=Ebeam;
   ///first m_PionPlus
   KinemaFermi Hkinema(m_PionPlus->GetPDGMass()/GeV,
-			m_Proton->GetPDGMass()/GeV,
-			m_PionPlus->GetPDGMass()/GeV,
-			m_Proton->GetPDGMass()/GeV,
-			pbm, p_proton,cosx);
+                      m_Proton->GetPDGMass()/GeV,
+                      m_PionPlus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      pbm, p_proton,cosx);
 
   Energy_kp=Hkinema.GetEnergy(3);
   // G4double momentum_kp = Hkinema.GetMomentum(3);
@@ -200,14 +200,14 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
   m_particle_gun->SetParticleEnergy((Energy_kp - pipMass/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
-  m_particle_gun->GeneratePrimaryVertex( anEvent );
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //proton
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_h_x,mom_h_y,mom_h_z));
   m_particle_gun->SetParticleEnergy((Energy_h - protonMass/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
-  m_particle_gun->GeneratePrimaryVertex( anEvent );
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
   gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pipMass/GeV);///pip
@@ -219,7 +219,7 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionPlus( G4Event* anEvent )
 //_____________________________________________________________________________
 // E45 elastic scattering pin
 void
-TPCPrimaryGeneratorAction::GenerateE45ElasticPionMinus( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE45ElasticPionMinus(G4Event* anEvent)
 {
   G4double mom[3];
   G4double Ebeam, pbeam=0.;
@@ -230,44 +230,44 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionMinus( G4Event* anEvent )
   G4double pinMass=m_PionMinus->GetPDGMass()/GeV;//unit GeV
 
   /*
-///first w/o beam
-  ///beam optics from simulation file.
-  char fname[100] ;
-  FILE *fp;
-  sprintf(fname,"./beam_simulation/profile_ve07-5.dat.txt");
-  if ((fp = fopen(fname,"r")) == NULL){
-    fprintf(stderr, ": Cannot open file: %s\n", fname);
-    exit(-1);
-  }
+ ///first w/o beam
+ ///beam optics from simulation file.
+ char fname[100] ;
+ FILE *fp;
+ sprintf(fname,"./beam_simulation/profile_ve07-5.dat.txt");
+ if ((fp = fopen(fname,"r")) == NULL){
+ fprintf(stderr, ": Cannot open file: %s\n", fname);
+ exit(-1);
+ }
 
-  double data[100]={-9999.9999};
-  int check;
-  int ran;
-  int res;
+ double data[100]={-9999.9999};
+ int check;
+ int ran;
+ int res;
  up1:
-  check=0.;
-  ran=G4RandFlat::shoot(1,17005);
+ check=0.;
+ ran=G4RandFlat::shoot(1,17005);
 
 
-  while(1){
-    /// file structure : x, u, y, v, p, PID, ???
-    /// unit           : cm, mrad, cm, mrad, gev, PID, ???
-    res=fscanf(fp,"%lf \t %lf \t %lf \t %lf \t %lf \t %lf \t %lf",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5], &data[6]);
-    check=check+1.;
-    if(check==ran) break;
-    //    if(res==EOF) break;
-  }
+ while(1){
+ /// file structure : x, u, y, v, p, PID, ???
+ /// unit           : cm, mrad, cm, mrad, gev, PID, ???
+ res=fscanf(fp,"%lf \t %lf \t %lf \t %lf \t %lf \t %lf \t %lf",&data[0],&data[1],&data[2],&data[3],&data[4],&data[5], &data[6]);
+ check=check+1.;
+ if(check==ran) break;
+ //    if(res==EOF) break;
+ }
 
-  G4double dxdz,dydz,pp;
-  dxdz=atan(data[1]*0.001);
-  dydz=atan(data[3]*0.001);
-  pp=data[4]/1.8*m_beam_p0;
+ G4double dxdz,dydz,pp;
+ dxdz=atan(data[1]*0.001);
+ dydz=atan(data[3]*0.001);
+ pp=data[4]/1.8*m_beam_p0;
 
-  //  G4cout<<"pp:"<<pp<<G4endl;
-  //  G4cout<<"data 4:"<<data[4]<<G4endl;
+ //  G4cout<<"pp:"<<pp<<G4endl;
+ //  G4cout<<"data 4:"<<data[4]<<G4endl;
 
 
-  */
+ */
   // G4double x0;
   // G4double y0;
   // G4double z0;
@@ -281,24 +281,24 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionMinus( G4Event* anEvent )
   ///for E45
   G4double rn_vtx,rn_vtz;
   while(1){
-    rn_vtx = G4RandFlat::shoot( -m_target_size.x(), m_target_size.x() );
-    rn_vtz = G4RandFlat::shoot( -m_target_size.x(), m_target_size.x() );
+    rn_vtx = G4RandFlat::shoot(-m_target_size.x(), m_target_size.x());
+    rn_vtz = G4RandFlat::shoot(-m_target_size.x(), m_target_size.x());
     //    G4cout<<rn_vtx<<G4endl;
-    if( (rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_target_size.x()*m_target_size.x()) break;
+    if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_target_size.x()*m_target_size.x()) break;
   }
-  vty = G4RandFlat::shoot( -m_target_size.z(), m_target_size.z() );
+  vty = G4RandFlat::shoot(-m_target_size.z(), m_target_size.z());
   vtx=rn_vtx;
   vtz=rn_vtz+env_target_pos_z;
   /*   ///E42
-  vtz= G4RandFlat::shoot(env_Target_pos_z-env_Target_width/2.,env_Target_pos_z+env_Target_width/2.)*mm;
-  vtx = (data[0]*10.+dxdz*(vtz-env_Target_pos_z))*mm;
-  vty = (data[2]*10.+dydz*(vtz-env_Target_pos_z))*mm;
+       vtz= G4RandFlat::shoot(env_Target_pos_z-env_Target_width/2.,env_Target_pos_z+env_Target_width/2.)*mm;
+       vtx = (data[0]*10.+dxdz*(vtz-env_Target_pos_z))*mm;
+       vty = (data[2]*10.+dydz*(vtz-env_Target_pos_z))*mm;
 
-  //  G4cout<<"vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
-  //  G4cout<<"target_x, target_y::"<<env_Target_x<<", "<<env_Target_y<<G4endl;
-  if(fabs(vtx)>env_Target_x/2. || fabs(vty)>env_Target_y/2.){
-    goto up1;
-  }
+       //  G4cout<<"vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
+       //  G4cout<<"target_x, target_y::"<<env_Target_x<<", "<<env_Target_y<<G4endl;
+       if(fabs(vtx)>env_Target_x/2. || fabs(vty)>env_Target_y/2.){
+       goto up1;
+       }
   */
   //  G4cout<<"passed-->vtx and vty ::"<<fabs(vtx)<<", "<<fabs(vty)<<G4endl;
 
@@ -375,14 +375,14 @@ TPCPrimaryGeneratorAction::GenerateE45ElasticPionMinus( G4Event* anEvent )
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
   m_particle_gun->SetParticleEnergy((Energy_kp - pinMass/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
-  m_particle_gun->GeneratePrimaryVertex( anEvent );
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //proton
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_h_x,mom_h_y,mom_h_z));
   m_particle_gun->SetParticleEnergy((Energy_h - protonMass/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
-  m_particle_gun->GeneratePrimaryVertex( anEvent );
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
   gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pinMass/GeV);///pin

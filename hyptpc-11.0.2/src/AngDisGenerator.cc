@@ -12,247 +12,247 @@
 #include <Randomize.hh>
 
 //_____________________________________________________________________________
-AngDisGenerator::AngDisGenerator( G4double cost1, G4double cost2 )
-  : m_cost1( cost1 ),
-    m_cost2( cost2 )
+AngDisGenerator::AngDisGenerator(G4double cost1, G4double cost2)
+  : m_cost1(cost1),
+    m_cost2(cost2)
 {
 }
 
 //_____________________________________________________________________________
-AGSWave::AGSWave( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGSWave::AGSWave(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGSWave::GenerateDirection( void ) const
+AGSWave::GenerateDirection() const
 {
-  G4double cost = m_cost1 + G4UniformRand()*( m_cost2 - m_cost1 );
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double cost = m_cost1 + G4UniformRand()*(m_cost2 - m_cost1);
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGPWaveFP::AGPWaveFP( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGPWaveFP::AGPWaveFP(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGPWaveFP::GenerateDirection( void ) const
+AGPWaveFP::GenerateDirection() const
 {
-  G4double a    = 2./( m_cost2 - m_cost1 )/( 2. + m_cost2 + m_cost1 );
-  G4double cost = -1. + std::sqrt( ( m_cost1 + 1. )*( m_cost1 + 1. ) +
-				   2.*G4UniformRand()/a );
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double a    = 2./(m_cost2 - m_cost1)/(2. + m_cost2 + m_cost1);
+  G4double cost = -1. + std::sqrt((m_cost1 + 1.)*(m_cost1 + 1.) +
+				   2.*G4UniformRand()/a);
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGPWaveBP::AGPWaveBP( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGPWaveBP::AGPWaveBP(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGPWaveBP::GenerateDirection( void ) const
+AGPWaveBP::GenerateDirection() const
 {
-  G4double a    = 2./( m_cost2 - m_cost1 )/( 2. - m_cost2 - m_cost1 );
-  G4double cost = 1. - std::sqrt( ( m_cost1 - 1. )*( m_cost1 - 1. ) -
-				  2.*G4UniformRand()/a );
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double a    = 2./(m_cost2 - m_cost1)/(2. - m_cost2 - m_cost1);
+  G4double cost = 1. - std::sqrt((m_cost1 - 1.)*(m_cost1 - 1.) -
+				  2.*G4UniformRand()/a);
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGDWave1::AGDWave1( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGDWave1::AGDWave1(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGDWave1::GenerateDirection( void ) const
+AGDWave1::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while ( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while (p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGSigma1385Zero::AGSigma1385Zero( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGSigma1385Zero::AGSigma1385Zero(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGSigma1385Zero::GenerateDirection( void ) const
+AGSigma1385Zero::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while ( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while (p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGSigma1385Plus::AGSigma1385Plus( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGSigma1385Plus::AGSigma1385Plus(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGSigma1385Plus::GenerateDirection( void ) const
+AGSigma1385Plus::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while(p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGLambda1405::AGLambda1405( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGLambda1405::AGLambda1405(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGLambda1405::GenerateDirection( void ) const
+AGLambda1405::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while ( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while (p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGLambda::AGLambda( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGLambda::AGLambda(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGLambda::GenerateDirection( void ) const
+AGLambda::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while(p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGSigmaZ::AGSigmaZ( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGSigmaZ::AGSigmaZ(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGSigmaZ::GenerateDirection( void ) const
+AGSigmaZ::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while ( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while (p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGSigmaP::AGSigmaP( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGSigmaP::AGSigmaP(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGSigmaP::GenerateDirection( void ) const
+AGSigmaP::GenerateDirection() const
 {
-  G4double cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  G4double cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
   G4double p    = G4UniformRand();
-  while( p > Dfunc( cost ) ){
-    cost = ( m_cost2 - m_cost1 )*G4UniformRand() + m_cost1;
+  while(p > Dfunc(cost)){
+    cost = (m_cost2 - m_cost1)*G4UniformRand() + m_cost1;
     p    = G4UniformRand();
   }
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }
 
 //_____________________________________________________________________________
-AGPol::AGPol( G4double cost1, G4double cost2 )
-  : AngDisGenerator( cost1, cost2 )
+AGPol::AGPol(G4double cost1, G4double cost2)
+  : AngDisGenerator(cost1, cost2)
 {
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-AGPol::GenerateDirection( void ) const
+AGPol::GenerateDirection() const
 {
-  G4double a    = 2./( m_cost2 - m_cost1 )/( 2. + m_cost2 + m_cost1 );
-  G4double cost = -1. + std::sqrt( ( m_cost1 + 1. )*( m_cost1 + 1. ) +
-				   2.*G4UniformRand()/a );
-  G4double sint = std::sqrt( 1. - cost*cost );
+  G4double a    = 2./(m_cost2 - m_cost1)/(2. + m_cost2 + m_cost1);
+  G4double cost = -1. + std::sqrt((m_cost1 + 1.)*(m_cost1 + 1.) +
+				   2.*G4UniformRand()/a);
+  G4double sint = std::sqrt(1. - cost*cost);
   G4double phi  = G4UniformRand()*CLHEP::pi*2.;
-  G4double cosp = std::cos( phi );
-  G4double sinp = std::sin( phi );
-  return G4ThreeVector( sint*cosp, sint*sinp, cost );
+  G4double cosp = std::cos(phi);
+  G4double sinp = std::sin(phi);
+  return G4ThreeVector(sint*cosp, sint*sinp, cost);
 }

@@ -20,7 +20,7 @@
 #include "IncMan.hh"
 
 //_____________________________________________________________________________
-ConfMan::ConfMan( void )
+ConfMan::ConfMan()
   : m_conf_key("CONF"),
     m_conf_dir(),
     m_is_ready(false),
@@ -33,22 +33,22 @@ ConfMan::ConfMan( void )
 }
 
 //_____________________________________________________________________________
-ConfMan::~ConfMan( void )
+ConfMan::~ConfMan()
 {
 }
 
 //_____________________________________________________________________________
 G4bool
-ConfMan::Initialize( void )
+ConfMan::Initialize()
 {
-  if( m_is_ready ){
+  if(m_is_ready){
     G4cerr << FUNC_NAME
 	   << " already initialied" << G4endl;
     return false;
   }
 
-  std::ifstream ifs( m_file[m_conf_key] );
-  if( !ifs.is_open() ){
+  std::ifstream ifs(m_file[m_conf_key]);
+  if(!ifs.is_open()){
     G4cerr << FUNC_NAME
 	   << " cannot open file : " << m_file[m_conf_key] << G4endl;
     return false;
@@ -57,30 +57,30 @@ ConfMan::Initialize( void )
   G4cout << FUNC_NAME << G4endl
 	 << " open file : " << m_file[m_conf_key] << G4endl;
 
-  m_conf_dir = ::dirname( const_cast<char*>( m_file[m_conf_key].data() ) );
+  m_conf_dir = ::dirname(const_cast<char*>(m_file[m_conf_key].data()));
 
   G4String line;
-  while( ifs.good() && std::getline(ifs, line) ){
-    if( line[0]=='#' ) continue;
-    std::istringstream iss( line );
+  while(ifs.good() && std::getline(ifs, line)){
+    if(line[0]=='#') continue;
+    std::istringstream iss(line);
     G4String key, val;
     iss >> key >> val;
-    if( key.empty() || val.empty() )
+    if(key.empty() || val.empty())
       continue;
     G4cout << " key = "   << std::setw(20) << std::left << key
 	   << " value = " << std::setw(30) << std::left << val
 	   << G4endl;
     m_file[key]   = FilePath(val);
     m_string[key] = val;
-    m_double[key] = std::strtod( val, nullptr );
-    m_int[key]    = std::strtol( val, nullptr, 10 );
-    m_bool[key]   = static_cast<G4bool>( std::strtol( val, nullptr, 10 ) );
+    m_double[key] = std::strtod(val, nullptr);
+    m_int[key]    = std::strtol(val, nullptr, 10);
+    m_bool[key]   = static_cast<G4bool>(std::strtol(val, nullptr, 10));
   }
 
-  if ( !InitializeParameterFiles() || !InitializeHistograms() )
+  if (!InitializeParameterFiles() || !InitializeHistograms())
     return false;
 
-  // if( gUser.IsReady() )
+  // if(gUser.IsReady())
   //   gUser.Print();
 
   m_is_ready = true;
@@ -89,7 +89,7 @@ ConfMan::Initialize( void )
 
 //_____________________________________________________________________________
 G4bool
-ConfMan::Initialize( const G4String& file_name )
+ConfMan::Initialize(const G4String& file_name)
 {
   m_file[m_conf_key] = file_name;
   return Initialize();
@@ -97,35 +97,35 @@ ConfMan::Initialize( const G4String& file_name )
 
 //_____________________________________________________________________________
 G4bool
-ConfMan::InitializeHistograms( void )
+ConfMan::InitializeHistograms()
 {
   return true;
 }
 
 //_____________________________________________________________________________
 G4bool
-ConfMan::InitializeParameterFiles( void )
+ConfMan::InitializeParameterFiles()
 {
-  return ( InitializeParameter<DCGeomMan>("DCGEO") &&
+  return (InitializeParameter<DCGeomMan>("DCGEO") &&
 	   InitializeParameter<BeamMan>("BEAM") &&
 	   InitializeParameter<DetSizeMan>("DSIZE") &&
 	   InitializeParameter<JamMan>("JAM") &&
-	   InitializeParameter<IncMan>("INC") );
+	   InitializeParameter<IncMan>("INC"));
 }
 
 //_____________________________________________________________________________
 // G4bool
-// ConfMan::Finalize( void )
+// ConfMan::Finalize()
 // {
 //   return FinalizeProcess();
 // }
 
 //_____________________________________________________________________________
 G4String
-ConfMan::FilePath( const G4String& src ) const
+ConfMan::FilePath(const G4String& src) const
 {
-  std::ifstream tmp( src );
-  if ( tmp.good() )
+  std::ifstream tmp(src);
+  if (tmp.good())
     return src;
   else
     return m_conf_dir + "/" + src;

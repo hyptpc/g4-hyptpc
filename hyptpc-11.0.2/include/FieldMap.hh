@@ -12,13 +12,13 @@
 class FieldMap
 {
 public:
-  static G4String ClassName( void );
-  FieldMap( const G4String& file_name );
-  ~FieldMap( void );
+  static G4String ClassName();
+  FieldMap(const G4String& file_name);
+  ~FieldMap();
 
 private:
-  FieldMap( const FieldMap& );
-  FieldMap& operator =( const FieldMap& );
+  FieldMap(const FieldMap&);
+  FieldMap& operator =(const FieldMap&);
 
 private:
   typedef std::vector< std::vector< std::vector<G4ThreeVector> > > Field;
@@ -33,24 +33,24 @@ private:
   G4double    m_value_nmr;
 
 public:
-  G4bool Initialize( void );
-  G4bool IsInsideField( G4double* pos ) const;
-  G4bool IsInsideField( const G4ThreeVector& pos ) const;
-  G4bool IsReady( void ) const { return m_is_ready; }
-  G4bool GetFieldValue( const G4double pointCM[3],
-			G4double *BfieldTesla ) const;
-  void   SetValueCalc( G4double v ){ m_value_calc = v; }
-  void   SetValueNMR( G4double v ){ m_value_nmr = v; }
+  G4bool Initialize();
+  G4bool IsInsideField(G4double* pos) const;
+  G4bool IsInsideField(const G4ThreeVector& pos) const;
+  G4bool IsReady() const { return m_is_ready; }
+  G4bool GetFieldValue(const G4double pointCM[3],
+			G4double *BfieldTesla) const;
+  void   SetValueCalc(G4double v){ m_value_calc = v; }
+  void   SetValueNMR(G4double v){ m_value_nmr = v; }
 
 private:
-  void ClearField( void );
+  void ClearField();
 };
 
 //______________________________________________________________________________
 inline G4String
-FieldMap::ClassName( void )
+FieldMap::ClassName()
 {
-  static G4String s_name( "FieldMap" );
+  static G4String s_name("FieldMap");
   return s_name;
 }
 

@@ -9,12 +9,12 @@
 #include <TMath.h>
 
 //_____________________________________________________________________________
-Kinema2Body::Kinema2Body( void )
+Kinema2Body::Kinema2Body()
 {
 }
 
 //_____________________________________________________________________________
-Kinema2Body::Kinema2Body( double m1, double m2, double m3, double m4 )
+Kinema2Body::Kinema2Body(double m1, double m2, double m3, double m4)
 {
   kin.M_1 = m1;
   kin.M_2 = m2;
@@ -24,14 +24,14 @@ Kinema2Body::Kinema2Body( double m1, double m2, double m3, double m4 )
 
 //_____________________________________________________________________________
 double
-Kinema2Body::Beta2Gamma( double beta ) const
+Kinema2Body::Beta2Gamma(double beta) const
 {
-  return 1./sqrt( 1.0 - pow(beta,2.0) );
+  return 1./sqrt(1.0 - pow(beta,2.0));
 }
 
 //_____________________________________________________________________________
 void
-Kinema2Body::SetMass( double *mass )
+Kinema2Body::SetMass(double *mass)
 {
   kin.M_1 = mass[0];
   kin.M_2 = mass[1];
@@ -41,7 +41,7 @@ Kinema2Body::SetMass( double *mass )
 
 //_____________________________________________________________________________
 void
-Kinema2Body::SetMass( int i, double mass )
+Kinema2Body::SetMass(int i, double mass)
 {
   switch (i) {
   case 1:
@@ -63,7 +63,7 @@ Kinema2Body::SetMass( int i, double mass )
 
 //_____________________________________________________________________________
 void
-Kinema2Body::SetMomentum( int i, double mom )
+Kinema2Body::SetMomentum(int i, double mom)
 {
   switch (i) {
   case 1:
@@ -86,7 +86,7 @@ Kinema2Body::SetMomentum( int i, double mom )
 
 //_____________________________________________________________________________
 void
-Kinema2Body::SetTheta( int i, double theta )
+Kinema2Body::SetTheta(int i, double theta)
 {
   switch (i) {
   case 1:
@@ -103,17 +103,17 @@ Kinema2Body::SetTheta( int i, double theta )
 
 //_____________________________________________________________________________
 void
-Kinema2Body::SetThetaCM( double theta_cm )
+Kinema2Body::SetThetaCM(double theta_cm)
 {
   kin.theta_cm = theta_cm;
 }
 
 //_____________________________________________________________________________
 int
-Kinema2Body::CalcKinema( void )
+Kinema2Body::CalcKinema()
 {
-  kin.E_1_lab = p2E( kin.p_1_lab/cos( kin.p_1_theta ), kin.M_1 ); //energy m1
-  kin.E_2_lab = p2E( kin.p_2_lab/cos( kin.p_2_theta ), kin.M_2 ); //energy m2
+  kin.E_1_lab = p2E(kin.p_1_lab/cos(kin.p_1_theta), kin.M_1); //energy m1
+  kin.E_2_lab = p2E(kin.p_2_lab/cos(kin.p_2_theta), kin.M_2); //energy m2
 #if 0
   std::cout << "kin.p_1_theta:" << kin.p_1_theta << std::endl;
   std::cout << "kin.p_2_theta:" << kin.p_2_theta << std::endl;
@@ -126,12 +126,12 @@ Kinema2Body::CalcKinema( void )
   std::cout << kin.p_2_lab << ":" << kin.M_2 << std::endl;
 #endif
   //  kin.beta_cm = pE2beta(kin.p_1_lab,kin.E_1_lab,kin.p_2_lab,kin.M_2);
-  kin.beta_cm = pE2beta( kin.p_1_lab, kin.E_1_lab,kin.M_1,
-			 kin.p_2_lab, kin.E_2_lab,kin.M_2 );
+  kin.beta_cm = pE2beta(kin.p_1_lab, kin.E_1_lab,kin.M_1,
+			 kin.p_2_lab, kin.E_2_lab,kin.M_2);
   //  std::cout<<"beta:"<<kin.beta_cm<<std::endl;
   //  std::cout<<"beta 2body:"<<kin.beta_cm<<std::endl;
   //double Kinema2Body::pE2beta(double p1,double E1,double p2, double E2)
-  kin.gamma_cm = Beta2Gamma( kin.beta_cm );
+  kin.gamma_cm = Beta2Gamma(kin.beta_cm);
 
   //calculate of Kinematics in CM system
   kin.E_1_cm = kin.gamma_cm * kin.E_1_lab -
@@ -162,15 +162,15 @@ Kinema2Body::CalcKinema( void )
   //  kin.E_4_cm = (pow(kin.E_1_cm + kin.E_2_cm,2.0) + pow(kin.M_4,2.0)  - pow(kin.M_3,2.0))/(2.0*(kin.E_1_cm + kin.E_2_cm));
 
   //  double E12_cm=sqrt(pow(kin.M_1,2)+2.*kin.E_1_cm*kin.E_2_cm -2.*kin.p_1_lab*kin.p_2_lab + pow(kin.M_2,2));
-  double E12_cm=sqrt( pow( sqrt(pow(kin.M_1,2)+pow(kin.p_1_lab/cos(kin.p_1_theta),2)) +sqrt(pow(kin.M_2,2)+pow(kin.p_2_lab/cos(kin.p_2_theta),2) ),2)-pow(kin.p_1_lab+kin.p_2_lab,2));
+  double E12_cm=sqrt(pow(sqrt(pow(kin.M_1,2)+pow(kin.p_1_lab/cos(kin.p_1_theta),2)) +sqrt(pow(kin.M_2,2)+pow(kin.p_2_lab/cos(kin.p_2_theta),2)),2)-pow(kin.p_1_lab+kin.p_2_lab,2));
   kin.E_3_cm = (pow(E12_cm,2) +pow(kin.M_3,2)-pow(kin.M_4,2))/(2.*E12_cm);
   kin.E_4_cm = (pow(E12_cm,2) -pow(kin.M_3,2)+pow(kin.M_4,2))/(2.*E12_cm);
 
   //  kin.p_34_cm = sqrt((pow((kin.M_3 + kin.E_1_cm + kin.E_2_cm),2.0)-pow(kin.M_4,2.0))*(pow((kin.M_3 - (kin.E_1_cm + kin.E_2_cm)),2.0)-pow(kin.M_4,2.0))/(4.0*pow(kin.E_1_cm + kin.E_2_cm,2.0)));
-  //  kin.p_34_cm = sqrt( pow(E12_cm,4)+pow( pow(kin.M_1,2)-pow(kin.M_2,2), 2) -2.*pow(E12_cm,2)*(pow(kin.M_1,2)+pow(kin.M_2,2)   )   )/(2.*E12_cm);
+  //  kin.p_34_cm = sqrt(pow(E12_cm,4)+pow(pow(kin.M_1,2)-pow(kin.M_2,2), 2) -2.*pow(E12_cm,2)*(pow(kin.M_1,2)+pow(kin.M_2,2)  )  )/(2.*E12_cm);
   //  kin.p_34_cm=sqrt(pow(E12_cm,2)-pow(kin.M_4+kin.M_3,2));
 
-  kin.p_34_cm = sqrt( pow(E12_cm,4)+pow( pow(kin.M_3,2)-pow(kin.M_4,2), 2) -2.*pow(E12_cm,2)*(pow(kin.M_3,2)+pow(kin.M_4,2)   )   )/(2.*E12_cm);
+  kin.p_34_cm = sqrt(pow(E12_cm,4)+pow(pow(kin.M_3,2)-pow(kin.M_4,2), 2) -2.*pow(E12_cm,2)*(pow(kin.M_3,2)+pow(kin.M_4,2)  )  )/(2.*E12_cm);
 
   /*
   //  kin.p_34_cm=sqrt(pow(kin.E_3_cm,2)-pow(kin.M_3,2));
@@ -190,10 +190,10 @@ Kinema2Body::CalcKinema( void )
   */
 
   //calculate theta,phi of LAB system from CM system
-  kin.theta_lab = ThetaCM2ThetaLab( kin.theta_cm, kin.p_34_cm,
-				    kin.E_3_cm, kin.gamma_cm, kin.beta_cm );
-  kin.phi_lab   = ThetaCM2PhiLab( kin.theta_cm, kin.p_34_cm,
-				  kin.E_4_cm, kin.gamma_cm, kin.beta_cm );
+  kin.theta_lab = ThetaCM2ThetaLab(kin.theta_cm, kin.p_34_cm,
+				    kin.E_3_cm, kin.gamma_cm, kin.beta_cm);
+  kin.phi_lab   = ThetaCM2PhiLab(kin.theta_cm, kin.p_34_cm,
+				  kin.E_4_cm, kin.gamma_cm, kin.beta_cm);
 
   //    std::cout<<"------------------------------------------"<<std::endl;
   //    std::cout<<"2body inside, theta_lab 1 2:"<<kin.theta_lab<<":"<<kin.phi_lab<<std::endl;
@@ -203,12 +203,12 @@ Kinema2Body::CalcKinema( void )
   double p_lab_z,p_lab_xy;
 
   p_lab_z = kin.beta_cm * kin.gamma_cm * kin.E_3_cm +
-    kin.gamma_cm * kin.p_34_cm * cos( TMath::DegToRad()*kin.theta_cm );
-  p_lab_xy = kin.p_34_cm * sin( TMath::DegToRad()*kin.theta_cm );
+    kin.gamma_cm * kin.p_34_cm * cos(TMath::DegToRad()*kin.theta_cm);
+  p_lab_xy = kin.p_34_cm * sin(TMath::DegToRad()*kin.theta_cm);
   kin.p_3_lab = sqrt(pow(p_lab_z,2.0) + pow(p_lab_xy,2.0));
 
 
-  p_lab_z = kin.beta_cm * kin.gamma_cm * kin.E_4_cm - kin.gamma_cm * kin.p_34_cm * cos( TMath::DegToRad()*kin.theta_cm );
+  p_lab_z = kin.beta_cm * kin.gamma_cm * kin.E_4_cm - kin.gamma_cm * kin.p_34_cm * cos(TMath::DegToRad()*kin.theta_cm);
   kin.p_4_lab = sqrt(pow(p_lab_z,2.0) + pow(-p_lab_xy,2.0));
 
   kin.E_3_lab = p2E(kin.p_3_lab,kin.M_3);
@@ -225,32 +225,32 @@ Kinema2Body::CalcKinema( void )
 
 //_____________________________________________________________________________
 double
-Kinema2Body::p2E( double p, double m ) const
+Kinema2Body::p2E(double p, double m) const
 {
-  return sqrt( p*p + m*m );
+  return sqrt(p*p + m*m);
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::E2p( double E, double m ) const
+Kinema2Body::E2p(double E, double m) const
 {
-  if( E*E - m*m < 0.000000001 )
+  if(E*E - m*m < 0.000000001)
     return 0.0;
   else
-    return sqrt( E*E - m*m );
+    return sqrt(E*E - m*m);
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::pE2beta( double p, double E, double m_2 ) const
+Kinema2Body::pE2beta(double p, double E, double m_2) const
 {
-  return p/( E + m_2 );
+  return p/(E + m_2);
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::pE2beta( double p1, double E1, double /* m1 */,
-		      double p2, double E2, double /* m2 */ ) const
+Kinema2Body::pE2beta(double p1, double E1, double /* m1 */,
+		      double p2, double E2, double /* m2 */) const
 {
   //move --> it is correct
   //Ecm=sqrt((E1+E2)^2-(p1+p2)^2)
@@ -272,27 +272,13 @@ Kinema2Body::pE2beta( double p1, double E1, double /* m1 */,
 
 //_____________________________________________________________________________
 double
-Kinema2Body::Theta2ThetaCM( double theta,double p,double E,
-			    double kin_gamma, double beta ) const
+Kinema2Body::Theta2ThetaCM(double theta,double p,double E,
+			    double kin_gamma, double beta) const
 {
   double value = TMath::RadToDeg() *
-    TMath::ATan( p*sin( TMath::DegToRad()*theta ) /
-		 ( -kin_gamma*beta*E +
-		   kin_gamma*p*cos( TMath::DegToRad()*theta ) ) );
-  if ( value < 0.0 )
-    value = value + 180.0;
-  return value;
-}
-
-//_____________________________________________________________________________
-double
-Kinema2Body::ThetaCM2ThetaLab( double theta, double p, double E,
-			       double gamma_cm, double beta_cm ) const
-{
-  double value = TMath::RadToDeg() *
-    TMath::ATan( p*sin( TMath::DegToRad()*theta ) /
-		 ( beta_cm*gamma_cm*E +
-		   gamma_cm*p*cos( TMath::DegToRad()*theta ) ) );
+    TMath::ATan(p*sin(TMath::DegToRad()*theta) /
+		 (-kin_gamma*beta*E +
+		   kin_gamma*p*cos(TMath::DegToRad()*theta)));
   if (value < 0.0)
     value = value + 180.0;
   return value;
@@ -300,13 +286,27 @@ Kinema2Body::ThetaCM2ThetaLab( double theta, double p, double E,
 
 //_____________________________________________________________________________
 double
-Kinema2Body::ThetaCM2PhiLab( double theta, double p, double E,
-			     double gamma_cm, double beta_cm ) const
+Kinema2Body::ThetaCM2ThetaLab(double theta, double p, double E,
+			       double gamma_cm, double beta_cm) const
 {
   double value = TMath::RadToDeg() *
-    TMath::ATan( p*sin( TMath::DegToRad()*theta ) /
-		 ( beta_cm*gamma_cm*E -
-		   gamma_cm*p*cos( TMath::DegToRad()*theta ) ) );
+    TMath::ATan(p*sin(TMath::DegToRad()*theta) /
+		 (beta_cm*gamma_cm*E +
+		   gamma_cm*p*cos(TMath::DegToRad()*theta)));
+  if (value < 0.0)
+    value = value + 180.0;
+  return value;
+}
+
+//_____________________________________________________________________________
+double
+Kinema2Body::ThetaCM2PhiLab(double theta, double p, double E,
+			     double gamma_cm, double beta_cm) const
+{
+  double value = TMath::RadToDeg() *
+    TMath::ATan(p*sin(TMath::DegToRad()*theta) /
+		 (beta_cm*gamma_cm*E -
+		   gamma_cm*p*cos(TMath::DegToRad()*theta)));
   if (value < 0.0)
     value = value + 180.0;
   return value;
@@ -314,7 +314,7 @@ Kinema2Body::ThetaCM2PhiLab( double theta, double p, double E,
 
 //_____________________________________________________________________________
 void
-Kinema2Body::Dump( void ) const
+Kinema2Body::Dump() const
 {
   printf("===theta_cm:%f===\n",kin.theta_cm);
   printf("E_1_cm:%f p_1_cm:%f\n",kin.E_1_cm,kin.p_12_cm);
@@ -334,7 +334,7 @@ Kinema2Body::Dump( void ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetMomentumLab( int i ) const
+Kinema2Body::GetMomentumLab(int i) const
 {
   switch (i) {
   case 1:
@@ -357,7 +357,7 @@ Kinema2Body::GetMomentumLab( int i ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetTheta( int i ) const
+Kinema2Body::GetTheta(int i) const
 {
   switch (i) {
   case 1:
@@ -374,7 +374,7 @@ Kinema2Body::GetTheta( int i ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetEnergyLab( int i ) const
+Kinema2Body::GetEnergyLab(int i) const
 {
   switch (i) {
   case 1:
@@ -397,7 +397,7 @@ Kinema2Body::GetEnergyLab( int i ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetMomentumCM( int i ) const
+Kinema2Body::GetMomentumCM(int i) const
 {
   switch (i) {
   case 1:
@@ -420,7 +420,7 @@ Kinema2Body::GetMomentumCM( int i ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetEnergyCM( int i ) const
+Kinema2Body::GetEnergyCM(int i) const
 {
   switch (i) {
   case 1:
@@ -443,28 +443,28 @@ Kinema2Body::GetEnergyCM( int i ) const
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetThetaLab( void ) const
+Kinema2Body::GetThetaLab() const
 {
   return kin.theta_lab;
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetPhiLab( void ) const
+Kinema2Body::GetPhiLab() const
 {
   return kin.phi_lab;
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetThetaCM( void ) const
+Kinema2Body::GetThetaCM() const
 {
   return kin.theta_cm;
 }
 
 //_____________________________________________________________________________
 double
-Kinema2Body::GetMass( int i ) const
+Kinema2Body::GetMass(int i) const
 {
   switch (i) {
   case 1:

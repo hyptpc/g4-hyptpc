@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-#include "TPCPrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
 
 #include <G4Event.hh>
 #include <G4IonConstructor.hh>
@@ -13,10 +13,13 @@
 #include <G4UImanager.hh>
 #include <Randomize.hh>
 
+#include "AnaManager.hh"
+#include "AngDisGenerator.hh"
 #include "ConfMan.hh"
 #include "DCGeomMan.hh"
 #include "DetSizeMan.hh"
 #include "FuncName.hh"
+#include "GeneratorHelper.hh"
 #include "Kinema3Resonance.hh"
 #include "KinemaHResonance.hh"
 #include "Kinema3Body.hh"
@@ -25,26 +28,23 @@
 #include "KinemaHweak.hh"
 #include "KinemaFermi.hh"
 #include "KinemaKstar.hh"
-#include "GeneratorHelper.hh"
-#include "AngDisGenerator.hh"
-#include "TPCAnaManager.hh"
 
 namespace
 {
-  using CLHEP::mm;
-  using CLHEP::GeV;
-  TPCAnaManager& gAnaMan = TPCAnaManager::GetInstance();
-  const int MaxTry = 1000;
-  const double AtomicMassUnit = 0.9314932;
-  const auto& gConf = ConfMan::GetInstance();
-  const auto& gGeom = DCGeomMan::GetInstance();
-  const auto& gSize = DetSizeMan::GetInstance();
+using CLHEP::mm;
+using CLHEP::GeV;
+auto& gAnaMan = AnaManager::GetInstance();
+const int MaxTry = 1000;
+const double AtomicMassUnit = 0.9314932;
+const auto& gConf = ConfMan::GetInstance();
+const auto& gGeom = DCGeomMan::GetInstance();
+const auto& gSize = DetSizeMan::GetInstance();
 }
 
 //_____________________________________________________________________________
 // reactio No #2701 pi+ beam through
 void
-TPCPrimaryGeneratorAction::GenerateE27BeamThrough( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27BeamThrough(G4Event* anEvent)
 {
   //  G4double  momk[3], mom[3],momkn[3];
   //  G4double rmk=0.493677;
@@ -56,8 +56,8 @@ TPCPrimaryGeneratorAction::GenerateE27BeamThrough( G4Event* anEvent )
   //  kaonMinus = particleTable->FindParticle("kaon-");
   //kaonMinus = particleTable->FindParticle("pi-");
   pionPlus = particleTable->FindParticle("pi+");
-  G4double pbeam = CLHEP::RandGauss::shoot( gConf.Get<G4double>("BeamMom"),
-					    0.01294*gConf.Get<G4double>("BeamMom") );
+  G4double pbeam = CLHEP::RandGauss::shoot(gConf.Get<G4double>("BeamMom"),
+                                           0.01294*gConf.Get<G4double>("BeamMom"));
   //  pbeam=CLHEP::RandGauss::shoot(env_Beam_mom,env_Beam_mom*3.3*0.0001/2.3548);
   //  pbeam=1.8;
   mom_pip_x=0;
@@ -75,8 +75,8 @@ TPCPrimaryGeneratorAction::GenerateE27BeamThrough( G4Event* anEvent )
 
   G4double vtx = CLHEP::RandGauss::shoot(0,10.)*mm;
   G4double vty = CLHEP::RandFlat::shoot(0.,3.2)*mm;
-  G4double vtz = gSize.Get("Target", ThreeVector::Z );
-  //G4double vtz= CLHEP::RandFlat::shoot(m_particle_gun->Get_env_target_pos_z()-gSize.Get( "Target", ThreeVector::Z )/2,m_particle_gun->Get_env_target_pos_z()+gSize.Get( "Target", ThreeVector::Z )/2)*mm-250.*mm;
+  G4double vtz = gSize.Get("Target", ThreeVector::Z);
+  //G4double vtz= CLHEP::RandFlat::shoot(m_particle_gun->Get_env_target_pos_z()-gSize.Get("Target", ThreeVector::Z)/2,m_particle_gun->Get_env_target_pos_z()+gSize.Get("Target", ThreeVector::Z)/2)*mm-250.*mm;
   std::cout<<"pbeam = "<<pbeam<<std::endl;
   //getchar();
   //beam pi+
@@ -94,7 +94,7 @@ TPCPrimaryGeneratorAction::GenerateE27BeamThrough( G4Event* anEvent )
 //_____________________________________________________________________________
 //reactio No #2702 K+ gun for test
 void
-TPCPrimaryGeneratorAction::GenerateE27Kptest( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27Kptest(G4Event* anEvent)
 {
   //  G4double  momk[3], mom[3],momkn[3];
   //  G4double rmk=0.493677;
@@ -106,7 +106,7 @@ TPCPrimaryGeneratorAction::GenerateE27Kptest( G4Event* anEvent )
   //  kaonMinus = particleTable->FindParticle("kaon-");
   //kaonMinus = particleTable->FindParticle("pi-");
   KaonPlus = particleTable->FindParticle("kaon+");
-  G4double pbeam=CLHEP::RandGauss::shoot(gConf.Get<G4double>( "BeamMom" ),0.01294*gConf.Get<G4double>( "BeamMom" ));
+  G4double pbeam=CLHEP::RandGauss::shoot(gConf.Get<G4double>("BeamMom"),0.01294*gConf.Get<G4double>("BeamMom"));
   //  pbeam=CLHEP::RandGauss::shoot(env_Beam_mom,env_Beam_mom*3.3*0.0001/2.3548);
   //  pbeam=1.8;
   mom_Kp_x=0;
@@ -127,8 +127,8 @@ TPCPrimaryGeneratorAction::GenerateE27Kptest( G4Event* anEvent )
 
   G4double vtx = 0.*mm;
   G4double vty = 0.*mm;
-  //  G4double vtz= CLHEP::RandFlat::shoot(gGeom.GetGlobalPosition( "Target" ).z()-gSize.Get( "Target", ThreeVector::Z )/2,gGeom.GetGlobalPosition( "Target" ).z()+gSize.Get( "Target", ThreeVector::Z )/2)*mm-250.*mm;
-  G4double vtz= gGeom.GetGlobalPosition( "Target" ).z();
+  //  G4double vtz= CLHEP::RandFlat::shoot(gGeom.GetGlobalPosition("Target").z()-gSize.Get("Target", ThreeVector::Z)/2,gGeom.GetGlobalPosition("Target").z()+gSize.Get("Target", ThreeVector::Z)/2)*mm-250.*mm;
+  G4double vtz= gGeom.GetGlobalPosition("Target").z();
   std::cout<<"pbeam = "<<pbeam<<std::endl;
   // getchar();
   //scat K+
@@ -146,7 +146,7 @@ TPCPrimaryGeneratorAction::GenerateE27Kptest( G4Event* anEvent )
 //_____________________________________________________________________________
 //reactio No #2703 pi+ d -> K+ K-pp, K-pp -> Lambda p reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27KppFLambdaP( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27KppFLambdaP(G4Event* anEvent)
 {
   G4double Mi1=G4PionPlus::Definition()->GetPDGMass();
   G4double Mi2=G4Deuteron::Definition()->GetPDGMass();
@@ -159,24 +159,24 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaP( G4Event* anEvent )
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   G4double Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
@@ -195,34 +195,34 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaP( G4Event* anEvent )
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetaK = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"thetaK= " <<thetaK <<G4endl;
-       if(thetaK<20.){
-       status2=Decay2Body( Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2 );
-       if(status2 == true)
-	 break;
-       else
-	 std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
-     if(gConf.Get<G4double>( "BeamMom" )!=0.)
-       dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
-     pb += dpb;
-     Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
+    if(status ==true){
+      thetaK = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"thetaK= " <<thetaK <<G4endl;
+      if(thetaK<20.){
+        status2=Decay2Body(Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
+    if(gConf.Get<G4double>("BeamMom")!=0.)
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    pb += dpb;
+    Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
   }
 
 
@@ -284,7 +284,7 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaP( G4Event* anEvent )
 //_____________________________________________________________________________
 // reactio No #2704 pi+ d -> K+ K-pp, K-pp -> SigmaZ p reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
 {
   G4double Mi1=G4PionPlus::Definition()->GetPDGMass();
   G4double Mi2=G4Deuteron::Definition()->GetPDGMass();
@@ -297,24 +297,24 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   G4double Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
@@ -333,35 +333,35 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetaK = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"thetaK= " <<thetaK <<G4endl;
-       if(thetaK<20.){
+    if(status ==true){
+      thetaK = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"thetaK= " <<thetaK <<G4endl;
+      if(thetaK<20.){
 
-	 status2=Decay2Body( Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2 );
-	 if(status2 == true)
-	   break;
-	 else
-	   std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
-     if(gConf.Get<G4double>( "BeamMom" )!=0.)
-       dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
-     pb += dpb;
-     Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
+        status2=Decay2Body(Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
+    if(gConf.Get<G4double>("BeamMom")!=0.)
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    pb += dpb;
+    Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
   }
 
   double theta_scat;
@@ -418,7 +418,7 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
 //_____________________________________________________________________________
 // reactio No #2705 pi+ d -> K+ K-pp, K-pp -> Lambda piz p reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27KppFLambdaPizP( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27KppFLambdaPizP(G4Event* anEvent)
 {
   G4double Mi1=G4PionPlus::Definition()->GetPDGMass();
   G4double Mi2=G4Deuteron::Definition()->GetPDGMass();
@@ -432,24 +432,24 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaPizP( G4Event* anEvent )
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   G4double Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
@@ -468,35 +468,35 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaPizP( G4Event* anEvent )
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetaK = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"thetaK= " <<thetaK <<G4endl;
-       if(thetaK<20.){
+    if(status ==true){
+      thetaK = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"thetaK= " <<thetaK <<G4endl;
+      if(thetaK<20.){
 
-	 status2=Decay3BodyPhaseSpace( Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
-	 if(status2 == true)
-	   break;
-	 else
-	   std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
-     if(gConf.Get<G4double>( "BeamMom" )!=0.)
-       dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
-     pb += dpb;
-     Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
+        status2=Decay3BodyPhaseSpace(Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
+    if(gConf.Get<G4double>("BeamMom")!=0.)
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    pb += dpb;
+    Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
   }
 
   double theta_scat;
@@ -561,7 +561,7 @@ TPCPrimaryGeneratorAction::GenerateE27KppFLambdaPizP( G4Event* anEvent )
 //_____________________________________________________________________________
 // reactio No #2706 pi+ d -> K+ K-pp, K-pp -> SigmaZ piz p reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZPizP( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27KppFSigmaZPizP(G4Event* anEvent)
 {
   G4double Mi1=G4PionPlus::Definition()->GetPDGMass();
   G4double Mi2=G4Deuteron::Definition()->GetPDGMass();
@@ -575,24 +575,24 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZPizP( G4Event* anEvent )
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   G4double Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
@@ -611,35 +611,35 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZPizP( G4Event* anEvent )
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetaK = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"thetaK= " <<thetaK <<G4endl;
-       if(thetaK<20.){
+    if(status ==true){
+      thetaK = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"thetaK= " <<thetaK <<G4endl;
+      if(thetaK<20.){
 
-	 status2=Decay3BodyPhaseSpace( Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
-	 if(status2 == true)
-	   break;
-	 else
-	   std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
-     if(gConf.Get<G4double>( "BeamMom" )!=0.)
-       dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
-     pb += dpb;
-     Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
+        status2=Decay3BodyPhaseSpace(Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
+    if(gConf.Get<G4double>("BeamMom")!=0.)
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    pb += dpb;
+    Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
   }
 
   double theta_scat;
@@ -704,7 +704,7 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaZPizP( G4Event* anEvent )
 //_____________________________________________________________________________
 // reactio No #2707 pi+ d -> K+ K-pp, K-pp -> SigmaP pim p reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27KppFSigmaPPimP( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27KppFSigmaPPimP(G4Event* anEvent)
 {
   G4double Mi1=G4PionPlus::Definition()->GetPDGMass();
   G4double Mi2=G4Deuteron::Definition()->GetPDGMass();
@@ -718,24 +718,24 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaPPimP( G4Event* anEvent )
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   G4double Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
@@ -754,35 +754,35 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaPPimP( G4Event* anEvent )
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetaK = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"thetaK= " <<thetaK <<G4endl;
-       if(thetaK<20.){
+    if(status ==true){
+      thetaK = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"thetaK= " <<thetaK <<G4endl;
+      if(thetaK<20.){
 
-	 status2=Decay3BodyPhaseSpace( Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
-	 if(status2 == true)
-	   break;
-	 else
-	   std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
-     if(gConf.Get<G4double>( "BeamMom" )!=0.)
-       dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
-     pb += dpb;
-     Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
+        status2=Decay3BodyPhaseSpace(Mm1, Mf2, Mf3, Mf4, LPm1, LPf2, LPf3, LPf4);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
+    if(gConf.Get<G4double>("BeamMom")!=0.)
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    pb += dpb;
+    Mm1 = BreitWigner(2.275, 0.162)*GeV; //E27
   }
 
   double theta_scat;
@@ -847,7 +847,7 @@ TPCPrimaryGeneratorAction::GenerateE27KppFSigmaPPimP( G4Event* anEvent )
 //_____________________________________________________________________________
 // reactio No #2708 K- 12C -> p 11KB, 11KB -> Lambda 10Be reaction
 void
-TPCPrimaryGeneratorAction::GenerateE27K11BLambda10Be( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27K11BLambda10Be(G4Event* anEvent)
 {
   G4double Mi1=G4KaonPlus::Definition()->GetPDGMass();
   G4double Mi2=12.*AtomicMassUnit*GeV;//12C
@@ -860,24 +860,24 @@ TPCPrimaryGeneratorAction::GenerateE27K11BLambda10Be( G4Event* anEvent )
   // G4double Mn=G4Neutron::Definition()->GetPDGMass();
   // G4double Mpiz=G4PionZero::Definition()->GetPDGMass();
 
-  G4ThreeVector LPos = GaussPosition_LqTarg( gConf.Get<G4double>( "BeamX0" ),
-					     gConf.Get<G4double>( "BeamY0" ),
-					     gGeom.GetGlobalPosition( "Target" ).z(),
-					     gConf.Get<G4double>( "BeamDX" ),
-					     gConf.Get<G4double>( "BeamDY" ),
-					     gSize.Get( "Target", ThreeVector::X ),
-					     gSize.Get( "Target", ThreeVector::Z ));
+  G4ThreeVector LPos = GaussPosition_LqTarg(gConf.Get<G4double>("BeamX0"),
+                                            gConf.Get<G4double>("BeamY0"),
+                                            gGeom.GetGlobalPosition("Target").z(),
+                                            gConf.Get<G4double>("BeamDX"),
+                                            gConf.Get<G4double>("BeamDY"),
+                                            gSize.Get("Target", ThreeVector::X),
+                                            gSize.Get("Target", ThreeVector::Z));
   //Note!! env_target_width = Target_Size_z (height of target)
 
-  G4ThreeVector LBeamDir =  GaussDirectionInUV( gConf.Get<G4double>( "BeamU0" ),
-						gConf.Get<G4double>( "BeamV0" ),
-						gConf.Get<G4double>( "BeamDU" ),
-						gConf.Get<G4double>( "BeamDV" ));
+  G4ThreeVector LBeamDir =  GaussDirectionInUV(gConf.Get<G4double>("BeamU0"),
+                                               gConf.Get<G4double>("BeamV0"),
+                                               gConf.Get<G4double>("BeamDU"),
+                                               gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>( "BeamMom" )*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
   G4double dpb = 0.;
-  if(gConf.Get<G4double>( "BeamMom" )!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>( "BeamWidth" ))*GeV;
+  if(gConf.Get<G4double>("BeamMom")!=0.)
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
   pb += dpb;
 
   double Boron11Mass = 11.0093054 * AtomicMassUnit*GeV;
@@ -899,39 +899,39 @@ TPCPrimaryGeneratorAction::GenerateE27K11BLambda10Be( G4Event* anEvent )
   G4int n=0;
   while(1){
     if(++n>MaxTry){
-      G4Exception( FUNC_NAME,
-		   "Production under threshold",
-		   RunMustBeAborted,
-		   "Production under Threshold!!" );
-     }
+      G4Exception(FUNC_NAME,
+                  "Production under threshold",
+                  RunMustBeAborted,
+                  "Production under Threshold!!");
+    }
 
-    status=Scattering2Body_theta( Mi1, Mi2, Mf1, Mm1,
-				  pb*LBeamDir,LPini2,
-				  LPf1, LPm1,theta_CM, gen1 );
+    status=Scattering2Body_theta(Mi1, Mi2, Mf1, Mm1,
+                                 pb*LBeamDir,LPini2,
+                                 LPf1, LPm1,theta_CM, gen1);
     theta_CM = theta_CM*(180./(acos(-1.)));
 
-     if(status ==true){
-       thetap = LPf1.theta()*(180./(acos(-1.)));
-       G4cout<<"theta p= " <<thetap <<G4endl;
-       if(thetap<20.){
-       status2=Decay2Body( Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2 );
-       if(status2 == true)
-	 break;
-       else
-	 std::cout<<"Mm1="<<Mm1<<std::endl;
-       }
-     }
-     pb = gConf.Get<G4double>( "BeamMom" )*GeV;
-     dpb = 0.;
+    if(status ==true){
+      thetap = LPf1.theta()*(180./(acos(-1.)));
+      G4cout<<"theta p= " <<thetap <<G4endl;
+      if(thetap<20.){
+        status2=Decay2Body(Mm1, Mf2, Mf3, LPm1, LPf2, LPf3, gen2);
+        if(status2 == true)
+          break;
+        else
+          std::cout<<"Mm1="<<Mm1<<std::endl;
+      }
+    }
+    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    dpb = 0.;
 
 
-     if( gConf.Get<G4double>( "BeamWidth" ) != 0. ){
-       dpb = G4RandGauss::shoot( 0., gConf.Get<G4double>( "BeamWidth" ) )*GeV ;
-     }
-     pb += dpb;
+    if(gConf.Get<G4double>("BeamWidth") != 0.){
+      dpb = G4RandGauss::shoot(0., gConf.Get<G4double>("BeamWidth"))*GeV ;
+    }
+    pb += dpb;
 
-     Mm1 = BreitWigner(Boron11Mass + MK - 132.5
-		       , 183.); //J. Yamagata et al.,
+    Mm1 = BreitWigner(Boron11Mass + MK - 132.5
+                      , 183.); //J. Yamagata et al.,
   }
 
 
@@ -1003,7 +1003,7 @@ TPCPrimaryGeneratorAction::GenerateE27K11BLambda10Be( G4Event* anEvent )
 //_____________________________________________________________________________
 // reactio No #2709 K+ gun for test
 void
-TPCPrimaryGeneratorAction::GenerateE27Kptest2( G4Event* anEvent )
+PrimaryGeneratorAction::GenerateE27Kptest2(G4Event* anEvent)
 {
   int nev = anEvent->GetEventID();
   G4double pbeam;
@@ -1016,7 +1016,7 @@ TPCPrimaryGeneratorAction::GenerateE27Kptest2( G4Event* anEvent )
   // G4double Maxang = 30.;
   // G4double cost = cos(Maxang*G4UniformRand()*acos(-1.)/180.);
   G4double cost = cos(0.*acos(-1.)/180.);
-  G4double sint =sqrt( 1.0 - cost *cost);
+  G4double sint =sqrt(1.0 - cost *cost);
   //G4double phi = 360.*(0.5-G4UniformRand())*degree;
   G4double phi = 0.;
 
@@ -1052,8 +1052,8 @@ TPCPrimaryGeneratorAction::GenerateE27Kptest2( G4Event* anEvent )
 
   G4double vtx = 0.*mm;
   G4double vty = 0.*mm;
-  //  G4double vtz= CLHEP::RandFlat::shoot(gGeom.GetGlobalPosition( "Target" ).z()-gSize.Get( "Target", ThreeVector::Z )/2,gGeom.GetGlobalPosition( "Target" ).z()+gSize.Get( "Target", ThreeVector::Z )/2)*mm-250.*mm;
-  G4double vtz= gGeom.GetGlobalPosition( "Target" ).z();
+  //  G4double vtz= CLHEP::RandFlat::shoot(gGeom.GetGlobalPosition("Target").z()-gSize.Get("Target", ThreeVector::Z)/2,gGeom.GetGlobalPosition("Target").z()+gSize.Get("Target", ThreeVector::Z)/2)*mm-250.*mm;
+  G4double vtz= gGeom.GetGlobalPosition("Target").z();
   std::cout<<"pbeam = "<<pbeam<<std::endl;
   // getchar();
   //scat K+

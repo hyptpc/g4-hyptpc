@@ -10,7 +10,7 @@
 
 const char * const device = "/dev/random";
 
-int GetIntFromKernelEntropyPool( void )
+int GetIntFromKernelEntropyPool()
 {
   int fd=open(device,O_RDONLY);
   if(fd==-1)
@@ -22,7 +22,7 @@ int GetIntFromKernelEntropyPool( void )
   return ret;
 }
 
-short GetShortFromKernelEntropyPool( void )
+short GetShortFromKernelEntropyPool()
 {
   int fd=open(device,O_RDONLY);
   if(fd==-1)
@@ -34,7 +34,7 @@ short GetShortFromKernelEntropyPool( void )
   return ret;
 }
 
-long GetLongFromKernelEntropyPool( void )
+long GetLongFromKernelEntropyPool()
 {
   int fd=open(device,O_RDONLY);
   if(fd==-1)

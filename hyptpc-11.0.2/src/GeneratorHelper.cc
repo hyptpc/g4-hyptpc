@@ -24,12 +24,12 @@
 
 namespace
 {
-  using CLHEP::GeV;
+using CLHEP::GeV;
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-UniformDirectionInUV( double u0, double v0, double hu, double hv )
+UniformDirectionInUV(double u0, double v0, double hu, double hv)
 {
   double du=0.,dv=0.;
   if(hu!=0.0) du=(G4UniformRand()-0.5)*hu;
@@ -38,12 +38,12 @@ UniformDirectionInUV( double u0, double v0, double hu, double hv )
   double u=u0+du, v=v0+dv;
   double ninv=1./sqrt(1.+u*u+v*v);
 
-  return G4ThreeVector( u*ninv, v*ninv, ninv );
+  return G4ThreeVector(u*ninv, v*ninv, ninv);
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-GaussDirectionInUV( double u0, double v0, double su, double sv )
+GaussDirectionInUV(double u0, double v0, double su, double sv)
 {
   double du=0.,dv=0.;
   if(su!=0.0) du=G4RandGauss::shoot(0.0,su);
@@ -52,37 +52,37 @@ GaussDirectionInUV( double u0, double v0, double su, double sv )
   double u=u0+du, v=v0+dv;
   double ninv=1./sqrt(1.+u*u+v*v);
 
-  return G4ThreeVector( u*ninv, v*ninv, ninv );
+  return G4ThreeVector(u*ninv, v*ninv, ninv);
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-UniformPosition( double hx, double hy, double hz )
+UniformPosition(double hx, double hy, double hz)
 {
   double x=0., y=0., z=0.;
   if(hx!=0.0) x+=(G4UniformRand()-0.5)*hx;
   if(hy!=0.0) y+=(G4UniformRand()-0.5)*hy;
   if(hz!=0.0) z+=(G4UniformRand()-0.5)*hz;
 
-  return G4ThreeVector( x, y, z );
+  return G4ThreeVector(x, y, z);
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-GaussPosition( double sx, double sy, double hz )
+GaussPosition(double sx, double sy, double hz)
 {
   double x=0., y=0., z=0.;
   if(sx!=0.0) x+=G4RandGauss::shoot(0.0,sx);;
   if(sy!=0.0) y+=G4RandGauss::shoot(0.0,sy);;
   if(hz!=0.0) z+=(G4UniformRand()-0.5)*hz;
 
-  return G4ThreeVector( x, y, z );
+  return G4ThreeVector(x, y, z);
 }
 
 //_____________________________________________________________________________
 G4ThreeVector
-GaussPosition_LqTarg( double x0, double y0, double z0,
-		      double dx, double dy, double targ_r, double targ_height)
+GaussPosition_LqTarg(double x0, double y0, double z0,
+                     double dx, double dy, double targ_r, double targ_height)
 {
   double x=0., y=0., z=0.;
   int ntry=0;
@@ -106,12 +106,12 @@ GaussPosition_LqTarg( double x0, double y0, double z0,
       ++ntry;
   }
   z+=z0;
-  return G4ThreeVector( x, y, z );
+  return G4ThreeVector(x, y, z);
 }
 
 //_____________________________________________________________________________
 double
-BreitWigner( double mean, double gamma )
+BreitWigner(double mean, double gamma)
 {
   double r=G4UniformRand()-0.5;
   return mean+0.5*gamma*tan(acos(-1.)*r);
@@ -119,10 +119,10 @@ BreitWigner( double mean, double gamma )
 
 //_____________________________________________________________________________
 bool
-Decay2Body( double Mini, double Mf1, double Mf2,
-	    const G4ThreeVector & Pini,
-	    G4ThreeVector & Pf1,  G4ThreeVector & Pf2,
-	    const AngDisGenerator & generator )
+Decay2Body(double Mini, double Mf1, double Mf2,
+           const G4ThreeVector & Pini,
+           G4ThreeVector & Pf1,  G4ThreeVector & Pf2,
+           const AngDisGenerator & generator)
 {
   if(Mini<Mf1+Mf2){
     std::cerr << "Mini < Mf1+Mf2 Mini=" << Mini/GeV << "GeV/c2 "
@@ -131,7 +131,7 @@ Decay2Body( double Mini, double Mf1, double Mf2,
     return false;
   }
 
-  G4ThreeVector beta( Pini/sqrt(Mini*Mini+Pini.mag2()) );
+  G4ThreeVector beta(Pini/sqrt(Mini*Mini+Pini.mag2()));
 
   double Ecmf1=(Mini*Mini-Mf2*Mf2+Mf1*Mf1)/Mini*0.5;
   double Ecmf2=(Mini*Mini-Mf1*Mf1+Mf2*Mf2)/Mini*0.5;
@@ -140,7 +140,7 @@ Decay2Body( double Mini, double Mf1, double Mf2,
 
   G4ThreeVector UnitDir=generator.GenerateDirection();
 
-  UnitDir.rotateUz( Pini.unit() );
+  UnitDir.rotateUz(Pini.unit());
 
   //  std::cout << "UnitDir=" << UnitDir << " Pini.unit()="
   //	    << Pini.unit() << std::endl;
@@ -149,7 +149,7 @@ Decay2Body( double Mini, double Mf1, double Mf2,
   G4ThreeVector Pcmf1 =  Pcm*UnitDir;
   G4ThreeVector Pcmf2 = -Pcm*UnitDir;
 
-  G4LorentzVector LVf1( Pcmf1, Ecmf1), LVf2( Pcmf2, Ecmf2 );
+  G4LorentzVector LVf1(Pcmf1, Ecmf1), LVf2(Pcmf2, Ecmf2);
 
   LVf1.boost(beta); Pf1=LVf1.vect();
   LVf2.boost(beta); Pf2=LVf2.vect();
@@ -163,13 +163,13 @@ Decay2Body( double Mini, double Mf1, double Mf2,
 
 //_____________________________________________________________________________
 bool
-Scattering2Body_theta( double Mi1, double Mi2, double Mf1, double Mf2,
-		       const G4ThreeVector & Pini1,const G4ThreeVector & Pini2,
-		       G4ThreeVector & Pf1,  G4ThreeVector & Pf2,
-		       double & theta_CM,
-		       const AngDisGenerator & generator )
+Scattering2Body_theta(double Mi1, double Mi2, double Mf1, double Mf2,
+                      const G4ThreeVector & Pini1,const G4ThreeVector & Pini2,
+                      G4ThreeVector & Pf1,  G4ThreeVector & Pf2,
+                      double & theta_CM,
+                      const AngDisGenerator & generator)
 {
- //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;
+  //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;
   TLorentzVector Pini1_lv ;
   TLorentzVector Pini2_lv ;
   TLorentzVector Pf1_lv  ;
@@ -218,7 +218,7 @@ Scattering2Body_theta( double Mi1, double Mi2, double Mf1, double Mf2,
 
     //G4cout<<"dist_func"<<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())<<G4endl;
     //G4cout<<"ooooooooo"<<Mf2<<"oooooooooooo"<<G4endl;
-    if( y<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())){
+    if(y<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())){
       //G4cout<<" coscsos== "<<Pf1_cm_lv.Vect().CosTheta()<<G4endl;
       break;
     }
@@ -228,7 +228,7 @@ Scattering2Body_theta( double Mi1, double Mi2, double Mf1, double Mf2,
   //G4cout<<"gen-----pf1_y =="<< (Pf1_lv.Vect()).Y() <<G4endl;
   //G4cout<<"gen-----pf1_z =="<< (Pf1_lv.Vect()).Z() <<G4endl;
   //G4cout<<"gen-----pf1_e =="<< Pf1_lv.E() <<G4endl;
-  //G4cout<<"gen-----missing =="<< (Pini1_lv + Pini2_lv + Pf1_lv *(-1)  ).Mag() <<G4endl;
+  //G4cout<<"gen-----missing =="<< (Pini1_lv + Pini2_lv + Pf1_lv *(-1) ).Mag() <<G4endl;
 
   theta_CM = Pf1_cm_lv.Vect().Theta();
   //std::cout<<"theta_CM _generator="<<theta_CM<<std::endl;
@@ -243,12 +243,12 @@ Scattering2Body_theta( double Mi1, double Mi2, double Mf1, double Mf2,
 
 //_____________________________________________________________________________
 bool
-Scattering3Body_theta( double Mi1, double Mi2,
-		       double Mf1, double Mf2,double Mf3,
-		       const G4ThreeVector & Pini1,const G4ThreeVector & Pini2,
-		       G4ThreeVector & Pf1,
-		       G4ThreeVector & Pf2, G4ThreeVector &Pf3,
-		       double & theta_CM, const AngDisGenerator& )
+Scattering3Body_theta(double Mi1, double Mi2,
+                      double Mf1, double Mf2,double Mf3,
+                      const G4ThreeVector & Pini1,const G4ThreeVector & Pini2,
+                      G4ThreeVector & Pf1,
+                      G4ThreeVector & Pf2, G4ThreeVector &Pf3,
+                      double & theta_CM, const AngDisGenerator&)
 {
   //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;
   TLorentzVector Pini1_lv ;
@@ -308,7 +308,7 @@ Scattering3Body_theta( double Mi1, double Mi2,
 
     //G4cout<<"dist_func"<<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())<<G4endl;
     //G4cout<<"ooooooooo"<<Mf2<<"oooooooooooo"<<G4endl;
-    //if( y<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())){
+    //if(y<generator.GetDfuncVal(Pf1_cm_lv.Vect().CosTheta())){
     //G4cout<<" coscsos== "<<Pf1_cm_lv.Vect().CosTheta()<<G4endl;
     //break;
     //}
@@ -318,7 +318,7 @@ Scattering3Body_theta( double Mi1, double Mi2,
   //G4cout<<"gen-----pf1_y =="<< (Pf1_lv.Vect()).Y() <<G4endl;
   //G4cout<<"gen-----pf1_z =="<< (Pf1_lv.Vect()).Z() <<G4endl;
   //G4cout<<"gen-----pf1_e =="<< Pf1_lv.E() <<G4endl;
-  //G4cout<<"gen-----missing =="<< (Pini1_lv + Pini2_lv + Pf1_lv *(-1)  ).Mag() <<G4endl;
+  //G4cout<<"gen-----missing =="<< (Pini1_lv + Pini2_lv + Pf1_lv *(-1) ).Mag() <<G4endl;
 
   //  double (*func)(double)=func_in;
   //
@@ -338,10 +338,10 @@ Scattering3Body_theta( double Mi1, double Mi2,
 
 //_____________________________________________________________________________
 bool
-Decay3BodyPhaseSpace( double Mini, double Mf1, double Mf2, double Mf3,
-		      const G4ThreeVector& Pini,
-		      G4ThreeVector& Pf1,  G4ThreeVector& Pf2,
-		      G4ThreeVector& Pf3 )
+Decay3BodyPhaseSpace(double Mini, double Mf1, double Mf2, double Mf3,
+                     const G4ThreeVector& Pini,
+                     G4ThreeVector& Pf1,  G4ThreeVector& Pf2,
+                     G4ThreeVector& Pf3)
 {
 
   TLorentzVector Pini1_lv ;

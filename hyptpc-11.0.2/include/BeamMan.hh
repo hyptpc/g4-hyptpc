@@ -24,23 +24,23 @@ struct BeamInfo
   G4double      dp; // [%]
   G4ThreeVector p; // [GeV/c]
   G4double      z; // [mm]
-  G4double GetX( G4double offset=0. ) const;
-  G4double GetY( G4double offset=0. ) const;
-  void     Print( void ) const;
+  G4double GetX(G4double offset=0.) const;
+  G4double GetY(G4double offset=0.) const;
+  void     Print() const;
 };
 
 //_____________________________________________________________________________
 class BeamMan
 {
 public:
-  static G4String ClassName( void );
-  static BeamMan& GetInstance( void );
-  ~BeamMan( void );
+  static G4String ClassName();
+  static BeamMan& GetInstance();
+  ~BeamMan();
 
 private:
-  BeamMan( void );
-  BeamMan( const BeamMan&  );
-  BeamMan& operator =( const BeamMan& );
+  BeamMan();
+  BeamMan(const BeamMan& );
+  BeamMan& operator =(const BeamMan&);
 
 private:
   typedef std::vector<BeamInfo> ParamArray;
@@ -54,20 +54,20 @@ private:
   G4ThreeVector m_vi_pos;
 
 public:
-  const BeamInfo&      Get( void ) const;
-  G4double             GetPrimaryZ( void ) const { return m_primary_z; }
-  const G4ThreeVector& GetVIPosition( void ) const { return m_vi_pos; }
-  G4bool               Initialize( void );
-  G4bool               Initialize( const G4String& filename );
-  G4bool               IsReady( void ) const { return m_is_ready; }
-  void                 Print( void ) const;
-  void                 SetPrimaryZ( G4double z ){ m_primary_z = z; }
-  void                 SetVIPosition( G4ThreeVector pos ){ m_vi_pos = pos; }
+  const BeamInfo&      Get() const;
+  G4double             GetPrimaryZ() const { return m_primary_z; }
+  const G4ThreeVector& GetVIPosition() const { return m_vi_pos; }
+  G4bool               Initialize();
+  G4bool               Initialize(const G4String& filename);
+  G4bool               IsReady() const { return m_is_ready; }
+  void                 Print() const;
+  void                 SetPrimaryZ(G4double z){ m_primary_z = z; }
+  void                 SetVIPosition(G4ThreeVector pos){ m_vi_pos = pos; }
 };
 
 //_____________________________________________________________________________
 inline G4String
-BeamMan::ClassName( void )
+BeamMan::ClassName()
 {
   static G4String s_name("BeamMan");
   return s_name;
@@ -75,7 +75,7 @@ BeamMan::ClassName( void )
 
 //_____________________________________________________________________________
 inline BeamMan&
-BeamMan::GetInstance( void )
+BeamMan::GetInstance()
 {
   static BeamMan s_instance;
   return s_instance;

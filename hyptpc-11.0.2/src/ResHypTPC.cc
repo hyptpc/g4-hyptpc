@@ -7,15 +7,15 @@
 
 #include <Randomize.hh>
 
-#include "TPCAnaManager.hh"
+#include "AnaManager.hh"
 
-// ResHypTPC::ResHypTPC( double t_pad_size=2,
+// ResHypTPC::ResHypTPC(double t_pad_size=2,
 // 		      double t_pad_length=10,
 // 		      double t_threshold=0.1,
 // 		      double diff_T=0.18)
 
 //_____________________________________________________________________________
-ResHypTPC::ResHypTPC( void )
+ResHypTPC::ResHypTPC()
 {
 }
 
@@ -29,9 +29,9 @@ ResHypTPC::ResHypTPC( void )
 */
 
 //_____________________________________________________________________________
-ResHypTPC::ResHypTPC( G4double t_pad_size, G4double t_pad_length,
-		      G4double t_threshold, G4double diff_T,
-		      G4double smearing )
+ResHypTPC::ResHypTPC(G4double t_pad_size, G4double t_pad_length,
+                     G4double t_threshold, G4double diff_T,
+                     G4double smearing)
 {
   //  //  const G4double ResHypTPC::y_resolution= 0.5;
   y_resolution= 0.5;
@@ -58,13 +58,13 @@ ResHypTPC::ResHypTPC( G4double t_pad_size, G4double t_pad_length,
   f_GEM_avalanche = new TF1("f_GEM_avalanche","gaus(0)",-pad_size*10,pad_size*10);
 
   //    f_const_smearing = new TF1("f_const_smearing","gaus(0)",-pad_size*10,pad_size*10);
-    //    f_const_smearing->SetParameter(0,1);
-    //    f_const_smearing->SetParameter(1,0);
-    //    f_const_smearing->SetParameter(2,const_smearing);
+  //    f_const_smearing->SetParameter(0,1);
+  //    f_const_smearing->SetParameter(1,0);
+  //    f_const_smearing->SetParameter(2,const_smearing);
 }
 
 //_____________________________________________________________________________
-ResHypTPC::~ResHypTPC( void )
+ResHypTPC::~ResHypTPC()
 {
   delete f_n_drift_electron;
   //    delete f_diffusion;
@@ -74,9 +74,9 @@ ResHypTPC::~ResHypTPC( void )
 
 //_____________________________________________________________________________
 G4double
-ResHypTPC::getXDeviation( G4int &n_electron, G4int &n_pad, G4double &x_rms,
-			  G4double x_track, G4double y_track,
-			  G4double dxdz_track=0, G4double dydz_track=0 )
+ResHypTPC::getXDeviation(G4int &n_electron, G4int &n_pad, G4double &x_rms,
+                         G4double x_track, G4double y_track,
+                         G4double dxdz_track=0, G4double dydz_track=0)
 {
   if (debug) std::cout << "in getXDeviation" << std::endl;
   G4double path_length = pad_length*sqrt(1.+dxdz_track*dxdz_track+dydz_track*dydz_track);
@@ -102,7 +102,7 @@ ResHypTPC::getXDeviation( G4int &n_electron, G4int &n_pad, G4double &x_rms,
     //    x,y is at the center of the pad length
     G4double x_init = x_track + dxdz_track*(z-pad_length/2.);
     G4double y_init = y_track + dydz_track*(z-pad_length/2.)
-;
+      ;
     //    f_diffusion->SetParameter(1,x_init);
     //    f_diffusion->SetParameter(2,diffusion_T*sqrt(y_init/10.));
     G4double x_diffused = CLHEP::RandGauss::shoot(x_init,diffusion_T*sqrt(y_init/10.));
@@ -167,14 +167,14 @@ ResHypTPC::getXDeviation( G4int &n_electron, G4int &n_pad, G4double &x_rms,
 
 //_____________________________________________________________________________
 G4double
-ResHypTPC::getYDeviation( G4double /* y_track */ )
+ResHypTPC::getYDeviation(G4double /* y_track */)
 {
   return y_resolution;
 }
 
 //_____________________________________________________________________________
 G4double
-GetTransverseRes( G4double y_pos )
+GetTransverseRes(G4double y_pos)
 {
   //  double s0 = 0.204;// mm HIMAC result
   double s0 = 0.199;// mm HIMAC result

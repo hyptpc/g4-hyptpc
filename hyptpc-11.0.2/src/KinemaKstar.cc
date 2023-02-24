@@ -11,8 +11,8 @@
 #include "G4ios.hh"
 
 //_____________________________________________________________________________
-KinemaKstar::KinemaKstar( double m1, double m2, double m3, double m4,
-			  double p1, double p2 )
+KinemaKstar::KinemaKstar(double m1, double m2, double m3, double m4,
+                         double p1, double p2 )
 {
   double ECM;
   double vx3, vy3, vz3;            /* unit vector */
@@ -105,26 +105,26 @@ double KinemaKstar::p2E(double p,double m)
 }
 
 //_____________________________________________________________________________
-void KinemaKstar::CalcDistoribution( double unitx, double unity, double ,
-				     double *theta, double *phi )
+void KinemaKstar::CalcDistoribution(double unitx, double unity, double ,
+                                    double *theta, double *phi )
 {
   *theta = rag2deg(acos(unitx));
   *phi=rag2deg(atan2(unity,unitx));
   /*  if (unity>=0.0 && unitz>0.0)
-    *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity<0.0 && unitz>=0.0)
-    *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity<=0.0 && unitz<0.0)
-    *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity>0.0 && unitz<=0.0)
-    *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else {
-    fprintf(stderr,
-	  "KinemaKstar::CalcDistribution No such reagion unity=%f, unitz=%f\n",
-	    unity, unitz);
-    Dump();
-    exit(1);
-  }
+   *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity<0.0 && unitz>=0.0)
+   *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity<=0.0 && unitz<0.0)
+   *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity>0.0 && unitz<=0.0)
+   *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else {
+   fprintf(stderr,
+   "KinemaKstar::CalcDistribution No such reagion unity=%f, unitz=%f\n",
+   unity, unitz);
+   Dump();
+   exit(1);
+   }
   */
   return;
 }
@@ -140,7 +140,7 @@ double KinemaKstar::rag2deg(double rag)
 }
 
 
-double KinemaKstar::RandSin(void)
+double KinemaKstar::RandSin()
 {
   int success=0;
   double x,fx;
@@ -156,7 +156,7 @@ double KinemaKstar::RandSin(void)
   return x;
 }
 
-void KinemaKstar::Dump(void)
+void KinemaKstar::Dump()
 {
   printf("======KinemaKstar Dump======\n");
   printf("--Particle1--\n");

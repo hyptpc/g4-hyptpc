@@ -12,9 +12,9 @@
 #include <Randomize.hh>
 
 //_____________________________________________________________________________
-KinemaHWeakNonReso::KinemaHWeakNonReso( double m1, double m2, double m3,
-					double m4, double m5, double m_res,
-					double width, double p1, double p2 )
+KinemaHWeakNonReso::KinemaHWeakNonReso(double m1, double m2, double m3,
+                                       double m4, double m5, double m_res,
+                                       double width, double p1, double p2)
 {
   double ECM;
   double vx_res, vy_res, vz_res;   /* unit vector */
@@ -124,56 +124,56 @@ KinemaHWeakNonReso::KinemaHWeakNonReso( double m1, double m2, double m3,
     Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
     //    Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
 
-  /* m3 */
-  kin3.E_3_lab = kin2.GetEnergy(3);
-  kin3.p_3_lab = kin2.GetMomentum(3);
+    /* m3 */
+    kin3.E_3_lab = kin2.GetEnergy(3);
+    kin3.p_3_lab = kin2.GetMomentum(3);
 
-  kin3.theta3 = kin2.GetTheta(3);
-  kin3.phi3 = kin2.GetPhi(3);
+    kin3.theta3 = kin2.GetTheta(3);
+    kin3.phi3 = kin2.GetPhi(3);
 
-  kin2.GetMomentum(3,mom);
-  kin3.P_3_lab[0] = mom[0];
-  kin3.P_3_lab[1] = mom[1];
-  kin3.P_3_lab[2] = mom[2];
+    kin2.GetMomentum(3,mom);
+    kin3.P_3_lab[0] = mom[0];
+    kin3.P_3_lab[1] = mom[1];
+    kin3.P_3_lab[2] = mom[2];
 
-  /* m4 */
-  kin3.E_4_lab = kin2.GetEnergy(4);
-  kin3.p_4_lab = kin2.GetMomentum(4);
-  kin2.GetMomentum(4,mom);
-  kin3.P_4_lab[0] = mom[0];
-  kin3.P_4_lab[1] = mom[1];
-  kin3.P_4_lab[2] = mom[2];
+    /* m4 */
+    kin3.E_4_lab = kin2.GetEnergy(4);
+    kin3.p_4_lab = kin2.GetMomentum(4);
+    kin2.GetMomentum(4,mom);
+    kin3.P_4_lab[0] = mom[0];
+    kin3.P_4_lab[1] = mom[1];
+    kin3.P_4_lab[2] = mom[2];
 
-  kin3.theta4 = kin2.GetTheta(4);
-  kin3.phi4 = kin2.GetPhi(4);
+    kin3.theta4 = kin2.GetTheta(4);
+    kin3.phi4 = kin2.GetPhi(4);
 
 
-  /* m5 */
-  kin3.E_5_lab = kin2.GetEnergy(5);
-  kin3.p_5_lab = kin2.GetMomentum(5);
-  kin2.GetMomentum(5,mom);
-  kin3.P_5_lab[0] = mom[0];
-  kin3.P_5_lab[1] = mom[1];
-  kin3.P_5_lab[2] = mom[2];
+    /* m5 */
+    kin3.E_5_lab = kin2.GetEnergy(5);
+    kin3.p_5_lab = kin2.GetMomentum(5);
+    kin2.GetMomentum(5,mom);
+    kin3.P_5_lab[0] = mom[0];
+    kin3.P_5_lab[1] = mom[1];
+    kin3.P_5_lab[2] = mom[2];
 
-  kin3.theta5 = kin2.GetTheta(5);
-  kin3.phi5 = kin2.GetPhi(5);
+    kin3.theta5 = kin2.GetTheta(5);
+    kin3.phi5 = kin2.GetPhi(5);
 
-  /*
-  // m3 //
+    /*
+    // m3 //
     theta1 = kin1.GetThetaLab();
     theta2 = kin2.GetThetaLab();
 
     vx3 = cos(deg2rad(theta2))*cos(deg2rad(theta1)) -
-      sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
+    sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
 
     vy3 = cos(deg2rad(phi6))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) +
-      cos(deg2rad(theta1))*cos(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
-      sin(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
+    cos(deg2rad(theta1))*cos(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    sin(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
     vz3 = -sin(deg2rad(phi6))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) -
-      cos(deg2rad(theta1))*sin(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
-      cos(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
+    cos(deg2rad(theta1))*sin(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    cos(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
     CalcDistoribution(vx3, vy3, vz3, &Theta3, &Phi3);
 
@@ -190,14 +190,14 @@ KinemaHWeakNonReso::KinemaHWeakNonReso( double m1, double m2, double m3,
     theta2 = -kin2.GetPhiLab();
 
     vx4 = cos(deg2rad(theta2))*cos(deg2rad(theta1)) -
-      sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
+    sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
 
     vy4 = cos(deg2rad(phi6))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) +
-      cos(deg2rad(theta1))*cos(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
-      sin(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
+    cos(deg2rad(theta1))*cos(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    sin(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
     vz4 = -sin(deg2rad(phi6))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) -
-      cos(deg2rad(theta1))*sin(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    cos(deg2rad(theta1))*sin(deg2rad(phi6))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
     cos(deg2rad(phi6))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
     CalcDistoribution(vx4, vy4, vz4, &Theta4, &Phi4);
@@ -209,28 +209,28 @@ KinemaHWeakNonReso::KinemaHWeakNonReso( double m1, double m2, double m3,
     kin3.P_4_lab[2] = kin3.p_4_lab*vz4;
     kin3.theta4 = Theta4;
     kin3.phi4 = Phi4;
-  */
+    */
   }
   //Dump();
 }
 
 //_____________________________________________________________________________
-KinemaHWeakNonReso::~KinemaHWeakNonReso( void )
+KinemaHWeakNonReso::~KinemaHWeakNonReso()
 {
 }
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::p2E( double p,double m )
+KinemaHWeakNonReso::p2E(double p,double m)
 {
   return sqrt(p*p + m*m);
 }
 
 //_____________________________________________________________________________
 void
-KinemaHWeakNonReso::CalcDistoribution( double unitx, double unity,
-				       double unitz, double *theta,
-				       double *phi )
+KinemaHWeakNonReso::CalcDistoribution(double unitx, double unity,
+                                      double unitz, double *theta,
+                                      double *phi)
 {
   *theta = rag2deg(acos(unitx));
 
@@ -244,7 +244,7 @@ KinemaHWeakNonReso::CalcDistoribution( double unitx, double unity,
     *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
   else {
     fprintf(stderr,
-	  "KinemaHWeakNonReso::CalcDistribution No such reagion unity=%f, unitz=%f\n",
+            "KinemaHWeakNonReso::CalcDistribution No such reagion unity=%f, unitz=%f\n",
 	    unity, unitz);
     Dump();
     exit(1);
@@ -254,21 +254,21 @@ KinemaHWeakNonReso::CalcDistoribution( double unitx, double unity,
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::deg2rad( double theta )
+KinemaHWeakNonReso::deg2rad(double theta)
 {
   return 3.141592654*theta/180.0;
 }
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::rag2deg( double rag )
+KinemaHWeakNonReso::rag2deg(double rag)
 {
   return 360.0 * rag/ (2.0 * 3.141592654);
 }
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::RandSin( void )
+KinemaHWeakNonReso::RandSin()
 {
   int success=0;
   double x,fx;
@@ -286,7 +286,7 @@ KinemaHWeakNonReso::RandSin( void )
 
 //_____________________________________________________________________________
 void
-KinemaHWeakNonReso::Dump( void )
+KinemaHWeakNonReso::Dump()
 {
   printf("======KinemaHWeakNonReso Dump======\n");
   printf("--Particle1--\n");
@@ -325,7 +325,7 @@ KinemaHWeakNonReso::Dump( void )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetEnergy( int i )
+KinemaHWeakNonReso::GetEnergy(int i)
 {
   switch (i) {
   case 1:
@@ -351,7 +351,7 @@ KinemaHWeakNonReso::GetEnergy( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetMomentum( int i )
+KinemaHWeakNonReso::GetMomentum(int i)
 {
   switch (i) {
   case 1:
@@ -377,7 +377,7 @@ KinemaHWeakNonReso::GetMomentum( int i )
 
 //_____________________________________________________________________________
 void
-KinemaHWeakNonReso::GetMomentum( int i, double *mom )
+KinemaHWeakNonReso::GetMomentum(int i, double *mom)
 {
   switch (i) {
   case 1:
@@ -413,7 +413,7 @@ KinemaHWeakNonReso::GetMomentum( int i, double *mom )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetTheta( int i )
+KinemaHWeakNonReso::GetTheta(int i)
 {
   switch (i) {
   case 1:
@@ -439,7 +439,7 @@ KinemaHWeakNonReso::GetTheta( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetPhi( int i )
+KinemaHWeakNonReso::GetPhi(int i)
 {
   switch (i) {
   case 1:
@@ -465,7 +465,7 @@ KinemaHWeakNonReso::GetPhi( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetThetaCM( int i )
+KinemaHWeakNonReso::GetThetaCM(int i)
 {
   switch (i) {
   case 1:
@@ -482,7 +482,7 @@ KinemaHWeakNonReso::GetThetaCM( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetPhiCM( int i )
+KinemaHWeakNonReso::GetPhiCM(int i)
 {
   switch (i) {
   case 1:
@@ -499,7 +499,7 @@ KinemaHWeakNonReso::GetPhiCM( int i )
 
 //_____________________________________________________________________________
 void
-KinemaHWeakNonReso::RotateMom( int i, double deg, double *mom )
+KinemaHWeakNonReso::RotateMom(int i, double deg, double *mom)
 {
   double Sin,Cos;
 
@@ -529,7 +529,7 @@ KinemaHWeakNonReso::RotateMom( int i, double deg, double *mom )
 
 //_____________________________________________________________________________
 double
-KinemaHWeakNonReso::GetResMass( void )
+KinemaHWeakNonReso::GetResMass()
 {
   return kin3.M_res;
 }

@@ -1,9 +1,13 @@
+// -*- C++ -*-
+
 #ifndef __KINEMAHRESONANCE_HH__
 #define __KINEMAHRESONANCE_HH__
 
 #include "Kinema2Body.hh"
 #include "Kinema3Body.hh"
-struct KINEMA_HRESONANCE{
+
+struct KINEMA_HRESONANCE
+{
   double E_1_lab;
   double p_1_lab;
   double M_1;
@@ -46,7 +50,8 @@ struct KINEMA_HRESONANCE{
   double Phi1,Phi2;
 };
 
-class KinemaHResonance {
+class KinemaHResonance
+{
 private:
   Kinema2Body kin1;
   Kinema3Body kin2; // change.... shhwang
@@ -58,8 +63,8 @@ public:
   void CalcDistoribution(double unitx, double unity, double unitz, double *theta, double *phi);
   double deg2rad(double theta);
   double rag2deg(double rag);
-  double RandSin(void);
-  void Dump(void);
+  double RandSin();
+  void Dump();
   double GetEnergy(int i);
   double GetMomentum(int i);
   void GetMomentum(int i, double *mom);
@@ -68,7 +73,7 @@ public:
   double GetThetaCM(int i);
   double GetPhiCM(int i);
   void  RotateMom(int i, double deg, double *mom);
-  double GetResMass(void);
+  double GetResMass();
 };
 
 #endif

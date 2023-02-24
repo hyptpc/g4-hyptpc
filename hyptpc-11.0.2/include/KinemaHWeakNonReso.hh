@@ -55,9 +55,9 @@ struct KINEMA_HWEAKNONESO
 class KinemaHWeakNonReso
 {
 public:
-  KinemaHWeakNonReso( double m1, double m2, double m3, double m4, double m5,
-		      double m_res, double width, double p1, double p2 );
-  ~KinemaHWeakNonReso( void );
+  KinemaHWeakNonReso(double m1, double m2, double m3, double m4, double m5,
+                     double m_res, double width, double p1, double p2);
+  ~KinemaHWeakNonReso();
 
 private:
   Kinema2Body kin1;
@@ -66,20 +66,20 @@ private:
 
 public:
   double p2E(double p,double m);
-  void CalcDistoribution(double unitx, double unity, double unitz, double *theta, double *phi);
+  void   CalcDistoribution(double unitx, double unity, double unitz, double *theta, double *phi);
   double deg2rad(double theta);
   double rag2deg(double rag);
-  double RandSin(void);
-  void Dump(void);
+  double RandSin();
+  void   Dump();
   double GetEnergy(int i);
   double GetMomentum(int i);
-  void GetMomentum(int i, double *mom);
+  void   GetMomentum(int i, double *mom);
   double GetTheta(int i);
   double GetPhi(int i);
   double GetThetaCM(int i);
   double GetPhiCM(int i);
-  void  RotateMom(int i, double deg, double *mom);
-  double GetResMass(void);
+  void   RotateMom(int i, double deg, double *mom);
+  double GetResMass();
 };
 
 #endif

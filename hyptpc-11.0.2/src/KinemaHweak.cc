@@ -10,8 +10,8 @@
 #include "G4ios.hh"
 
 //_____________________________________________________________________________
-KinemaHweak::KinemaHweak( double m1, double m2, double m3,
-			  double m4, double p1, double p2 )
+KinemaHweak::KinemaHweak(double m1, double m2, double m3,
+                         double m4, double p1, double p2)
 {
   double ECM;
   double vx3, vy3, vz3;            /* unit vector */
@@ -100,54 +100,54 @@ KinemaHweak::KinemaHweak( double m1, double m2, double m3,
 
 //_____________________________________________________________________________
 double
-KinemaHweak::p2E( double p,double m )
+KinemaHweak::p2E(double p,double m)
 {
   return sqrt(p*p + m*m);
 }
 
 //_____________________________________________________________________________
 void
-KinemaHweak::CalcDistoribution( double unitx, double unity, double /* unitz */,
-				double *theta, double *phi )
+KinemaHweak::CalcDistoribution(double unitx, double unity, double /* unitz */,
+                               double *theta, double *phi)
 {
   *theta = rag2deg(acos(unitx));
   *phi=rag2deg(atan2(unity,unitx));
   /*  if (unity>=0.0 && unitz>0.0)
-    *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity<0.0 && unitz>=0.0)
-    *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity<=0.0 && unitz<0.0)
-    *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else if (unity>0.0 && unitz<=0.0)
-    *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
-  else {
-    fprintf(stderr,
-	  "KinemaHweak::CalcDistribution No such reagion unity=%f, unitz=%f\n",
-	    unity, unitz);
-    Dump();
-    exit(1);
-  }
+   *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity<0.0 && unitz>=0.0)
+   *phi = rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity<=0.0 && unitz<0.0)
+   *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else if (unity>0.0 && unitz<=0.0)
+   *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
+   else {
+   fprintf(stderr,
+   "KinemaHweak::CalcDistribution No such reagion unity=%f, unitz=%f\n",
+   unity, unitz);
+   Dump();
+   exit(1);
+   }
   */
   return;
 }
 
 //_____________________________________________________________________________
 double
-KinemaHweak::deg2rad( double theta )
+KinemaHweak::deg2rad(double theta)
 {
   return 3.141592654*theta/180.0;
 }
 
 //_____________________________________________________________________________
 double
-KinemaHweak::rag2deg( double rag )
+KinemaHweak::rag2deg(double rag)
 {
   return 360.0 * rag/ (2.0 * 3.141592654);
 }
 
 //_____________________________________________________________________________
 double
-KinemaHweak::RandSin( void )
+KinemaHweak::RandSin()
 {
   int success=0;
   double x,fx;
@@ -165,7 +165,7 @@ KinemaHweak::RandSin( void )
 
 //_____________________________________________________________________________
 void
-KinemaHweak::Dump( void )
+KinemaHweak::Dump()
 {
   printf("======KinemaHweak Dump======\n");
   printf("--Particle1--\n");
@@ -197,7 +197,7 @@ KinemaHweak::Dump( void )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetEnergy( int i )
+KinemaHweak::GetEnergy(int i)
 {
   switch (i) {
   case 1:
@@ -220,7 +220,7 @@ KinemaHweak::GetEnergy( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetMomentum( int i )
+KinemaHweak::GetMomentum(int i)
 {
   switch (i) {
   case 1:
@@ -243,7 +243,7 @@ KinemaHweak::GetMomentum( int i )
 
 //_____________________________________________________________________________
 void
-KinemaHweak::GetMomentum( int i, double *mom )
+KinemaHweak::GetMomentum(int i, double *mom)
 {
   switch (i) {
   case 1:
@@ -274,7 +274,7 @@ KinemaHweak::GetMomentum( int i, double *mom )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetTheta( int i )
+KinemaHweak::GetTheta(int i)
 {
   switch (i) {
   case 1:
@@ -297,7 +297,7 @@ KinemaHweak::GetTheta( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetPhi( int i )
+KinemaHweak::GetPhi(int i)
 {
   switch (i) {
   case 1:
@@ -320,7 +320,7 @@ KinemaHweak::GetPhi( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetThetaCM( int i )
+KinemaHweak::GetThetaCM(int i)
 {
   switch (i) {
   case 1:
@@ -334,7 +334,7 @@ KinemaHweak::GetThetaCM( int i )
 
 //_____________________________________________________________________________
 double
-KinemaHweak::GetPhiCM( int i )
+KinemaHweak::GetPhiCM(int i)
 {
   switch (i) {
   case 1:
@@ -348,7 +348,7 @@ KinemaHweak::GetPhiCM( int i )
 
 //_____________________________________________________________________________
 void
-KinemaHweak::RotateMom( int i, double deg, double *mom )
+KinemaHweak::RotateMom(int i, double deg, double *mom)
 {
   double Sin,Cos;
 

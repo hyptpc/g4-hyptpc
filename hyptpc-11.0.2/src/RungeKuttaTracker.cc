@@ -23,7 +23,7 @@
 
 //_____________________________________________________________________________
 void
-nrerror( G4String error_text )
+nrerror(G4String error_text)
 {
   std::cout << "error in where?:" << error_text << std::endl;
   std::exit(1);
@@ -31,7 +31,7 @@ nrerror( G4String error_text )
 
 //_____________________________________________________________________________
 int*
-ivector( long nl, long nh )
+ivector(long nl, long nh)
 {
   int *v;
   v=(int *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(int)));
@@ -41,14 +41,14 @@ ivector( long nl, long nh )
 
 //_____________________________________________________________________________
 void
-free_ivector( int *v, long nl, long /* nh */ )
+free_ivector(int *v, long nl, long /* nh */)
 {
   free((FREE_ARG) (v+nl-NR_END));
 }
 
 //_____________________________________________________________________________
 int
-gaussj( double a[6][6], int n, double* /* b */, int /* m */ )
+gaussj(double a[6][6], int n, double* /* b */, int /* m */)
 {
   int *indxc,*indxr,*ipiv;
   int i,icol=0,irow=0,j,k,l,ll;
@@ -109,19 +109,19 @@ gaussj( double a[6][6], int n, double* /* b */, int /* m */ )
 }
 
 //_____________________________________________________________________________
-RungeKuttaTracker::RungeKuttaTracker( int c_use, Track* aTrack )
+RungeKuttaTracker::RungeKuttaTracker(int c_use, Track* aTrack)
 {
   RungeKuttaTracking(c_use, aTrack);
 }
 
 //_____________________________________________________________________________
-RungeKuttaTracker::~RungeKuttaTracker( void )
+RungeKuttaTracker::~RungeKuttaTracker()
 {
 }
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::RungeKuttaTracking( int /* c_use */, Track* aTrack )
+RungeKuttaTracker::RungeKuttaTracking(int /* c_use */, Track* aTrack)
 {
   ///////////leps ana method
   // int ndf=2*(aTrack->numHits-aTrack->nout)-5;
@@ -216,29 +216,29 @@ RungeKuttaTracker::RungeKuttaTracking( int /* c_use */, Track* aTrack )
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::RungeKuttaFieldIntegral( int /* c_use */,
-					    double* /* init_par */,
-					    double* /* final_par */,
-					    G4ThreeVector& /* B */ )
+RungeKuttaTracker::RungeKuttaFieldIntegral(int /* c_use */,
+                                           double* /* init_par */,
+                                           double* /* final_par */,
+                                           G4ThreeVector& /* B */)
 {
 }
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::RungeKuttaFieldIntegral( int /* c_use */,
-					    double* /* init_par */,
-					    double* /* final_par */,
-					    G4ThreeVector& /* B */,
-					    G4ThreeVector& /* dBdY */,
-					    G4ThreeVector& /* dBdZ */ )
+RungeKuttaTracker::RungeKuttaFieldIntegral(int /* c_use */,
+                                           double* /* init_par */,
+                                           double* /* final_par */,
+                                           G4ThreeVector& /* B */,
+                                           G4ThreeVector& /* dBdY */,
+                                           G4ThreeVector& /* dBdZ */)
 {
 }
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::RungeKuttaFit( int c_use, int iteration, Track* aTrack,
-				  double* rk_par0, double* rk_par1,
-				  double* /* rk_hit */ )
+RungeKuttaTracker::RungeKuttaFit(int c_use, int iteration, Track* aTrack,
+                                 double* rk_par0, double* rk_par1,
+                                 double* /* rk_hit */)
 {
   // double chi2=0.;
   //  double u0[2];
@@ -337,8 +337,8 @@ RungeKuttaTracker::RungeKuttaFit( int c_use, int iteration, Track* aTrack,
       //////////runge kutta step///////////////
       std::cout<<"number of step:"<<num_step<<std::endl;
       std::cout<<"run rungekuttastep:"<<num_step<<std::endl;
-      RungeKuttaStep( c_use, qp0,h,
-		      z0,u0,dudz0,dudw0,ddudw0 );
+      RungeKuttaStep(c_use, qp0,h,
+                     z0,u0,dudz0,dudw0,ddudw0);
       //      prepare next step
       z=z0+h;
       z0=z;
@@ -501,7 +501,7 @@ RungeKuttaTracker::RungeKuttaFit( int c_use, int iteration, Track* aTrack,
 	break;
       }
 
-      if( z>2721.5 || num_step>5000 ){
+      if(z>2721.5 || num_step>5000){
 	//	std::cout<<"exceed num of step in RK integration:"<<ihit<<" : "<<aTrack->x[ihit][2]<<std::endl;
 	break;
       }
@@ -561,10 +561,10 @@ RungeKuttaTracker::RungeKuttaFit( int c_use, int iteration, Track* aTrack,
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::RungeKuttaStep( int c_use, double /* qp0 */, double h,
-				   double /* z0 */, double* /* u0 */,
-				   double* /* dudz0 */,
-				   double dudw0_[2][5], double ddudw0_[2][5] )
+RungeKuttaTracker::RungeKuttaStep(int c_use, double /* qp0 */, double h,
+                                  double /* z0 */, double* /* u0 */,
+                                  double* /* dudz0 */,
+                                  double dudw0_[2][5], double ddudw0_[2][5])
 {
   //  std::cout<<"rungekutta step"<<std::endl;
 
@@ -805,8 +805,8 @@ RungeKuttaTracker::RungeKuttaStep( int c_use, double /* qp0 */, double h,
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::fACK( int c_use, double *dudz_, double *b,
-			 double /* dbdu */ [3][2], double qp0_ )
+RungeKuttaTracker::fACK(int c_use, double *dudz_, double *b,
+                        double /* dbdu */ [3][2], double qp0_)
 {
   double dx, dy, bx, by, bz, dx2, dy2, dd;
   dx=dudz_[0];
@@ -866,9 +866,9 @@ RungeKuttaTracker::fACK( int c_use, double *dudz_, double *b,
 
 //_____________________________________________________________________________
 void
-RungeKuttaTracker::dKdw0( int c_use, double h,double *dudv0, double *ddudv0,
-			  double A1[2][2], double A2[2][2],
-			  double A3[2][2], double A4[2][2] )
+RungeKuttaTracker::dKdw0(int c_use, double h,double *dudv0, double *ddudv0,
+                         double A1[2][2], double A2[2][2],
+                         double A3[2][2], double A4[2][2])
 {
   double dKA1[2],dKA2[2],dKA3[2],dKA4[2];
   double dKC1[2],dKC2[2],dKC3[2],dKC4[2];
@@ -1216,7 +1216,7 @@ int RungeKuttaTracker::KMFilter()
 }
 
 //_____________________________________________________________________________
-int RungeKuttaTracker::filter_Q( int ip )
+int RungeKuttaTracker::filter_Q(int ip)
 {
   double tx,ty,lam;
   double acont,bcont,ccont;
@@ -1277,7 +1277,7 @@ int RungeKuttaTracker::filter_Q( int ip )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_C0( int ip )
+RungeKuttaTracker::filter_C0(int ip)
 {
   double Emat[PARASIZE][PARASIZE][PLANESIZE];
   iplane1 = ip + 1;
@@ -1318,7 +1318,7 @@ RungeKuttaTracker::filter_C0( int ip )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_C0_1( int ip )
+RungeKuttaTracker::filter_C0_1(int ip)
 {
   //  int gaussj();
   double vect[PARASIZE];
@@ -1361,7 +1361,7 @@ RungeKuttaTracker::filter_C0_1( int ip )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_C1( int ip )
+RungeKuttaTracker::filter_C1(int ip)
 {
   //  int gaussj();
   double vect[PARASIZE];
@@ -1433,7 +1433,7 @@ RungeKuttaTracker::filter_C1( int ip )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_par1( int ip )
+RungeKuttaTracker::filter_par1(int ip)
 {
   double par[PARASIZE][PLANESIZE];
   double par1[PARASIZE][PLANESIZE];
@@ -1486,7 +1486,7 @@ RungeKuttaTracker::filter_par1( int ip )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_resi( int i )
+RungeKuttaTracker::filter_resi(int i)
 {
   iplane1 = i + 1;
   if(idwi == 1){     // x //
@@ -1515,7 +1515,7 @@ RungeKuttaTracker::filter_resi( int i )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::filter_chi2( int i )
+RungeKuttaTracker::filter_chi2(int i)
 {
   iplane1 = i + 1;
   if(idwi == 1){     // x //
@@ -1648,10 +1648,10 @@ int RungeKuttaTracker::aba_t(
 //_____________________________________________________________________________
 //INmat,INvec,OUTvec,plane)
 int
-RungeKuttaTracker::MaxV( double INmat[PARASIZE][PARASIZE][PLANESIZE],
-			 double INvec[PARASIZE][PLANESIZE],
-			 double OUTvec[PARASIZE][PLANESIZE],
-			 int plane )
+RungeKuttaTracker::MaxV(double INmat[PARASIZE][PARASIZE][PLANESIZE],
+                        double INvec[PARASIZE][PLANESIZE],
+                        double OUTvec[PARASIZE][PLANESIZE],
+                        int plane)
 {
   for(int i=0;i<PARASIZE;i++){
     for(int k=0;k<PLANESIZE;k++){
@@ -1670,7 +1670,7 @@ RungeKuttaTracker::MaxV( double INmat[PARASIZE][PARASIZE][PLANESIZE],
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::fltosm( void )
+RungeKuttaTracker::fltosm()
 {
   iplane=kmf_.iplane;
   //    std::cout<<"in the fltosm iplane:"<<iplane<<std::endl;
@@ -1696,7 +1696,7 @@ RungeKuttaTracker::fltosm( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::KMsmooth( void )
+RungeKuttaTracker::KMsmooth()
 {
   iplane = kmf_.iplane;
 
@@ -1717,7 +1717,7 @@ RungeKuttaTracker::KMsmooth( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::smoother_A( void )
+RungeKuttaTracker::smoother_A()
 {
   ab_tc(Cmat1,Fmat,Cinv0,Amat,iplane0,iplane1);
   return 0;
@@ -1725,7 +1725,7 @@ RungeKuttaTracker::smoother_A( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::smoother_pars( void )
+RungeKuttaTracker::smoother_pars()
 {
   double par0[PARASIZE][PLANESIZE];
   double par1[PARASIZE][PLANESIZE];
@@ -1755,7 +1755,7 @@ RungeKuttaTracker::smoother_pars( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::smoother_Cs( void )
+RungeKuttaTracker::smoother_Cs()
 {
   double Dmat[PARASIZE][PARASIZE][PLANESIZE];
   double Emat[PARASIZE][PARASIZE][PLANESIZE];
@@ -1787,7 +1787,7 @@ RungeKuttaTracker::smoother_Cs( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::smoother_resi( void )
+RungeKuttaTracker::smoother_resi()
 {
   if(idwi == 1){     // x //
     SMTresi[iplane0] = meas - SMTpar[0][iplane0];
@@ -1815,7 +1815,7 @@ RungeKuttaTracker::smoother_resi( void )
 
 //_____________________________________________________________________________
 int
-RungeKuttaTracker::smoother_chi2( void )
+RungeKuttaTracker::smoother_chi2()
 {
   if(idwi == 1){     /* x */
     Rerr = pow(reso,2) - Cmats[0][0][iplane0];

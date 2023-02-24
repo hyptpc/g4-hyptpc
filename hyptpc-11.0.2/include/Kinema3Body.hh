@@ -44,10 +44,10 @@ struct KINEMA_3BODY
 class Kinema3Body
 {
 public:
-  Kinema3Body( void );
-  Kinema3Body( double m1, double m2, double m3, double m4, double m5,
-	       double p1, double p2 );
-  ~Kinema3Body( void );
+  Kinema3Body();
+  Kinema3Body(double m1, double m2, double m3, double m4, double m5,
+	       double p1, double p2);
+  ~Kinema3Body();
 
 private:
   Kinema2Body kin1;
@@ -60,10 +60,10 @@ public:
   double deg2rad(double theta);
   double rag2deg(double rag);
   double CalcM12(double m1, double m2, double m3, double M);
-  double GetMaxFunc( double m1, double m2, double m3, double M);
+  double GetMaxFunc(double m1, double m2, double m3, double M);
   double ProFunction(double m12, double m1, double m2, double m3, double M);
-  double RandSin(void);
-  void Dump(void);
+  double RandSin();
+  void Dump();
   double GetEnergy(int i);
   double GetMomentum(int i);
   double GetMomentum(int i, double *mom);
@@ -71,7 +71,7 @@ public:
   double GetPhi(int i);
   double GetThetaCM(int i);
   double GetPhiCM(int i);
-  double GetM34(void);
+  double GetM34();
   void  RotateMom(int i, double deg, double *mom);
 };
 

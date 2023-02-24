@@ -12,7 +12,7 @@
 
 #include <Rtypes.h>
 
-#include "TPCAnaManager.hh"
+#include "AnaManager.hh"
 
 class TFile;
 class TTree;
@@ -25,21 +25,21 @@ struct JamInfo
   Double_t px[MaxHits]; // [GeV/c]
   Double_t py[MaxHits]; // [GeV/c]
   Double_t pz[MaxHits]; // [GeV/c]
-  void Print( void ) const;
+  void Print() const;
 };
 
 //_____________________________________________________________________________
 class JamMan
 {
 public:
-  static G4String ClassName( void );
-  static JamMan& GetInstance( void );
-  ~JamMan( void );
+  static G4String ClassName();
+  static JamMan& GetInstance();
+  ~JamMan();
 
 private:
-  JamMan( void );
-  JamMan( const JamMan&  );
-  JamMan& operator =( const JamMan& );
+  JamMan();
+  JamMan(const JamMan& );
+  JamMan& operator =(const JamMan&);
 
 private:
   G4bool     m_is_ready;
@@ -50,17 +50,17 @@ private:
   G4int      m_n_event;
 
 public:
-  JamInfo* Get( void ) const;
-  JamInfo* Get( Int_t i ) const;
-  G4bool   Initialize( void );
-  G4bool   Initialize( const G4String& filename );
-  G4bool   IsReady( void ) const { return m_is_ready; }
-  void     Print( void ) const;
+  JamInfo* Get() const;
+  JamInfo* Get(Int_t i) const;
+  G4bool   Initialize();
+  G4bool   Initialize(const G4String& filename);
+  G4bool   IsReady() const { return m_is_ready; }
+  void     Print() const;
 };
 
 //_____________________________________________________________________________
 inline G4String
-JamMan::ClassName( void )
+JamMan::ClassName()
 {
   static G4String s_name("JamMan");
   return s_name;
@@ -68,7 +68,7 @@ JamMan::ClassName( void )
 
 //_____________________________________________________________________________
 inline JamMan&
-JamMan::GetInstance( void )
+JamMan::GetInstance()
 {
   static JamMan s_instance;
   return s_instance;

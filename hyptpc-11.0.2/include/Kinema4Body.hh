@@ -4,7 +4,9 @@
 #define __KINEMA4BODY_HH__
 
 #include "Kinema2Body.hh"
-struct KINEMA_4BODY{
+
+struct KINEMA_4BODY
+{
   double E_1_lab;
   double p_1_lab;
   double M_1;
@@ -44,24 +46,25 @@ struct KINEMA_4BODY{
   double m34;
 };
 
-class Kinema4Body {
+class Kinema4Body
+{
 private:
   Kinema2Body kin1;
   Kinema2Body kin2;
   struct KINEMA_4BODY kin3;
 
 public:
-  Kinema4Body(void);
+  Kinema4Body();
   Kinema4Body(double m1, double m2, double m3, double m4, double m5,double m6, double p1, double p2);
   double p2E(double p,double m);
   void CalcDistoribution(double unitx, double unity, double unitz, double *theta, double *phi);
   double deg2rad(double theta);
   double rag2deg(double rag);
   double Calc_m12(double m1, double m2, double m3, double M);
-  double GetMaxFunc( double m1, double m2, double m3, double M);
+  double GetMaxFunc(double m1, double m2, double m3, double M);
   double ProFunction(double m12, double m1, double m2, double m3, double M);
-  double RandSin(void);
-  void Dump(void);
+  double RandSin();
+  void Dump();
   double GetEnergy(int i);
   double GetMomentum(int i);
   double GetMomentum(int i, double *mom);
@@ -69,7 +72,7 @@ public:
   double GetPhi(int i);
   double GetThetaCM(int i);
   double GetPhiCM(int i);
-  double GetM34(void);
+  double GetM34();
   void  RotateMom(int i, double deg, double *mom);
 };
 

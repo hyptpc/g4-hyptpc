@@ -7,9 +7,9 @@
 extern "C" {
 #endif
 
-  int   GetIntFromKernelEntropyPool( void );
-  short GetShortFromKernelEntropyPool( void );
-  long  GetLongFromKernelEntropyPool( void );
+  int   GetIntFromKernelEntropyPool();
+  short GetShortFromKernelEntropyPool();
+  long  GetLongFromKernelEntropyPool();
 
 #ifdef __cplusplus
 }

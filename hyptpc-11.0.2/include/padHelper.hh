@@ -28,7 +28,7 @@ namespace padHelper
      {12,230,    137.5,300, 0,  12.5},
      {13,214,    150.5,330, 0,  12.5},
      {14,212,    163.5,360, 0,  12.5},
-     {15,214,    176.5,390, 0,  12.5}, 
+     {15,214,    176.5,390, 0,  12.5},
      {16,220,    189.5,420, 0,  12.5},
      {17,224,    202.5,449, 0,  12.5},
      {18,232,    215.5,479, 0,  12.5},
@@ -112,8 +112,8 @@ namespace padHelper
   */
 
 
-  inline int findPadID(double z, double x) 
-  { 
+  inline int findPadID(double z, double x)
+  {
     z += 143;
     double radius = sqrt(x*x + z*z);
     double angle;
@@ -132,19 +132,19 @@ namespace padHelper
       }
 
     int layer, row;
-    // find layer_num. 
+    // find layer_num.
     for (layer = 0; !(padParameter[layer][2]+padParameter[layer][5]*0.5 >= radius
 		      && padParameter[layer][2]-padParameter[layer][5]*0.5 <= radius); layer++)
       {
 	if (layer >= 32) return -1000;
 	if (layer != 0)
 	  {
-	    if (padParameter[layer][2] - padParameter[layer][5] * 0.5 >= radius && 
+	    if (padParameter[layer][2] - padParameter[layer][5] * 0.5 >= radius &&
 		padParameter[layer - 1][2] + padParameter[layer - 1][5] * 0.5 <= radius) return -layer;
 	  }
       }
-    
-    
+
+
     //std::cout<<"padHelper:: layer="<<layer<<", angle="<<angle<<", "<<(getsTheta(layer)*TMath::Pi()/180.)<<std::endl;
     // find row_num
     //  if (angle - (padParameter[layer][4]*TMath::Pi()/180.) < 0) return -1000;
@@ -153,7 +153,7 @@ namespace padHelper
     //    double a, b, c;
     //row = (int)((angle-(padParameter[layer][4]*TMath::Pi()/180.))/(padParameter[layer][3]*TMath::Pi()/180.));
     //    row = (int)((angle-(getsTheta(layer)*TMath::Pi()/180.))/(getDTheta(layer)*TMath::Pi()/180.));
-    
+
     //row = (int)((angle-(getsTheta(layer)*TMath::Pi()/180.))/(getDTheta(layer)*TMath::Pi()/180.))+1;
     row = (int)((angle-(getsTheta(layer)*TMath::Pi()/180.))/(getDTheta(layer)*TMath::Pi()/180.));
     if (row > padParameter[layer][1]) return -1000;
@@ -183,14 +183,14 @@ namespace padHelper
   inline Double_t getR(Int_t padID)
   {
     //    padID-=1;
-    int layer, row;
+    int layer;//, row;
     int sum = 0;
 
     for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
       {
 	sum += padParameter[layer][1];
       }
-    row = padID - sum;
+    //row = padID - sum;
     Double_t R = padParameter[layer][2];
     return R;
   }

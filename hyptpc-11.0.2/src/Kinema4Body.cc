@@ -12,19 +12,19 @@
 
 namespace
 {
-  using CLHEP::pi;
+using CLHEP::pi;
 }
 
 //___________________________________________________________________
-Kinema4Body::Kinema4Body(void)
+Kinema4Body::Kinema4Body()
 {
 }
 
 //___________________________________________________________________
-Kinema4Body::Kinema4Body( double m1, double m2,
-			  double m3, double m4,
-			  double m5, double m6,
-			  double p1, double p2 )
+Kinema4Body::Kinema4Body(double m1, double m2,
+                         double m3, double m4,
+                         double m5, double m6,
+                         double p1, double p2)
 {
   double ECM, m12;
   double vx3, vy3, vz3; /* unit vector */
@@ -104,11 +104,11 @@ Kinema4Body::Kinema4Body( double m1, double m2,
   theta2 = kin2.GetThetaLab();
 
   vz3 = cos(deg2rad(theta2))*cos(deg2rad(theta1)) -
-      sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
+    sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
 
   vx3 = cos(deg2rad(phi5))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) +
-     cos(deg2rad(theta1))*cos(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
-        sin(deg2rad(phi5))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
+    cos(deg2rad(theta1))*cos(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    sin(deg2rad(phi5))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
   vy3 = -sin(deg2rad(phi5))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) -
     cos(deg2rad(theta1))*sin(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
@@ -129,11 +129,11 @@ Kinema4Body::Kinema4Body( double m1, double m2,
   theta2 = -kin2.GetPhiLab();
 
   vz4 = cos(deg2rad(theta2))*cos(deg2rad(theta1)) -
-      sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
+    sin(deg2rad(theta1))*cos(deg2rad(phi3))*sin(deg2rad(theta2));
 
   vx4 = cos(deg2rad(phi5))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) +
-     cos(deg2rad(theta1))*cos(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
-        sin(deg2rad(phi5))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
+    cos(deg2rad(theta1))*cos(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
+    sin(deg2rad(phi5))*sin(deg2rad(phi3))*sin(deg2rad(theta2));
 
   vy4 = -sin(deg2rad(phi5))*cos(deg2rad(theta2))*sin(deg2rad(theta1)) -
     cos(deg2rad(theta1))*sin(deg2rad(phi5))*cos(deg2rad(phi3))*sin(deg2rad(theta2)) -
@@ -161,9 +161,9 @@ Kinema4Body::p2E(double p,double m)
 
 //___________________________________________________________________
 void
-Kinema4Body::CalcDistoribution( double unitx, double unity,
-				double unitz,
-				double *theta, double *phi )
+Kinema4Body::CalcDistoribution(double unitx, double unity,
+                               double unitz,
+                               double *theta, double *phi)
 {
   *theta = rag2deg(acos(unitx));
 
@@ -177,7 +177,7 @@ Kinema4Body::CalcDistoribution( double unitx, double unity,
     *phi = 360.0-rag2deg(acos(unity/sin(deg2rad(*theta))));
   else {
     fprintf(stderr,
-	  "Kinema4Body::CalcDistribution No such reagion unity=%f, unitz=%f\n",
+            "Kinema4Body::CalcDistribution No such reagion unity=%f, unitz=%f\n",
 	    unity, unitz);
     exit(1);
   }
@@ -186,21 +186,21 @@ Kinema4Body::CalcDistoribution( double unitx, double unity,
 
 //___________________________________________________________________
 double
-Kinema4Body::deg2rad( double theta )
+Kinema4Body::deg2rad(double theta)
 {
   return 3.141592654*theta/180.0;
 }
 
 //___________________________________________________________________
 double
-Kinema4Body::rag2deg( double rag )
+Kinema4Body::rag2deg(double rag)
 {
   return 360.0 * rag/ (2.0 * 3.141592654);
 }
 
 //___________________________________________________________________
 double
-Kinema4Body::Calc_m12( double m1, double m2, double m3, double M )
+Kinema4Body::Calc_m12(double m1, double m2, double m3, double M)
 {
   int success=0;
   double x, fx;
@@ -220,7 +220,7 @@ Kinema4Body::Calc_m12( double m1, double m2, double m3, double M )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetMaxFunc( double m1, double m2, double m3, double M )
+Kinema4Body::GetMaxFunc(double m1, double m2, double m3, double M)
 {
   double x;
   double delta;
@@ -239,8 +239,8 @@ Kinema4Body::GetMaxFunc( double m1, double m2, double m3, double M )
 
 //___________________________________________________________________
 double
-Kinema4Body::ProFunction( double m12,
-			  double m1, double m2, double m3, double M)
+Kinema4Body::ProFunction(double m12,
+                         double m1, double m2, double m3, double M)
 {
   double p1_star, p3;
   if (m12 >= m1+m2 && m12 <= M-m3) {
@@ -259,7 +259,7 @@ Kinema4Body::ProFunction( double m12,
 
 //___________________________________________________________________
 double
-Kinema4Body::RandSin( void )
+Kinema4Body::RandSin()
 {
   int success=0;
   double x,fx;
@@ -277,7 +277,7 @@ Kinema4Body::RandSin( void )
 
 //___________________________________________________________________
 void
-Kinema4Body::Dump( void )
+Kinema4Body::Dump()
 {
   printf("======Kinema4Body Dump======\n");
   printf("--Particle1--\n");
@@ -314,7 +314,7 @@ Kinema4Body::Dump( void )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetEnergy( int i )
+Kinema4Body::GetEnergy(int i)
 {
   switch (i) {
   case 1:
@@ -340,7 +340,7 @@ Kinema4Body::GetEnergy( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetMomentum( int i )
+Kinema4Body::GetMomentum(int i)
 {
   switch (i) {
   case 1:
@@ -366,7 +366,7 @@ Kinema4Body::GetMomentum( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetMomentum( int i, double *mom )
+Kinema4Body::GetMomentum(int i, double *mom)
 {
   switch (i) {
   case 1:
@@ -404,7 +404,7 @@ Kinema4Body::GetMomentum( int i, double *mom )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetTheta( int i )
+Kinema4Body::GetTheta(int i)
 {
   switch (i) {
   case 1:
@@ -430,7 +430,7 @@ Kinema4Body::GetTheta( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetPhi( int i )
+Kinema4Body::GetPhi(int i)
 {
   switch (i) {
   case 1:
@@ -456,7 +456,7 @@ Kinema4Body::GetPhi( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetThetaCM( int i )
+Kinema4Body::GetThetaCM(int i)
 {
   switch (i) {
   case 1:
@@ -473,7 +473,7 @@ Kinema4Body::GetThetaCM( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetPhiCM( int i )
+Kinema4Body::GetPhiCM(int i)
 {
   switch (i) {
   case 1:
@@ -490,14 +490,14 @@ Kinema4Body::GetPhiCM( int i )
 
 //___________________________________________________________________
 double
-Kinema4Body::GetM34( void )
+Kinema4Body::GetM34()
 {
   return kin3.m34;
 }
 
 //___________________________________________________________________
 void
-Kinema4Body::RotateMom( int i, double deg, double *mom )
+Kinema4Body::RotateMom(int i, double deg, double *mom)
 {
   double Sin,Cos;
 

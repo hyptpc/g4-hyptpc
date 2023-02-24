@@ -10,15 +10,15 @@
 
 namespace Kinematics
 {
-  G4ThreeVector HarmonicFermiMomentum( G4int type );
-  G4int         HarmonicFermiMomentumDeuteron( G4double* Kf );
-  G4double      Legendre( G4int order, G4double x );
+G4ThreeVector HarmonicFermiMomentum(G4int type);
+G4int         HarmonicFermiMomentumDeuteron(G4double* Kf);
+G4double      Legendre(G4int order, G4double x);
 
-  inline G4String ClassName( void )
-  {
-    static G4String s_name("Kinematics");
-    return s_name;
-  }
+inline G4String ClassName()
+{
+  static G4String s_name("Kinematics");
+  return s_name;
+}
 }
 
 #endif

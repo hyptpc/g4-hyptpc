@@ -12,7 +12,7 @@
 
 #include <Rtypes.h>
 
-#include "TPCAnaManager.hh"
+#include "AnaManager.hh"
 
 class TFile;
 class TTree;
@@ -32,21 +32,21 @@ struct IncInfo
   Double_t px[MaxHits]; // [GeV/c]
   Double_t py[MaxHits]; // [GeV/c]
   Double_t pz[MaxHits]; // [GeV/c]
-  void Print( void ) const;
+  void Print() const;
 };
 
 //_____________________________________________________________________________
 class IncMan
 {
 public:
-  static G4String ClassName( void );
-  static IncMan& GetInstance( void );
-  ~IncMan( void );
+  static G4String ClassName();
+  static IncMan& GetInstance();
+  ~IncMan();
 
 private:
-  IncMan( void );
-  IncMan( const IncMan&  );
-  IncMan& operator =( const IncMan& );
+  IncMan();
+  IncMan(const IncMan&);
+  IncMan& operator =(const IncMan&);
 
 private:
   G4bool     m_is_ready;
@@ -57,17 +57,17 @@ private:
   G4int      m_n_event;
 
 public:
-  IncInfo*   Get( void ) const;
-  IncInfo*   Get( Int_t i ) const;
-  G4bool     Initialize( void );
-  G4bool     Initialize( const G4String& filename );
-  G4bool     IsReady( void ) const { return m_is_ready; }
-  void       Print( void ) const;
+  IncInfo*   Get() const;
+  IncInfo*   Get(Int_t i) const;
+  G4bool     Initialize();
+  G4bool     Initialize(const G4String& filename);
+  G4bool     IsReady() const { return m_is_ready; }
+  void       Print() const;
 };
 
 //_____________________________________________________________________________
 inline G4String
-IncMan::ClassName( void )
+IncMan::ClassName()
 {
   static G4String s_name("IncMan");
   return s_name;
@@ -75,7 +75,7 @@ IncMan::ClassName( void )
 
 //_____________________________________________________________________________
 inline IncMan&
-IncMan::GetInstance( void )
+IncMan::GetInstance()
 {
   static IncMan s_instance;
   return s_instance;

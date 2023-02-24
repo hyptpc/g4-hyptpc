@@ -14,14 +14,14 @@
 class ConfMan
 {
 public:
-  static G4String  ClassName( void );
-  static ConfMan& GetInstance( void );
-  ~ConfMan( void );
+  static G4String  ClassName();
+  static ConfMan& GetInstance();
+  ~ConfMan();
 
 private:
-  ConfMan( void );
-  ConfMan( const ConfMan& );
-  ConfMan& operator=( const ConfMan& );
+  ConfMan();
+  ConfMan(const ConfMan&);
+  ConfMan& operator=(const ConfMan&);
 
 private:
   typedef std::map<G4String, G4String> StrList;
@@ -38,31 +38,31 @@ private:
   BoolList     m_bool;
 
 public:
-  // G4bool    Finalize( void );
-  // G4bool    FinalizeProcess( void );
+  // G4bool    Finalize();
+  // G4bool    FinalizeProcess();
   template <typename T>
-  static const T& Get( const G4String& key );
-  G4bool    Initialize( void );
-  G4bool    Initialize( const G4String& file_name );
-  G4bool    InitializeHistograms( void );
-  G4bool    InitializeParameterFiles( void );
+  static const T& Get(const G4String& key);
+  G4bool    Initialize();
+  G4bool    Initialize(const G4String& file_name);
+  G4bool    InitializeHistograms();
+  G4bool    InitializeParameterFiles();
   template <typename T>
-  G4bool    InitializeParameter( void );
+  G4bool    InitializeParameter();
   template <typename T>
-  G4bool    InitializeParameter( const G4String& key );
+  G4bool    InitializeParameter(const G4String& key);
   template <typename T>
-  G4bool    InitializeParameter( const G4String& key1,
-				 const G4String& key2 );
-  G4bool    IsReady( void ) const { return m_is_ready; }
+  G4bool    InitializeParameter(const G4String& key1,
+                                const G4String& key2);
+  G4bool    IsReady() const { return m_is_ready; }
 
 private:
-  G4String FilePath( const G4String& src ) const;
-  G4bool  ShowResult( G4bool status, const G4String& name ) const;
+  G4String FilePath(const G4String& src) const;
+  G4bool   ShowResult(G4bool status, const G4String& name) const;
 };
 
 //_____________________________________________________________________________
 inline G4String
-ConfMan::ClassName( void )
+ConfMan::ClassName()
 {
   static const G4String s_name("ConfMan");
   return s_name;
@@ -70,7 +70,7 @@ ConfMan::ClassName( void )
 
 //_____________________________________________________________________________
 inline ConfMan&
-ConfMan::GetInstance( void )
+ConfMan::GetInstance()
 {
   static ConfMan s_instance;
   return s_instance;
@@ -79,7 +79,7 @@ ConfMan::GetInstance( void )
 //_____________________________________________________________________________
 template <>
 inline const G4String&
-ConfMan::Get<G4String>( const G4String& key )
+ConfMan::Get<G4String>(const G4String& key)
 {
   return GetInstance().m_string[key];
 }
@@ -87,7 +87,7 @@ ConfMan::Get<G4String>( const G4String& key )
 //_____________________________________________________________________________
 template <>
 inline const G4double&
-ConfMan::Get<G4double>( const G4String& key )
+ConfMan::Get<G4double>(const G4String& key)
 {
   return GetInstance().m_double[key];
 }
@@ -95,7 +95,7 @@ ConfMan::Get<G4double>( const G4String& key )
 //_____________________________________________________________________________
 template <>
 inline const G4int&
-ConfMan::Get<G4int>( const G4String& key )
+ConfMan::Get<G4int>(const G4String& key)
 {
   return GetInstance().m_int[key];
 }
@@ -103,16 +103,16 @@ ConfMan::Get<G4int>( const G4String& key )
 //_____________________________________________________________________________
 template <>
 inline const G4bool&
-ConfMan::Get<G4bool>( const G4String& key )
+ConfMan::Get<G4bool>(const G4String& key)
 {
   return GetInstance().m_bool[key];
 }
 
 //_____________________________________________________________________________
 inline G4bool
-ConfMan::ShowResult( G4bool status, const G4String& name ) const
+ConfMan::ShowResult(G4bool status, const G4String& name) const
 {
-  if( status )
+  if(status)
     std::cout << std::setw(20) << std::left
 	      << " ["+name+"]"
 	      << "-> Initialized" << std::endl;
@@ -126,33 +126,33 @@ ConfMan::ShowResult( G4bool status, const G4String& name ) const
 //_____________________________________________________________________________
 template <typename T>
 inline G4bool
-ConfMan::InitializeParameter( void )
+ConfMan::InitializeParameter()
 {
   return
-    ShowResult( T::GetInstance().Initialize(),
-		T::GetInstance().ClassName() );
+    ShowResult(T::GetInstance().Initialize(),
+               T::GetInstance().ClassName());
 }
 
 //_____________________________________________________________________________
 template <typename T>
 inline G4bool
-ConfMan::InitializeParameter( const G4String& key )
+ConfMan::InitializeParameter(const G4String& key)
 {
   return
-    ShowResult( T::GetInstance().Initialize(m_file[key]),
-		T::GetInstance().ClassName() );
+    ShowResult(T::GetInstance().Initialize(m_file[key]),
+               T::GetInstance().ClassName());
 }
 
 //_____________________________________________________________________________
 template <typename T>
 inline G4bool
-ConfMan::InitializeParameter( const G4String& key1,
-			      const G4String& key2 )
+ConfMan::InitializeParameter(const G4String& key1,
+                             const G4String& key2)
 {
   return
-    ShowResult( T::GetInstance().Initialize(m_file[key1],
-					    m_file[key2]),
-		T::GetInstance().ClassName() );
+    ShowResult(T::GetInstance().Initialize(m_file[key1],
+                                           m_file[key2]),
+               T::GetInstance().ClassName());
 }
 
 #endif

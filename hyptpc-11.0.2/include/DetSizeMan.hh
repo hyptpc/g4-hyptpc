@@ -14,14 +14,14 @@
 class DetSizeMan
 {
 public:
-  static G4String    ClassName( void );
-  static DetSizeMan& GetInstance( void );
-  ~DetSizeMan( void );
+  static G4String    ClassName();
+  static DetSizeMan& GetInstance();
+  ~DetSizeMan();
 
 private:
-  DetSizeMan( void );
-  DetSizeMan( const DetSizeMan&  );
-  DetSizeMan& operator =( const DetSizeMan& );
+  DetSizeMan();
+  DetSizeMan(const DetSizeMan& );
+  DetSizeMan& operator =(const DetSizeMan&);
 
 private:
   typedef std::vector<G4double>          ParamArray;
@@ -32,17 +32,17 @@ private:
   ParamMap m_param_map;
 
 public:
-  G4bool        Initialize( void );
-  G4bool        Initialize( const G4String& filename );
-  G4bool        IsReady( void ) const { return m_is_ready; }
-  G4double      Get( const G4String& key, G4int i=0 ) const;
-  G4ThreeVector GetSize( const G4String& key ) const;
-  void          Print( void ) const;
+  G4bool        Initialize();
+  G4bool        Initialize(const G4String& filename);
+  G4bool        IsReady() const { return m_is_ready; }
+  G4double      Get(const G4String& key, G4int i=0) const;
+  G4ThreeVector GetSize(const G4String& key) const;
+  void          Print() const;
 };
 
 //_____________________________________________________________________________
 inline G4String
-DetSizeMan::ClassName( void )
+DetSizeMan::ClassName()
 {
   static G4String s_name("DetSizeMan");
   return s_name;
@@ -50,7 +50,7 @@ DetSizeMan::ClassName( void )
 
 //_____________________________________________________________________________
 inline DetSizeMan&
-DetSizeMan::GetInstance( void )
+DetSizeMan::GetInstance()
 {
   static DetSizeMan s_instance;
   return s_instance;

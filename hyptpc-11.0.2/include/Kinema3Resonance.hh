@@ -53,22 +53,22 @@ private:
   KINEMA_3RESONANCE kin3;
 
 public:
-  Kinema3Resonance( double m1, double m2, double m3, double m4, double m5,
-		    double m_res, double width, double p1, double p2 );
-  double p2E( double p,double m );
-  void   CalcDistoribution( double unitx, double unity, double unitz,
-			    double *theta, double *phi );
-  double RandSin( void );
-  void   Dump( void );
-  double GetEnergy( int i );
-  double GetMomentum( int i );
-  void   GetMomentum( int i, double *mom );
-  double GetTheta( int i );
-  double GetPhi( int i );
-  double GetThetaCM( int i );
-  double GetPhiCM( int i );
-  void   RotateMom( int i, double deg, double *mom );
-  double GetResMass( void );
+  Kinema3Resonance(double m1, double m2, double m3, double m4, double m5,
+                   double m_res, double width, double p1, double p2);
+  double p2E(double p,double m);
+  void   CalcDistoribution(double unitx, double unity, double unitz,
+                           double *theta, double *phi);
+  double RandSin();
+  void   Dump();
+  double GetEnergy(int i);
+  double GetMomentum(int i);
+  void   GetMomentum(int i, double *mom);
+  double GetTheta(int i);
+  double GetPhi(int i);
+  double GetThetaCM(int i);
+  double GetPhiCM(int i);
+  void   RotateMom(int i, double deg, double *mom);
+  double GetResMass();
 };
 
 #endif

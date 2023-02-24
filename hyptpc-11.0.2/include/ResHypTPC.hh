@@ -15,13 +15,13 @@ class TF1;
 class ResHypTPC
 {
 public:
-  // ResHypTPC( G4double pad_size=2., G4double pad_length=10.,
+  // ResHypTPC(G4double pad_size=2., G4double pad_length=10.,
   // 	     G4double threshold=0.1, G4double diff_T=0.18,
-  // 	     G4double smearing=0 );
-  ResHypTPC( void );
-  ResHypTPC( G4double pad_size, G4double pad_length, G4double threshold,
-	     G4double diff_T, G4double smearing );
-  ~ResHypTPC( void );
+  // 	     G4double smearing=0);
+  ResHypTPC();
+  ResHypTPC(G4double pad_size, G4double pad_length, G4double threshold,
+            G4double diff_T, G4double smearing);
+  ~ResHypTPC();
 
 private:
   static const bool debug = false;
@@ -78,8 +78,8 @@ private:
   };
 
 public:
-  G4double getXDeviation( G4int &n_electron, G4int &n_pad, G4double &x_rms,
-			  G4double x, G4double y, G4double dxdz, G4double dydz );
+  G4double getXDeviation(G4int &n_electron, G4int &n_pad, G4double &x_rms,
+                         G4double x, G4double y, G4double dxdz, G4double dydz);
   G4double getYDeviation(G4double y);
   G4double getDiffusionX(G4double y) const {
     if (y>=0) {
