@@ -53,7 +53,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_particle_gun(new G4ParticleGun),
     m_target_pos(gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm),
     m_target_size(gSize.GetSize("Target")*CLHEP::mm),
-    m_e45target_size(gSize.GetSize("E45Target")*CLHEP::mm),
     m_beam(new BeamInfo),
     m_beam_p0(gConf.Get<G4double>("BeamMom")*CLHEP::GeV),
     m_jam(),
@@ -368,18 +367,8 @@ PrimaryGeneratorAction::GenerateUniformProton(G4Event* anEvent)
   mom_p_z = mom_p*cos(theta);
   Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -421,19 +410,8 @@ PrimaryGeneratorAction::GenerateUniformPim(G4Event* anEvent)
   mom_pi_z = mom_pi*cos(theta);
   Energy_pi=sqrt(pow(mom_pi,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_target_size.x(),m_target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_target_size.x(),m_target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_target_size.x()*m_target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_target_size.z(),m_target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-15.,15.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-5.,5.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -479,18 +457,8 @@ PrimaryGeneratorAction::GenerateBeamProton(G4Event* anEvent)
   mom_p_z = mom_p*cos(theta);
   Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -539,18 +507,8 @@ PrimaryGeneratorAction::GenerateUniformProton_P(G4Event* anEvent)
   mom_p_z = mom_p*cos(theta);
   Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -598,18 +556,8 @@ PrimaryGeneratorAction::GenerateUniformProton_P_fixphi(G4Event* anEvent)
   mom_p_z = mom_p*cos(theta);
   Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -660,18 +608,8 @@ PrimaryGeneratorAction::GenerateUniformProton_P_Multi(G4Event* anEvent)
     mom_p_z = mom_p*cos(theta);
     Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
 
-    G4double rn_vtx=-1;  G4double rn_vtz=-1;
     G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-    if(gConf.Get<G4int>("Experiment") == 45.){
-      while(1){
-	rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-	rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-	if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-      }
-      vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-      vtx=rn_vtx;
-      vtz=rn_vtz+m_target_pos.z();
-    }else if(gConf.Get<G4int>("Experiment") == 42.){
+    if(gConf.Get<G4int>("Experiment") == 42.){
       vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
       vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
       vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -786,20 +724,8 @@ PrimaryGeneratorAction::GenerateLL_fromXiP(G4Event* anEvent)
   L1_L = event2.GetDecay(0);
   L2_L = event2.GetDecay(1);
 
-
-
-  G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
-  if(gConf.Get<G4int>("Experiment") == 45.){
-    while(1){
-      rn_vtx = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      rn_vtz = G4RandFlat::shoot(-m_e45target_size.x(),m_e45target_size.x());
-      if((rn_vtx*rn_vtx+rn_vtz*rn_vtz) < m_e45target_size.x()*m_e45target_size.x()) break;
-    }
-    vty = G4RandFlat::shoot(-m_e45target_size.z(),m_e45target_size.z());
-    vtx=rn_vtx;
-    vtz=rn_vtz+m_target_pos.z();
-  }else if(gConf.Get<G4int>("Experiment") == 42.){
+  if(gConf.Get<G4int>("Experiment") == 42.){
     vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
     vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
     vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
@@ -3851,7 +3777,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
 {
   G4double mass = m_KaonMinus->GetPDGMass();
   G4LorentzVector lv(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4cout << m_beam->pos << std::endl;
+  G4cout << m_beam->pos << " " << m_beam->mom << std::endl;
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(lv.v());
   m_particle_gun->SetParticleEnergy(lv.e() - mass);

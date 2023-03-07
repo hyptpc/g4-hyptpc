@@ -32,8 +32,8 @@ DetSizeMan::Initialize()
 {
   std::ifstream ifs(m_file_name);
   if(!ifs.is_open()){
-    std::cerr << "#E " << FUNC_NAME << " "
-	      << "No such parameter file : " << m_file_name << std::endl;
+    G4cerr << "#E " << FUNC_NAME << " "
+           << "No such parameter file : " << m_file_name << std::endl;
     return false;
   }
 
@@ -77,7 +77,10 @@ DetSizeMan::Get(const G4String& key, G4int i) const
 
   if(itr==m_param_map.end() ||
      i+1 > (G4int)itr->second.size()){
-    throw std::invalid_argument(std::string(FUNC_NAME+" No such key : "+key));
+    Print();
+    std::string msg(FUNC_NAME+" No such key : "+key);
+    msg += "(i=" + std::to_string(i) + ")";
+    throw std::invalid_argument(msg);
   }
 
   return itr->second.at(i);
@@ -96,17 +99,17 @@ DetSizeMan::GetSize(const G4String& key) const
 void
 DetSizeMan::Print() const
 {
-  std::cout << "#D " << FUNC_NAME << std::endl;
+  G4cout << FUNC_NAME << std::endl;
 
   const G4int w = 20;
   PIterator itr, end=m_param_map.end();
   for(itr=m_param_map.begin(); itr!=end; ++itr){
-    std::cout << " key = " << std::setw(w) << std::left
-              << itr->first << itr->second.size() << " : ";
+    G4cout << " key = " << std::setw(w) << std::left
+           << itr->first << itr->second.size() << " : ";
     for(G4int i=0, n=itr->second.size(); i<n; ++i){
-      std::cout << std::setw(5) << std::right
-                << itr->second.at(i) << " ";
+      G4cout << std::setw(5) << std::right
+             << itr->second.at(i) << " ";
     }
-    std::cout << std::endl;
+    G4cout << std::endl;
   }
 }

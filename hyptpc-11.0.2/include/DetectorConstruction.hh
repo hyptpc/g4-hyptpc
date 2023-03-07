@@ -14,6 +14,7 @@ class G4Material;
 class G4LogicalVolume;
 class G4PVPlacement;
 class SDCSD;
+class MagneticField;
 
 //_____________________________________________________________________________
 class DetectorConstruction : public G4VUserDetectorConstruction
@@ -32,6 +33,7 @@ private:
   G4double                        m_rotation_angle;
   G4RotationMatrix*               m_rotation_matrix;
   SDCSD*                          m_sdc_sd;
+  MagneticField*                  m_field;
 
 private:
   // Materials
@@ -39,25 +41,25 @@ private:
   void ConstructMaterials();
   // Detectors
   void ConstructBAC();
-
-  void ConstructAreaTent();
-  void ConstructBC3();
-  void ConstructBC4();
   void ConstructBH2();
   void ConstructFTOF();
   void ConstructHTOF();
   void ConstructHypTPC();
+  void ConstructKVC();
+  void ConstructShsMagnet();
+  void ConstructTarget();
+  // For K1.8
+  void ConstructAreaTent();
+  void ConstructBC3();
+  void ConstructBC4();
   void ConstructK18BeamlineSpectrometer();
   void ConstructKuramaMagnet();
   void ConstructLAC();
-  void ConstructNBAR();
   void ConstructSCH();
   void ConstructSDC1();
   void ConstructSDC2();
   void ConstructSDC3();
   void ConstructSDC4();
-  void ConstructShsMagnet();
-  void ConstructTarget();
   void ConstructWC();
 
 private:
