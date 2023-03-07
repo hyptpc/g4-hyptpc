@@ -25,11 +25,11 @@ protected:
   void ConstructIons();
   void ConstructLeptons();
   void ConstructMesons();
-  void ConstructParticle();
-  void ConstructProcess();
+  virtual void ConstructParticle();
+  virtual void ConstructProcess();
   void ConstructShortLived();
   void ConstructStableHyperons();
-  void SetCuts();
+  virtual void SetCuts();
 };
 
 #endif

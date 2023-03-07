@@ -41,10 +41,13 @@ main(int argc, char** argv)
 
   auto runManager = new G4RunManager;
   runManager->SetUserInitialization(new DetectorConstruction);
-  if(gConf.Get<G4String>("Physics") == "QGSP_BERT")
-    runManager->SetUserInitialization(new QGSP_BERT);
-  else if(gConf.Get<G4String>("Physics") == "USER")
+  if(gConf.Get<G4String>("Physics") == "USER")
     runManager->SetUserInitialization(new PhysicsList);
+  else if(gConf.Get<G4String>("Physics") == "QGSP_BERT")
+    runManager->SetUserInitialization(new QGSP_BERT);
+  else
+    runManager->SetUserInitialization(new QGSP_BERT);
+
   runManager->SetUserAction(new PrimaryGeneratorAction);
   runManager->SetUserAction(new RunAction);
   runManager->SetUserAction(new SteppingAction);
@@ -53,6 +56,7 @@ main(int argc, char** argv)
 
   // auto visManager = new VisManager;
   auto visManager = new G4VisExecutive;
+  visManager->SetVerboseLevel(0);
   visManager->Initialize();
 
   auto uiManager = G4UImanager::GetUIpointer();

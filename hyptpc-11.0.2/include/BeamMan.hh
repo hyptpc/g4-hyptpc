@@ -19,13 +19,12 @@ struct BeamInfo
 {
   G4double      x; // [mm]
   G4double      y; // [mm]
-  G4double      u; // [mrad]
-  G4double      v; // [mrad]
-  G4double      dp; // [%]
-  G4ThreeVector p; // [GeV/c]
   G4double      z; // [mm]
-  G4double GetX(G4double offset=0.) const;
-  G4double GetY(G4double offset=0.) const;
+  G4double      px; // [GeV/c]
+  G4double      py; // [GeV/c]
+  G4double      pz; // [GeV/c]
+  G4ThreeVector pos;
+  G4ThreeVector mom;
   void     Print() const;
 };
 
@@ -49,20 +48,13 @@ private:
   TFile*        m_file;
   ParamArray    m_param_array;
   G4int         m_n_param;
-  G4bool        m_is_vi; // true:VI or false:VO
-  G4double      m_primary_z; // from VI or VO
-  G4ThreeVector m_vi_pos;
 
 public:
   const BeamInfo&      Get() const;
-  G4double             GetPrimaryZ() const { return m_primary_z; }
-  const G4ThreeVector& GetVIPosition() const { return m_vi_pos; }
   G4bool               Initialize();
   G4bool               Initialize(const G4String& filename);
   G4bool               IsReady() const { return m_is_ready; }
   void                 Print() const;
-  void                 SetPrimaryZ(G4double z){ m_primary_z = z; }
-  void                 SetVIPosition(G4ThreeVector pos){ m_vi_pos = pos; }
 };
 
 //_____________________________________________________________________________

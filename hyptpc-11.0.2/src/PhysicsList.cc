@@ -41,11 +41,6 @@
 
 namespace
 {
-  using CLHEP::eplus;
-  using CLHEP::GeV;
-  using CLHEP::keV;
-  using CLHEP::MeV;
-  using CLHEP::ns;
   const auto& gConf = ConfMan::GetInstance();
 }
 
@@ -56,6 +51,7 @@ PhysicsList::PhysicsList()
     m_hadron_physics_list()
 {
   SetDefaultCutValue(2.*CLHEP::mm);
+  SetVerboseLevel(0);
   m_em_physics_list = new G4EmStandardPhysics(verboseLevel);
 }
 
@@ -77,7 +73,7 @@ PhysicsList::ConstructParticle()
   ConstructMesons();
   ConstructBaryons();
   ConstructShortLived();
-  ConstructStableHyperons();
+  // ConstructStableHyperons();
   ConstructIons();
 }
 
@@ -143,10 +139,11 @@ PhysicsList::ConstructIons()
   G4IonConstructor pIonConstructor;
   pIonConstructor.ConstructParticle();
 
+#if 0
   // G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   // G4int Z = 6, A = 12;
-  // G4double ionCharge   = 0.*eplus;
-  // G4double excitEnergy = 0.*keV;
+  // G4double ionCharge   = 0.*CLHEP::eplus;
+  // G4double excitEnergy = 0.*CLHEP::keV;
   // auto Carbon12 = G4IonTable::GetIonTable()->GetIon(Z,A,excitEnergy);
   //  Carbon12->DumpTable();
   //  C12->DumpTable();
@@ -154,17 +151,17 @@ PhysicsList::ConstructIons()
   //  G4ParticleDefinition* C12 = G4ParticleTable::G4IonTable::GetLightIon(6,12);
   //  G4ParticleDefinition* C12=G4IonTable::GetParticleTable()->GetIon(6,12,0.);
   //  G4ParticleDefinition* Be10=G4ParticleTable::FindIon(4,10,0.,0);
-  //  G4double rmBe10= *G4IonTable::GetIonMass(4,10)/GeV;
+  //  G4double rmBe10= *G4IonTable::GetIonMass(4,10)/CLHEP::GeV;
 
   auto kaonMinus = G4ParticleTable::GetParticleTable()->FindParticle("kaon-");
-  // auto C12 = G4ParticleTable::GetParticleTable()->GetIon(6, 12,0.*keV);
+  // auto C12 = G4ParticleTable::GetParticleTable()->GetIon(6, 12,0.*CLHEP::keV);
   // auto C12 = G4ParticleTable::GetParticleTable()->FindParticle("C12[0,0]");
-  G4double rmkn = kaonMinus->GetPDGMass()/GeV;
-  G4double rmC12 = 11.1749*GeV;
-  //  G4double rmC12= C12->GetPDGMass()/GeV;
+  G4double rmkn = kaonMinus->GetPDGMass()/CLHEP::GeV;
+  G4double rmC12 = 11.1749*CLHEP::GeV;
+  //  G4double rmC12= C12->GetPDGMass()/CLHEP::GeV;
   G4double pbeam = gConf.Get<G4double>("BeamMom");
   G4double Ebeam = std::sqrt(std::pow(pbeam, 2) + std::pow(rmkn, 2));
-  G4double W = std::sqrt(std::pow(Ebeam+rmC12/GeV, 2) -
+  G4double W = std::sqrt(std::pow(Ebeam+rmC12/CLHEP::GeV, 2) -
 			  std::pow(pbeam, 2));
   G4cout << "---------------------------------" << G4endl;
   G4cout << "---------------------------------" << G4endl;
@@ -172,20 +169,21 @@ PhysicsList::ConstructIons()
   G4cout << "W:" << W << G4endl;
   G4cout << "Ebeam:" << Ebeam << G4endl;
   G4cout << "pbeam:" << pbeam << G4endl;
-  G4cout << "rmC12:" << rmC12/GeV << G4endl;
+  G4cout << "rmC12:" << rmC12/CLHEP::GeV << G4endl;
   G4cout << "---------------------------------" << G4endl;
   G4cout << "---------------------------------" << G4endl;
   G4cout << "---------------------------------" << G4endl;
-  auto particle = new G4ParticleDefinition("phaseLL", W*GeV, 0.*GeV, 0,
+  auto particle = new G4ParticleDefinition("phaseLL", W*CLHEP::GeV, 0.*CLHEP::GeV, 0,
 					    0, +0, 0,
 					    0, +0, 0,
 					    "ion", 0, +0, 101060120,
-					    false, 0.*ns, nullptr);
+					    false, 0.*CLHEP::ns, nullptr);
   auto decayTable = new G4DecayTable;
   auto mode = new G4PhaseSpaceDecayChannel("phaseLL", 1.0, 4, "lambda",
 					    "lambda", "Li8[0.0]", "kaon+");
   decayTable->Insert(mode);
   particle->SetDecayTable(decayTable);
+#endif
 }
 
 //_____________________________________________________________________________
@@ -344,60 +342,60 @@ PhysicsList::ConstructStableHyperons()
   //)
 
   // skaon+ non-decay K+
-  particle = new G4ParticleDefinition("skaon+", 0.493677*GeV, 5.315e-14*MeV,
-				       eplus, 0, -1, 0, 1, 1, 0,
+  particle = new G4ParticleDefinition("skaon+", 0.493677*CLHEP::GeV, 5.315e-14*CLHEP::MeV,
+				       CLHEP::eplus, 0, -1, 0, 1, 1, 0,
 				       "meson", 0, 0, 321,
 				       true, 0, nullptr);
 
   // ssigma+ non-decay sigma+
-  particle = new G4ParticleDefinition("ssigma+", 1.18937*GeV, 8.209e-12*MeV,
-				       eplus, 1, +1, 0, 2, +2, 0,
+  particle = new G4ParticleDefinition("ssigma+", 1.18937*CLHEP::GeV, 8.209e-12*CLHEP::MeV,
+				       CLHEP::eplus, 1, +1, 0, 2, +2, 0,
 				       "baryon", 0, +1, 3222,
 				       true, 0, nullptr);
   // sigma1+  decay only to sigma+ -> pi+ neutron channel
-  particle = new G4ParticleDefinition("sigma1+", 1.18937*GeV, 8.209e-12*MeV,
-				       eplus, 1, +1, 0, 2, +2, 0,
+  particle = new G4ParticleDefinition("sigma1+", 1.18937*CLHEP::GeV, 8.209e-12*CLHEP::MeV,
+				       CLHEP::eplus, 1, +1, 0, 2, +2, 0,
 				       "baryon", 0, +1, 3222,
-				       false, 0.0799*ns, nullptr);
+				       false, 0.0799*CLHEP::ns, nullptr);
   decayTable =  new G4DecayTable;
   // sigma+ -> neutron + pi+
   mode = new G4PhaseSpaceDecayChannel("sigma1+", 1.0, 2, "neutron", "pi+");
   decayTable->Insert(mode);
   particle->SetDecayTable(decayTable);
   // sigma2+  decay only to sigma+ -> pi0 proton channel
-  particle = new G4ParticleDefinition("sigma2+", 1.18937*GeV, 8.209e-12*MeV,
-				       eplus, 1, +1, 0, 2, +2, 0,
+  particle = new G4ParticleDefinition("sigma2+", 1.18937*CLHEP::GeV, 8.209e-12*CLHEP::MeV,
+				       CLHEP::eplus, 1, +1, 0, 2, +2, 0,
 				       "baryon", 0, +1, 3222,
-				       false, 0.0799*ns, nullptr);
+				       false, 0.0799*CLHEP::ns, nullptr);
   decayTable =  new G4DecayTable;
   // sigma+ -> proton + pi0
   mode = new G4PhaseSpaceDecayChannel("sigma2+", 1.0, 2, "proton", "pi0");
   decayTable->Insert(mode);
   particle->SetDecayTable(decayTable);
   /// Lambda1405 radioactive decay
-  particle = new G4ParticleDefinition("lambda1405r", 1.4051*GeV, 50.*MeV,
+  particle = new G4ParticleDefinition("lambda1405r", 1.4051*CLHEP::GeV, 50.*CLHEP::MeV,
 				       0, 1, -1, 0, 0, +0, 0,
 				       "baryon", 0, +1, 13122,
-				       false, 0.*ns, nullptr);
+				       false, 0.*CLHEP::ns, nullptr);
   decayTable =  new G4DecayTable;
   mode = new G4PhaseSpaceDecayChannel("lambda1405r", 1.0, 2,
 				       "lambda", "gamma");
   decayTable->Insert(mode);
   particle->SetDecayTable(decayTable);
   /// Sigma1385 radioactive decay
-  particle = new G4ParticleDefinition("sigma1385r", 1.3837*GeV, 36.*MeV,
+  particle = new G4ParticleDefinition("sigma1385r", 1.3837*CLHEP::GeV, 36.*CLHEP::MeV,
 				       0, 3, +1, 0, 1, +0, 0,
 				       "baryon", 0, +1, 3214,
-				       false, 0.*ns, nullptr);
+				       false, 0.*CLHEP::ns, nullptr);
   decayTable =  new G4DecayTable;
   mode = new G4PhaseSpaceDecayChannel("sigma1385r", 1.0, 2, "lambda", "gamma");
   decayTable->Insert(mode);
   particle->SetDecayTable(decayTable);
   // hybrid baryon mode
-  // particle = new G4ParticleDefinition("hybridb", 1.22*GeV, 0.*MeV,
-  // 				       eplus, 0, +0, 0, 0, +0, 0,
+  // particle = new G4ParticleDefinition("hybridb", 1.22*CLHEP::GeV, 0.*CLHEP::MeV,
+  // 				       CLHEP::eplus, 0, +0, 0, 0, +0, 0,
   // 				       "baryon", 0, +1, 9223,
-  // 				       false, 0.*ns, nullptr);
+  // 				       false, 0.*CLHEP::ns, nullptr);
   // decayTable = new G4DecayTable;
   // mode = new G4PhaseSpaceDecayChannel("hybridb", 1.0, 3, "neutron",
   // 				       "pi+", "pi-"); // pi- p --> n pi+ pi-
@@ -412,9 +410,9 @@ PhysicsList::ConstructStableHyperons()
   // decayTable->Insert(mode);
   // particle->SetDecayTable(decayTable);
 
-  G4double h_lifetime = gConf.Get<G4double>("HdibaryonLifetime")* ns;
-  G4double h_mass = gConf.Get<G4double>("HdibaryonMass") * GeV;
-  G4double h_width = gConf.Get<G4double>("HdibaryonWidth") * keV;
+  G4double h_lifetime = gConf.Get<G4double>("HdibaryonLifetime")* CLHEP::ns;
+  G4double h_mass = gConf.Get<G4double>("HdibaryonMass") * CLHEP::GeV;
+  G4double h_width = gConf.Get<G4double>("HdibaryonWidth") * CLHEP::keV;
   particle = new G4ParticleDefinition("hdibaryon", h_mass, h_width,
 				       0, 0, +0, 0, 0, +0, 0,
 				       "baryon", 0, +2, 9223,
@@ -426,7 +424,7 @@ PhysicsList::ConstructStableHyperons()
   particle = new G4ParticleDefinition("hdibaryonLL", h_mass, h_width,
 				       0, 0, +0, 0, 0, +0, 0,
 				       "baryon", 0, +2, 9225,
-				       false, 0.000000001*ns, nullptr);
+				       false, 0.000000001*CLHEP::ns, nullptr);
 }
 
 //_____________________________________________________________________________

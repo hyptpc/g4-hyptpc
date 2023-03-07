@@ -6,14 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
 #include <CLHEP/Units/SystemOfUnits.h>
-
-#include "Randomize.hh"
-
-namespace
-{
-using CLHEP::pi;
-}
+#include <Randomize.hh>
 
 //___________________________________________________________________
 Kinema4Body::Kinema4Body()
@@ -72,9 +67,9 @@ Kinema4Body::Kinema4Body(double m1, double m2,
   /* calculate m5 */
   theta5 = -kin1.GetPhiLab();
 
-  vx5 = sin(pi*theta5/180.0)*cos(pi*phi5/180.0);
+  vx5 = sin(CLHEP::pi*theta5/180.0)*cos(CLHEP::pi*phi5/180.0);
   vy5 = -sin(deg2rad(theta5))*sin(deg2rad(phi5));
-  vz5 = cos(pi*theta5/180.0);
+  vz5 = cos(CLHEP::pi*theta5/180.0);
 
   CalcDistoribution(vx5, vy5, vz5, &Theta5, &Phi5);
 

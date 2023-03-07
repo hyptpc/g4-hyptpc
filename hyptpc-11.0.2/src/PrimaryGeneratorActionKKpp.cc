@@ -31,7 +31,6 @@
 
 namespace
 {
-using CLHEP::GeV;
 auto& gAnaMan = AnaManager::GetInstance();
 const int MaxTry=1000;
 const auto& gConf = ConfMan::GetInstance();
@@ -68,15 +67,15 @@ PrimaryGeneratorAction::GenerateKKppLL1(G4Event* anEvent)
                                                gConf.Get<G4double>("BeamDU"),
                                                gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
   G4double dpb = 0.;
   if(gConf.Get<G4double>("BeamMom")!=0.)
-    dpb = G4RandGauss::shoot(0., gConf.Get<G4double>("BeamWidth"))*GeV;
+    dpb = G4RandGauss::shoot(0., gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
   pb += dpb;
 
   double KKppM0 = 1.405 + 1.405; //assuming L(1405)+L(1405)
   double KKppG0 = 0.1; //assumption
-  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
 
   G4double thetaK, theta_CM;
   G4ThreeVector LPKz, LPm1, LPL1, LPL2, LPf1, LPf2, LPf3, LPf4, LPf5, LPf6;
@@ -129,12 +128,12 @@ PrimaryGeneratorAction::GenerateKKppLL1(G4Event* anEvent)
         std::cout<<"Mm1="<<Mm1<<std::endl;
     }
 
-    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
     dpb = 0.;
     if(gConf.Get<G4double>("BeamMom")!=0.)
-      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
     pb += dpb;
-    Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+    Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
   }
 
   double BE_KKpp = Mm1 - 2.*Mi1 - 2.*Mp;
@@ -211,17 +210,17 @@ PrimaryGeneratorAction::GenerateKKppLL1(G4Event* anEvent)
 
   gAnaMan.SetPrimaryInfo(mm_d, mm_p, thetaK, theta_scat, theta_CM);
   gAnaMan.SetPrimaryParticle(0,LPf1.x(),LPf1.y(),LPf1.z(),
-                             PionPlus->GetPDGMass()/GeV, PionPlus->GetPDGEncoding());
+                             PionPlus->GetPDGMass()/CLHEP::GeV, PionPlus->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(1,LPf2.x(),LPf2.y(),LPf2.z(),
-                             PionMinus->GetPDGMass()/GeV, PionPlus->GetPDGEncoding());
+                             PionMinus->GetPDGMass()/CLHEP::GeV, PionPlus->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(2,LPf3.x(),LPf3.y(),LPf3.z(),
-                             Proton->GetPDGMass()/GeV, Proton->GetPDGEncoding());
+                             Proton->GetPDGMass()/CLHEP::GeV, Proton->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(3,LPf4.x(),LPf4.y(),LPf4.z(),
-                             PionMinus->GetPDGMass()/GeV, PionMinus->GetPDGEncoding());
+                             PionMinus->GetPDGMass()/CLHEP::GeV, PionMinus->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(4,LPf5.x(),LPf5.y(),LPf5.z(),
-                             Proton->GetPDGMass()/GeV, Proton->GetPDGEncoding());
+                             Proton->GetPDGMass()/CLHEP::GeV, Proton->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(5,LPf6.x(),LPf6.y(),LPf6.z(),
-                             PionMinus->GetPDGMass()/GeV, PionMinus->GetPDGEncoding());
+                             PionMinus->GetPDGMass()/CLHEP::GeV, PionMinus->GetPDGEncoding());
   gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
   gAnaMan.SetPrimaryVertex(1,LPos.x(),LPos.y(),LPos.z());
   gAnaMan.SetPrimaryVertex(2,LPos.x(),LPos.y(),LPos.z());
@@ -261,15 +260,15 @@ PrimaryGeneratorAction::GenerateKKppLL2(G4Event* anEvent)
                                                gConf.Get<G4double>("BeamDU"),
                                                gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
   G4double dpb = 0.;
   if(gConf.Get<G4double>("BeamMom")!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
   pb += dpb;
 
   double KKppM0 = 1.405 + 1.405; //assuming L(1405)+L(1405)
   double KKppG0 = 0.1; //assumption
-  G4double Mm1= BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+  G4double Mm1= BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
 
 
   G4double thetaK, theta_CM;
@@ -324,12 +323,12 @@ PrimaryGeneratorAction::GenerateKKppLL2(G4Event* anEvent)
         std::cout<<"Mm1="<<Mm1<<std::endl;
     }
 
-    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
     dpb = 0.;
     if(gConf.Get<G4double>("BeamMom")!=0.)
-      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
     pb += dpb;
-    Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+    Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
   }
 
   double BE_KKpp = Mm1 - 2.*Mi1 - 2.*Mp;
@@ -388,11 +387,11 @@ PrimaryGeneratorAction::GenerateKKppLL2(G4Event* anEvent)
 
   gAnaMan.SetPrimaryInfo(mm_d, mm_p, thetaK, theta_scat, theta_CM);
   gAnaMan.SetPrimaryParticle(0,LPKz.x(),LPKz.y(),LPKz.z(),
-                             Kaon0S->GetPDGMass()/GeV, Kaon0S->GetPDGEncoding());
+                             Kaon0S->GetPDGMass()/CLHEP::GeV, Kaon0S->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(1,LPL1.x(),LPL1.y(),LPL1.z(),
-                             Lambda->GetPDGMass()/GeV, Lambda->GetPDGEncoding());
+                             Lambda->GetPDGMass()/CLHEP::GeV, Lambda->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(2,LPL2.x(),LPL2.y(),LPL2.z(),
-                             Lambda->GetPDGMass()/GeV, Lambda->GetPDGEncoding());
+                             Lambda->GetPDGMass()/CLHEP::GeV, Lambda->GetPDGEncoding());
 
   gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
   gAnaMan.SetPrimaryVertex(1,LPos.x(),LPos.y(),LPos.z());
@@ -432,15 +431,15 @@ PrimaryGeneratorAction::GenerateKKppLSmPip(G4Event* anEvent)
                                                gConf.Get<G4double>("BeamDU"),
                                                gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
   G4double dpb = 0.;
   if(gConf.Get<G4double>("BeamMom")!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
   pb += dpb;
 
   double KKppM0 = 1.405 + 1.405; //assuming L(1405)+L(1405)
   double KKppG0 = 0.1; //assumption
-  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
 
   G4double thetaK, theta_CM;
   G4ThreeVector LPKz, LPm1, LPL, LPS, LPpi;
@@ -496,12 +495,12 @@ PrimaryGeneratorAction::GenerateKKppLSmPip(G4Event* anEvent)
         std::cout<<"Mm1="<<Mm1<<std::endl;
     }
 
-    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
     dpb = 0.;
     if(gConf.Get<G4double>("BeamMom")!=0.)
-      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
     pb += dpb;
-    Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+    Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
   }
 
   double BE_KKpp = Mm1 - 2.*Mi1 - 2.*Mp;
@@ -569,13 +568,13 @@ PrimaryGeneratorAction::GenerateKKppLSmPip(G4Event* anEvent)
 
   gAnaMan.SetPrimaryInfo(mm_d, mm_p, thetaK, theta_scat, theta_CM);
   gAnaMan.SetPrimaryParticle(0,LPKz.x(),LPKz.y(),LPKz.z(),
-                             Kaon0S->GetPDGMass()/GeV, Kaon0S->GetPDGEncoding());
+                             Kaon0S->GetPDGMass()/CLHEP::GeV, Kaon0S->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(1,LPL.x(),LPL.y(),LPL.z(),
-                             Lambda->GetPDGMass()/GeV, Lambda->GetPDGEncoding());
+                             Lambda->GetPDGMass()/CLHEP::GeV, Lambda->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(2,LPS.x(),LPS.y(),LPS.z(),
-                             Sigma->GetPDGMass()/GeV, Sigma->GetPDGEncoding());
+                             Sigma->GetPDGMass()/CLHEP::GeV, Sigma->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(3,LPpi.x(),LPpi.y(),LPpi.z(),
-                             Pi->GetPDGMass()/GeV, Pi->GetPDGEncoding());
+                             Pi->GetPDGMass()/CLHEP::GeV, Pi->GetPDGEncoding());
 
   gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
   gAnaMan.SetPrimaryVertex(1,LPos.x(),LPos.y(),LPos.z());
@@ -615,15 +614,15 @@ PrimaryGeneratorAction::GenerateKKppLSpPim(G4Event* anEvent)
                                                gConf.Get<G4double>("BeamDU"),
                                                gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
   G4double dpb = 0.;
   if(gConf.Get<G4double>("BeamMom")!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
   pb += dpb;
 
   double KKppM0 = 1.405 + 1.405; //assuming L(1405)+L(1405)
   double KKppG0 = 0.1; //assumption
-  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+  G4double Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
 
   G4double thetaK, theta_CM;
   G4ThreeVector LPKz, LPm1, LPL, LPS, LPpi;
@@ -677,12 +676,12 @@ PrimaryGeneratorAction::GenerateKKppLSpPim(G4Event* anEvent)
         std::cout<<"Mm1="<<Mm1<<std::endl;
     }
 
-    pb = gConf.Get<G4double>("BeamMom")*GeV;
+    pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
     dpb = 0.;
     if(gConf.Get<G4double>("BeamMom")!=0.)
-      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+      dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
     pb += dpb;
-    Mm1 = BreitWigner(KKppM0, KKppG0)*GeV; //KKpp
+    Mm1 = BreitWigner(KKppM0, KKppG0)*CLHEP::GeV; //KKpp
   }
 
   double BE_KKpp = Mm1 - 2.*Mi1 - 2.*Mp;
@@ -750,13 +749,13 @@ PrimaryGeneratorAction::GenerateKKppLSpPim(G4Event* anEvent)
 
   gAnaMan.SetPrimaryInfo(mm_d, mm_p, thetaK, theta_scat, theta_CM);
   gAnaMan.SetPrimaryParticle(0,LPKz.x(),LPKz.y(),LPKz.z(),
-                             Kaon0S->GetPDGMass()/GeV, Kaon0S->GetPDGEncoding());
+                             Kaon0S->GetPDGMass()/CLHEP::GeV, Kaon0S->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(1,LPL.x(),LPL.y(),LPL.z(),
-                             Lambda->GetPDGMass()/GeV, Lambda->GetPDGEncoding());
+                             Lambda->GetPDGMass()/CLHEP::GeV, Lambda->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(2,LPS.x(),LPS.y(),LPS.z(),
-                             Sigma->GetPDGMass()/GeV, Sigma->GetPDGEncoding());
+                             Sigma->GetPDGMass()/CLHEP::GeV, Sigma->GetPDGEncoding());
   gAnaMan.SetPrimaryParticle(3,LPpi.x(),LPpi.y(),LPpi.z(),
-                             Pi->GetPDGMass()/GeV, Pi->GetPDGEncoding());
+                             Pi->GetPDGMass()/CLHEP::GeV, Pi->GetPDGEncoding());
 
   gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
   gAnaMan.SetPrimaryVertex(1,LPos.x(),LPos.y(),LPos.z());
@@ -846,7 +845,7 @@ PrimaryGeneratorAction::GenerateJAMInput(G4Event* anEvent, TTree*t1)
       }
       G4ThreeVector LPos = G4ThreeVector(0.,0.,gGeom.GetGlobalPosition("Target").z());
       //G4ThreeVector LP = GetP_JAM(Nbeam_JAMInput, inp);
-      G4ThreeVector LP = G4ThreeVector(px[inp]*GeV, py[inp]*GeV, pz[inp]*GeV);
+      G4ThreeVector LP = G4ThreeVector(px[inp]*CLHEP::GeV, py[inp]*CLHEP::GeV, pz[inp]*CLHEP::GeV);
 
       m_particle_gun->SetParticleDefinition(ptmp);
       m_particle_gun->SetParticlePosition(LPos);
@@ -856,10 +855,10 @@ PrimaryGeneratorAction::GenerateJAMInput(G4Event* anEvent, TTree*t1)
       //    std::cout<<"encording="<<ptmp->GetPDGEncoding()<<std::endl;
       if(pid_JAM==-311)
         gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   -1.*ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   -1.*ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       else
         gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       //gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
       gAnaMan.SetPrimaryVertex(inp,LPos.x(),LPos.y(),LPos.z());
 
@@ -898,11 +897,11 @@ PrimaryGeneratorAction::GenerateKKppBeamThrough1(G4Event* anEvent)
                                                gConf.Get<G4double>("BeamDU"),
                                                gConf.Get<G4double>("BeamDV"));
 
-  G4double pb = gConf.Get<G4double>("BeamMom")*GeV;
-  //G4double pb = 0.3*GeV;
+  G4double pb = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
+  //G4double pb = 0.3*CLHEP::GeV;
   G4double dpb = 0.;
   if(gConf.Get<G4double>("BeamMom")!=0.)
-    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*GeV;
+    dpb = G4RandGauss::shoot(0.,gConf.Get<G4double>("BeamWidth"))*CLHEP::GeV;
   pb += dpb;
 
 
@@ -923,7 +922,7 @@ PrimaryGeneratorAction::GenerateKKppBeamThrough1(G4Event* anEvent)
 
   gAnaMan.SetPrimaryInfo(0., 0., 0., 0., 0.);
   gAnaMan.SetPrimaryParticle(0,beam_mom.x(),beam_mom.y(),beam_mom.z(),
-                             KaonM->GetPDGMass()/GeV, KaonM->GetPDGEncoding());
+                             KaonM->GetPDGMass()/CLHEP::GeV, KaonM->GetPDGEncoding());
   gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
 }
 
@@ -1012,7 +1011,7 @@ PrimaryGeneratorAction::GenerateJAMInputK0(G4Event* anEvent, TTree*t1)
       }
       G4ThreeVector LPos = G4ThreeVector(0.,0.,gGeom.GetGlobalPosition("Target").z());
       //G4ThreeVector LP = GetP_JAM(Nbeam_JAMInput, inp);
-      G4ThreeVector LP = G4ThreeVector(px[inp]*GeV, py[inp]*GeV, pz[inp]*GeV);
+      G4ThreeVector LP = G4ThreeVector(px[inp]*CLHEP::GeV, py[inp]*CLHEP::GeV, pz[inp]*CLHEP::GeV);
 
       m_particle_gun->SetParticleDefinition(ptmp);
       m_particle_gun->SetParticlePosition(LPos);
@@ -1022,10 +1021,10 @@ PrimaryGeneratorAction::GenerateJAMInputK0(G4Event* anEvent, TTree*t1)
       //    std::cout<<"encording="<<ptmp->GetPDGEncoding()<<std::endl;
       if(pid_JAM==-311)
 	gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   -1.*ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   -1.*ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       else
 	gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       //gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
       gAnaMan.SetPrimaryVertex(inp,LPos.x(),LPos.y(),LPos.z());
 
@@ -1121,7 +1120,7 @@ PrimaryGeneratorAction::GenerateJAMInputK0bar(G4Event* anEvent, TTree*t1)
       }
       G4ThreeVector LPos = G4ThreeVector(0.,0.,gGeom.GetGlobalPosition("Target").z());
       //G4ThreeVector LP = GetP_JAM(Nbeam_JAMInput, inp);
-      G4ThreeVector LP = G4ThreeVector(px[inp]*GeV, py[inp]*GeV, pz[inp]*GeV);
+      G4ThreeVector LP = G4ThreeVector(px[inp]*CLHEP::GeV, py[inp]*CLHEP::GeV, pz[inp]*CLHEP::GeV);
 
       m_particle_gun->SetParticleDefinition(ptmp);
       m_particle_gun->SetParticlePosition(LPos);
@@ -1131,10 +1130,10 @@ PrimaryGeneratorAction::GenerateJAMInputK0bar(G4Event* anEvent, TTree*t1)
       //    std::cout<<"encording="<<ptmp->GetPDGEncoding()<<std::endl;
       if(pid_JAM==-311)
 	gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   -1.*ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   -1.*ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       else
 	gAnaMan.SetPrimaryParticle(inp,LP.x(),LP.y(),LP.z(),
-                                   ptmp->GetPDGMass()/GeV, ptmp->GetPDGEncoding());
+                                   ptmp->GetPDGMass()/CLHEP::GeV, ptmp->GetPDGEncoding());
       //gAnaMan.SetPrimaryVertex(0,LPos.x(),LPos.y(),LPos.z());
       gAnaMan.SetPrimaryVertex(inp,LPos.x(),LPos.y(),LPos.z());
 

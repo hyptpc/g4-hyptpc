@@ -58,8 +58,8 @@ AnaManager::AnaManager()
 
   // TPC_g->Branch("mm",&event.mm,"mm/D");
 
-  //generator mode
-  TPC_g->Branch("gen",&event.gen,"gen/I");
+  // generator
+  TPC_g->Branch("generator", &event.generator, "generator/I");
   TPC_g->Branch("mode",&event.mode,"mode/I");
   TPC_g->Branch("inc",&event.inc,"inc/I");
   // BH2
@@ -2109,9 +2109,9 @@ AnaManager::SetPrimaryParticle(G4double px, G4double py, G4double pz)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetGeneratorID(G4int gen)
+AnaManager::SetGeneratorID(G4int generator)
 {
-  event.gen = gen;
+  event.generator = generator;
 }
 
 //_____________________________________________________________________________

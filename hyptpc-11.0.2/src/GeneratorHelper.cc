@@ -22,11 +22,6 @@
 
 #include "AngDisGenerator.hh"
 
-namespace
-{
-using CLHEP::GeV;
-}
-
 //_____________________________________________________________________________
 G4ThreeVector
 UniformDirectionInUV(double u0, double v0, double hu, double hv)
@@ -125,9 +120,9 @@ Decay2Body(double Mini, double Mf1, double Mf2,
            const AngDisGenerator & generator)
 {
   if(Mini<Mf1+Mf2){
-    std::cerr << "Mini < Mf1+Mf2 Mini=" << Mini/GeV << "GeV/c2 "
-	      << "Mf1=" <<  Mf1/GeV << "GeV/c2 "
-	      << "Mf2=" <<  Mf2/GeV << "GeV/c2 " << std::endl;
+    std::cerr << "Mini < Mf1+Mf2 Mini=" << Mini/CLHEP::GeV << "GeV/c2 "
+	      << "Mf1=" <<  Mf1/CLHEP::GeV << "GeV/c2 "
+	      << "Mf2=" <<  Mf2/CLHEP::GeV << "GeV/c2 " << std::endl;
     return false;
   }
 
@@ -156,8 +151,8 @@ Decay2Body(double Mini, double Mf1, double Mf2,
 
   //   std::cout << "CosTCM=" << cost << " PhiCM=" << phi/degree
   //    << " degree" << std::endl;
-  // std::cout << "PCM=" << Pcm/GeV << " " << Pcmf1/GeV << " -->"
-  //    	    << Pf1/GeV << " " << Pf1.mag()/GeV << std::endl;
+  // std::cout << "PCM=" << Pcm/CLHEP::GeV << " " << Pcmf1/CLHEP::GeV << " -->"
+  //    	    << Pf1/CLHEP::GeV << " " << Pf1.mag()/CLHEP::GeV << std::endl;
   return true;
 }
 
@@ -169,7 +164,7 @@ Scattering2Body_theta(double Mi1, double Mi2, double Mf1, double Mf2,
                       double & theta_CM,
                       const AngDisGenerator & generator)
 {
-  //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;
+  //  std::cout << "Pini=" << Pini/CLHEP::GeV << "GeV/c" << std::endl;
   TLorentzVector Pini1_lv ;
   TLorentzVector Pini2_lv ;
   TLorentzVector Pf1_lv  ;
@@ -250,7 +245,7 @@ Scattering3Body_theta(double Mi1, double Mi2,
                       G4ThreeVector & Pf2, G4ThreeVector &Pf3,
                       double & theta_CM, const AngDisGenerator&)
 {
-  //  std::cout << "Pini=" << Pini/GeV << "GeV/c" << std::endl;
+  //  std::cout << "Pini=" << Pini/CLHEP::GeV << "GeV/c" << std::endl;
   TLorentzVector Pini1_lv ;
   TLorentzVector Pini2_lv ;
   TLorentzVector Pf1_lv  ;

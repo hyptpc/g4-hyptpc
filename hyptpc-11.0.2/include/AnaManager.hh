@@ -104,7 +104,7 @@ struct Event
 {
   Int_t evnum; // Event number
   TVector3* pb; // momentum of inncident beam
-  Int_t gen;        // generator number
+  Int_t generator;
   Int_t mode;        // mode number
   Int_t inc;        // INC id number
 
@@ -533,7 +533,7 @@ public:
   void SetSDCData(const VHitInfo* hit);
   void SetVPData(const VHitInfo* hit);
   void SetWCData(const VHitInfo* hit);
-  void SetGeneratorID(G4int gen);
+  void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);
   void SetIncID(G4int inc);
   void SetNumberOfPrimaryParticle(G4int n);

@@ -65,14 +65,10 @@ public:
   virtual void GeneratePrimaries(G4Event* anEvent);
 
 public:
+  void     GenerateMonochromaticKaonMinus(G4Event* anEvent);
   void     GenerateKpXi2Body(G4Event* anEvent);
   void     GenerateHanul(G4Event* anEvent);
   void     GeneratePhaseSpace(G4Event* anEvent);
-  void     GenerateHdibaryon1(G4Event* anEvent);
-  void     GenerateHdibaryon2(G4Event* anEvent);
-  void     GenerateHdibaryonPHSG(G4Event* anEvent);
-  void     GenerateHdibaryonPHSGS(G4Event* anEvent);
-  void     GenerateHdibaryonPHSGLL(G4Event* anEvent);
   void     GenerateKpKn(G4Event* anEvent);
   void     GenerateBeamVI(G4Event* anEvent);
   void     GenerateBeamVO(G4Event* anEvent);
@@ -86,7 +82,6 @@ public:
   void     GenerateIncInput(G4Event* anEvent);
   void     GenerateJamInput_Randphi(G4Event* anEvent);
   void     GenerateLL_fromXiP(G4Event* anEvent);
-  void     GenerateHdibaryonNonReso(G4Event* anEvent);
   void     GenerateTest(G4Event* anEvent);
   void     GenerateTest2(G4Event* anEvent);
   void     GenerateHybrid(G4Event* anEvent);
@@ -133,6 +128,15 @@ public:
   void     GenerateE27KppFSigmaPPimP(G4Event* anEvent);//#2707
   void     GenerateE27K11BLambda10Be(G4Event* anEvent);//#2708
   void     GenerateE27Kptest2(G4Event* anEvent);//#2709
+  // E42
+  void     GenerateE42Hdibaryon1(G4Event* anEvent);
+  void     GenerateE42Hdibaryon2(G4Event* anEvent);
+  void     GenerateE42HdibaryonPHSG(G4Event* anEvent);
+  void     GenerateE42HdibaryonPHSGS(G4Event* anEvent);
+  void     GenerateE42HdibaryonPHSGLL(G4Event* anEvent);
+  void     GenerateE42HdibaryonNonReso(G4Event* anEvent);
+  // E72
+  void     GenerateE72OldBeamData(G4Event* anEvent);
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002

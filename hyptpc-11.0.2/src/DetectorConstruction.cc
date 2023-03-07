@@ -61,7 +61,8 @@ const G4Colour PINK(1.0, 0.753, 0.796);
 
 //_____________________________________________________________________________
 DetectorConstruction::DetectorConstruction()
-  : m_experiment(gConf.Get<Int_t>("Experiment")),
+  : G4VUserDetectorConstruction(),
+    m_experiment(gConf.Get<Int_t>("Experiment")),
     m_element_map(),
     m_material_map(),
     m_world_lv(),
@@ -70,6 +71,7 @@ DetectorConstruction::DetectorConstruction()
     m_rotation_matrix(new G4RotationMatrix),
     m_sdc_sd()
 {
+  SetVerboseLevel(0);
   m_rotation_matrix->rotateY(- m_rotation_angle);
 }
 
@@ -1223,7 +1225,7 @@ DetectorConstruction::ConstructK18BeamlineSpectrometer()
        - (driftL0 + Q10Size.z() + VC1Size.z() + Q11Size.z() + VC2Size.z()) *
        std::cos(D4BendAngle)
        - driftL3 - Q12Size.z() - driftL4 - Q13Size.z() - driftL5 - driftL6);
-  BeamMan::GetInstance().SetVIPosition(G4ThreeVector(x, y, z));
+  // BeamMan::GetInstance().SetVIPosition(G4ThreeVector(x, y, z));
 
   // Q10 magnet
   auto Q10Solid = new G4Box("Q10Solid", Q10Size.x()/2,

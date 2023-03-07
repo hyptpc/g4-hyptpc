@@ -22,33 +22,13 @@
 #include "PrintHelper.hh"
 
 //_____________________________________________________________________________
-G4double
-BeamInfo::GetX(G4double offset) const
-{
-  return x + std::tan(-1.*u*CLHEP::mrad)*offset;
-}
-
-//_____________________________________________________________________________
-G4double
-BeamInfo::GetY(G4double offset) const
-{
-  return y + std::tan(-1.*v*CLHEP::mrad)*offset;
-}
-
-//_____________________________________________________________________________
 void
 BeamInfo::Print() const
 {
   PrintHelper helper(4, std::ios::fixed, G4cout);
-  const G4int w = 8;
   G4cout << "   "
-	 << "x=" << std::setw(w) << x << " "
-	 << "y=" << std::setw(w) << y << " "
-	 << "u=" << std::setw(w) << u << " "
-	 << "v=" << std::setw(w) << v << " "
-	 << "p=(" << std::setw(w) << p.x() << ", "
-	 << std::setw(w) << p.y() << ", "
-	 << std::setw(w) << p.z() << ")" << G4endl;
+         << "pos=" << pos << ",  "
+         << "mom=" << mom << G4endl;
 }
 
 //_____________________________________________________________________________
@@ -57,9 +37,7 @@ BeamMan::BeamMan()
     m_file_name(),
     m_file(),
     m_param_array(),
-    m_n_param(),
-    m_is_vi(false),
-    m_primary_z(0.)
+    m_n_param()
 {
 }
 
@@ -73,42 +51,32 @@ G4bool
 BeamMan::Initialize()
 {
   const auto& gConf = ConfMan::GetInstance();
-  const auto& gGeom = DCGeomMan::GetInstance();
-  const G4double p0 = gConf.Get<G4double>("BeamMom");
+  const G4double p0 = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
 
   if(m_file_name.empty())
     return true;
 
   m_file = new TFile(m_file_name);
-  TTree* tree = dynamic_cast<TTree*>(m_file->Get("tree"));
+  TTree* tree = dynamic_cast<TTree*>(m_file->Get("tr"));
 
   if(!m_file->IsOpen() || !tree)
     return false;
 
   m_param_array.clear();
-  m_is_vi = (gConf.Get<G4int>("Generator") == 10);
-  m_primary_z = gGeom.GetLocalZ("Vertex");
-  if(!m_is_vi)
-    m_primary_z -= 1200.*CLHEP::mm; // from VO
   BeamInfo beam;
-  tree->SetBranchAddress("x", &beam.x);
-  tree->SetBranchAddress("y", &beam.y);
-  tree->SetBranchAddress("u", &beam.u);
-  tree->SetBranchAddress("v", &beam.v);
-  tree->SetBranchAddress("p", &beam.dp);
+  tree->SetBranchAddress("pointInx", &beam.x);
+  tree->SetBranchAddress("pointIny", &beam.y);
+  tree->SetBranchAddress("pointInz", &beam.z);
+  tree->SetBranchAddress("pInx", &beam.px);
+  tree->SetBranchAddress("pIny", &beam.py);
+  tree->SetBranchAddress("pInz", &beam.pz);
 
   for(Long64_t i=0, n=tree->GetEntries(); i<n; ++i){
     tree->GetEntry(i);
-    beam.x *= -1.*CLHEP::cm; // -cm -> mm
-    beam.y *= -1.*CLHEP::cm; // -cm -> mm
-    G4double dxdz = std::tan(-1.*beam.u*CLHEP::mrad); // -mrad -> tan
-    G4double dydz = std::tan(-1.*beam.v*CLHEP::mrad); // -mrad -> tan
-    G4double pp = p0 * (1. + beam.dp*CLHEP::perCent); // dp/p[%] -> GeV/c
-    G4double pz = pp / std::sqrt(dxdz*dxdz + dydz*dydz + 1.);
-    beam.x += dxdz * m_primary_z;
-    beam.y += dydz * m_primary_z;
-    beam.z = m_primary_z;
-    beam.p.set(pz*dxdz, pz*dydz, pz);
+    beam.pos.set(beam.x, beam.y, beam.z);
+    beam.pos *= CLHEP::mm;
+    beam.mom.set(beam.px, beam.py, beam.pz);
+    beam.mom.setMag(p0);
     m_param_array.push_back(beam);
   }
 
@@ -138,18 +106,11 @@ void
 BeamMan::Print() const
 {
   PrintHelper helper(4, std::ios::fixed, G4cout);
-  const G4int w = 8;
-
   G4cout << FUNC_NAME << G4endl;
   for(const auto& b : m_param_array){
     G4cout << "   "
-	   << "x=" << std::setw(w) << b.x << " "
-	   << "y=" << std::setw(w) << b.y << " "
-	   << "u=" << std::setw(w) << b.u << " "
-	   << "v=" << std::setw(w) << b.v << " "
-	   << "p=(" << std::setw(w) << b.p.x() << ", "
-	   << std::setw(w) << b.p.y() << ", "
-	   << std::setw(w) << b.p.z() << ")" << G4endl;
+	   << "pos=" << b.pos << ",  "
+	   << "mom=" << b.mom << G4endl;
   }
   G4cout << "   nparam = " << m_param_array.size() << G4endl;
 }

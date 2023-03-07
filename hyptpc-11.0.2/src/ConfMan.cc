@@ -107,10 +107,10 @@ G4bool
 ConfMan::InitializeParameterFiles()
 {
   return (InitializeParameter<DCGeomMan>("DCGEO") &&
-	   InitializeParameter<BeamMan>("BEAM") &&
-	   InitializeParameter<DetSizeMan>("DSIZE") &&
-	   InitializeParameter<JamMan>("JAM") &&
-	   InitializeParameter<IncMan>("INC"));
+          InitializeParameter<BeamMan>("BEAM") &&
+          InitializeParameter<DetSizeMan>("DSIZE") &&
+          InitializeParameter<JamMan>("JAM") &&
+          InitializeParameter<IncMan>("INC"));
 }
 
 //_____________________________________________________________________________
