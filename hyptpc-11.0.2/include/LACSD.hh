@@ -21,7 +21,7 @@ public:
 
 private:
   G4THitsCollection<LACHit>* m_hits_collection;
-  G4double                     m_refractive_index;
+  G4double                   m_refractive_index;
 
 public:
   G4double GetRefractiveIndex() const { return m_refractive_index; }

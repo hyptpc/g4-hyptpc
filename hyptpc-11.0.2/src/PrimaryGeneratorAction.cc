@@ -3777,7 +3777,6 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
 {
   G4double mass = m_KaonMinus->GetPDGMass();
   G4LorentzVector lv(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4cout << m_beam->pos << " " << m_beam->mom << std::endl;
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(lv.v());
   m_particle_gun->SetParticleEnergy(lv.e() - mass);

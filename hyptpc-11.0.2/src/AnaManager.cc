@@ -24,8 +24,7 @@
 namespace
 {
 const ConfMan& gConf = ConfMan::GetInstance();
-//TTree* tree;
-TTree* TPC_g;
+TTree* tree;
 Event event;
 std::map<TString, TH1*> hmap;
 }
@@ -33,339 +32,289 @@ std::map<TString, TH1*> hmap;
 //_____________________________________________________________________________
 AnaManager::AnaManager()
 {
-  TPC_g = new TTree("TPC_g", "GEANT4 simulation for HypTPC");
+  tree = new TTree("g4tree", "GEANT4 simulation for HypTPC");
   event.pb = new TVector3;
-  TPC_g->Branch("evnum", &event.evnum, "evnum/I");
-  TPC_g->Branch("pb", "TVector3", event.pb);
-  TPC_g->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
-  TPC_g->Branch("pidPrm", event.pidPrm, "pidPrm[nhPrm]/I");
-  TPC_g->Branch("xPrm", event.xPrm, "xPrm[nhPrm]/D");
-  TPC_g->Branch("yPrm", event.yPrm, "yPrm[nhPrm]/D");
-  TPC_g->Branch("zPrm", event.zPrm, "zPrm[nhPrm]/D");
-  TPC_g->Branch("pxPrm", event.pxPrm, "pxPrm[nhPrm]/D");
-  TPC_g->Branch("pyPrm", event.pyPrm, "pyPrm[nhPrm]/D");
-  TPC_g->Branch("pzPrm", event.pzPrm, "pzPrm[nhPrm]/D");
-  TPC_g->Branch("ppPrm", event.ppPrm, "ppPrm[nhPrm]/D");
-  TPC_g->Branch("mPrm", event.mPrm, "mPrm[nhPrm]/D");
-  TPC_g->Branch("thetaPrm", event.thetaPrm, "thetaPrm[nhPrm]/D");
-  TPC_g->Branch("phiPrm", event.phiPrm, "phiPrm[nhPrm]/D");
+  tree->Branch("evnum", &event.evnum, "evnum/I");
+  tree->Branch("pb", "TVector3", event.pb);
+  tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
+  tree->Branch("pidPrm", event.pidPrm, "pidPrm[nhPrm]/I");
+  tree->Branch("xPrm", event.xPrm, "xPrm[nhPrm]/D");
+  tree->Branch("yPrm", event.yPrm, "yPrm[nhPrm]/D");
+  tree->Branch("zPrm", event.zPrm, "zPrm[nhPrm]/D");
+  tree->Branch("pxPrm", event.pxPrm, "pxPrm[nhPrm]/D");
+  tree->Branch("pyPrm", event.pyPrm, "pyPrm[nhPrm]/D");
+  tree->Branch("pzPrm", event.pzPrm, "pzPrm[nhPrm]/D");
+  tree->Branch("ppPrm", event.ppPrm, "ppPrm[nhPrm]/D");
+  tree->Branch("mPrm", event.mPrm, "mPrm[nhPrm]/D");
+  tree->Branch("thetaPrm", event.thetaPrm, "thetaPrm[nhPrm]/D");
+  tree->Branch("phiPrm", event.phiPrm, "phiPrm[nhPrm]/D");
 
-  TPC_g->Branch("mm_d",&event.mm_d,"mm_d/D");
-  // TPC_g->Branch("mm_p",&event.mm_p,"mm_p/D");
-  TPC_g->Branch("theta",&event.theta,"theta/D");
-  TPC_g->Branch("theta_scat",&event.theta_scat,"theta_scat/D");
-  TPC_g->Branch("theta_CM",&event.theta_CM,"theta_CM/D");
+  tree->Branch("mm_d",&event.mm_d,"mm_d/D");
+  // tree->Branch("mm_p",&event.mm_p,"mm_p/D");
+  tree->Branch("theta",&event.theta,"theta/D");
+  tree->Branch("theta_scat",&event.theta_scat,"theta_scat/D");
+  tree->Branch("theta_CM",&event.theta_CM,"theta_CM/D");
 
-  // TPC_g->Branch("mm",&event.mm,"mm/D");
+  // tree->Branch("mm",&event.mm,"mm/D");
 
   // generator
-  TPC_g->Branch("generator", &event.generator, "generator/I");
-  TPC_g->Branch("mode",&event.mode,"mode/I");
-  TPC_g->Branch("inc",&event.inc,"inc/I");
+  tree->Branch("generator", &event.generator, "generator/I");
+  tree->Branch("mode",&event.mode,"mode/I");
+  tree->Branch("inc",&event.inc,"inc/I");
   // BH2
-  TPC_g->Branch("nhBh2", &event.nhBh2, "nhBh2/I");
-  TPC_g->Branch("tidBh2", event.tidBh2, "tidBh2[nhBh2]/I");
-  TPC_g->Branch("pidBh2", event.pidBh2, "pidBh2[nhBh2]/I");
-  TPC_g->Branch("didBh2", event.didBh2, "didBh2[nhBh2]/I");
-  TPC_g->Branch("prtBh2", event.prtBh2, "prtBh2[nhBh2]/I");
-  TPC_g->Branch("qBh2", event.qBh2, "qBh2[nhBh2]/I");
-  TPC_g->Branch("massBh2", event.massBh2, "massBh2[nhBh2]/D");
-  TPC_g->Branch("xBh2", event.xBh2, "xBh2[nhBh2]/D");
-  TPC_g->Branch("yBh2", event.yBh2, "yBh2[nhBh2]/D");
-  TPC_g->Branch("zBh2", event.zBh2, "zBh2[nhBh2]/D");
-  TPC_g->Branch("pxBh2", event.pxBh2, "pxBh2[nhBh2]/D");
-  TPC_g->Branch("pyBh2", event.pyBh2, "pyBh2[nhBh2]/D");
-  TPC_g->Branch("pzBh2", event.pzBh2, "pzBh2[nhBh2]/D");
-  TPC_g->Branch("ppBh2", event.ppBh2, "ppBh2[nhBh2]/D");
-  TPC_g->Branch("deBh2", event.deBh2, "deBh2[nhBh2]/D");
-  TPC_g->Branch("tBh2", event.tBh2, "tBh2[nhBh2]/D");
-  TPC_g->Branch("vtpxBh2", event.vtpxBh2, "vtpxBh2[nhBh2]/D");
-  TPC_g->Branch("vtpyBh2", event.vtpyBh2, "vtpyBh2[nhBh2]/D");
-  TPC_g->Branch("vtpzBh2", event.vtpzBh2, "vtpzBh2[nhBh2]/D");
-  TPC_g->Branch("vtppBh2", event.vtppBh2, "vtppBh2[nhBh2]/D");
-  TPC_g->Branch("vtxBh2", event.vtxBh2, "vtxBh2[nhBh2]/D");
-  TPC_g->Branch("vtyBh2", event.vtyBh2, "vtyBh2[nhBh2]/D");
-  TPC_g->Branch("vtzBh2", event.vtzBh2, "vtzBh2[nhBh2]/D");
-  TPC_g->Branch("lengthBh2", event.lengthBh2, "lengthBh2[nhBh2]/D");
+  tree->Branch("nhBh2", &event.nhBh2, "nhBh2/I");
+  tree->Branch("tidBh2", event.tidBh2, "tidBh2[nhBh2]/I");
+  tree->Branch("pidBh2", event.pidBh2, "pidBh2[nhBh2]/I");
+  tree->Branch("didBh2", event.didBh2, "didBh2[nhBh2]/I");
+  tree->Branch("prtBh2", event.prtBh2, "prtBh2[nhBh2]/I");
+  tree->Branch("qBh2", event.qBh2, "qBh2[nhBh2]/I");
+  tree->Branch("massBh2", event.massBh2, "massBh2[nhBh2]/D");
+  tree->Branch("xBh2", event.xBh2, "xBh2[nhBh2]/D");
+  tree->Branch("yBh2", event.yBh2, "yBh2[nhBh2]/D");
+  tree->Branch("zBh2", event.zBh2, "zBh2[nhBh2]/D");
+  tree->Branch("pxBh2", event.pxBh2, "pxBh2[nhBh2]/D");
+  tree->Branch("pyBh2", event.pyBh2, "pyBh2[nhBh2]/D");
+  tree->Branch("pzBh2", event.pzBh2, "pzBh2[nhBh2]/D");
+  tree->Branch("ppBh2", event.ppBh2, "ppBh2[nhBh2]/D");
+  tree->Branch("deBh2", event.deBh2, "deBh2[nhBh2]/D");
+  tree->Branch("tBh2", event.tBh2, "tBh2[nhBh2]/D");
+  tree->Branch("vtpxBh2", event.vtpxBh2, "vtpxBh2[nhBh2]/D");
+  tree->Branch("vtpyBh2", event.vtpyBh2, "vtpyBh2[nhBh2]/D");
+  tree->Branch("vtpzBh2", event.vtpzBh2, "vtpzBh2[nhBh2]/D");
+  tree->Branch("vtppBh2", event.vtppBh2, "vtppBh2[nhBh2]/D");
+  tree->Branch("vtxBh2", event.vtxBh2, "vtxBh2[nhBh2]/D");
+  tree->Branch("vtyBh2", event.vtyBh2, "vtyBh2[nhBh2]/D");
+  tree->Branch("vtzBh2", event.vtzBh2, "vtzBh2[nhBh2]/D");
+  tree->Branch("lengthBh2", event.lengthBh2, "lengthBh2[nhBh2]/D");
 
   ///////shhwang tpc hit step
 
   // comment out for trigger study
-  TPC_g->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
-  TPC_g->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
-  TPC_g->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
-  TPC_g->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
-  TPC_g->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
-  TPC_g->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
-  TPC_g->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
-  TPC_g->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
-  TPC_g->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
-  TPC_g->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
-  TPC_g->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
-  TPC_g->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
-  TPC_g->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
-  TPC_g->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
-  TPC_g->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
-  TPC_g->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
-  TPC_g->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
-  TPC_g->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
-  TPC_g->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
-  TPC_g->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
-  TPC_g->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
-  TPC_g->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
-  TPC_g->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
-  TPC_g->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
-  TPC_g->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
-  TPC_g->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
-  TPC_g->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
-  TPC_g->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
-  TPC_g->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
-  TPC_g->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
-  TPC_g->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
-  TPC_g->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
+  tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
+  tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
+  tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
+  tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
+  tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
+  tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
+  tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
+  tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
+  tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
+  tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
+  tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
+  tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
+  tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
+  tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
+  tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
+  tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
+  tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
+  tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
+  tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
+  tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
+  tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
+  tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
+  tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
+  tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
+  tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
+  tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
+  tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
+  tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
+  tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
+  tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
+  tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
+  tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
 
 
 
 
 
   //// Study on multiplicity
-  // TPC_g->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
-  // TPC_g->Branch("nthpad",event.nthpad,"nthpad[nhittpc]/I");
-  // TPC_g->Branch("laypad",event.laypad,"laytpadpc[nhittpc][40][250]/I");
+  // tree->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
+  // tree->Branch("nthpad",event.nthpad,"nthpad[nhittpc]/I");
+  // tree->Branch("laypad",event.laypad,"laytpadpc[nhittpc][40][250]/I");
 
 
   //shhwang ntrtpc --> number of trak in tpc
-  // TPC_g->Branch("ntrtpc",&event.ntrtpc,"ntrtpc/I");
-  // TPC_g->Branch("trpmtpc",event.trpmtpc,"trpmtpc[ntrtpc]/D");
-  // TPC_g->Branch("trqqtpc",event.trqqtpc,"trqqtpc[ntrtpc]/I");
-  // TPC_g->Branch("trpidtpc",event.trpidtpc,"trpidtpc[ntrtpc]/I");
-  // TPC_g->Branch("trparentidtpc",event.trparentidtpc,"trparentidtpc[ntrtpc]/I");
-  // //TPC_g->Branch("trparentid_pid_tpc",event.trparentid_pid_tpc,"trparentid_pid_tpc[ntrtpc]/I");
+  // tree->Branch("ntrtpc",&event.ntrtpc,"ntrtpc/I");
+  // tree->Branch("trpmtpc",event.trpmtpc,"trpmtpc[ntrtpc]/D");
+  // tree->Branch("trqqtpc",event.trqqtpc,"trqqtpc[ntrtpc]/I");
+  // tree->Branch("trpidtpc",event.trpidtpc,"trpidtpc[ntrtpc]/I");
+  // tree->Branch("trparentidtpc",event.trparentidtpc,"trparentidtpc[ntrtpc]/I");
+  // //tree->Branch("trparentid_pid_tpc",event.trparentid_pid_tpc,"trparentid_pid_tpc[ntrtpc]/I");
 
-  // TPC_g->Branch("trpxtpc",event.trpxtpc,"trpxtpc[ntrtpc]/D");
-  // TPC_g->Branch("trpytpc",event.trpytpc,"trpytpc[ntrtpc]/D");
-  // TPC_g->Branch("trpztpc",event.trpztpc,"trpztpc[ntrtpc]/D");
-  // TPC_g->Branch("trpptpc",event.trpptpc,"trpptpc[ntrtpc]/D");
-  // TPC_g->Branch("trpttpc",event.trpttpc,"trpttpc[ntrtpc]/D");
+  // tree->Branch("trpxtpc",event.trpxtpc,"trpxtpc[ntrtpc]/D");
+  // tree->Branch("trpytpc",event.trpytpc,"trpytpc[ntrtpc]/D");
+  // tree->Branch("trpztpc",event.trpztpc,"trpztpc[ntrtpc]/D");
+  // tree->Branch("trpptpc",event.trpptpc,"trpptpc[ntrtpc]/D");
+  // tree->Branch("trpttpc",event.trpttpc,"trpttpc[ntrtpc]/D");
 
-  // TPC_g->Branch("trpxtpcfit",event.trpxtpcfit,"trpxtpcfit[ntrtpc]/D");
-  // TPC_g->Branch("trpytpcfit",event.trpytpcfit,"trpytpcfit[ntrtpc]/D");
-  // TPC_g->Branch("trpztpcfit",event.trpztpcfit,"trpztpcfit[ntrtpc]/D");
-  // TPC_g->Branch("trpptpcfit",event.trpptpcfit,"trpptpcfit[ntrtpc]/D");
-  // TPC_g->Branch("trpttpcfit",event.trpttpcfit,"trpttpcfit[ntrtpc]/D");
+  // tree->Branch("trpxtpcfit",event.trpxtpcfit,"trpxtpcfit[ntrtpc]/D");
+  // tree->Branch("trpytpcfit",event.trpytpcfit,"trpytpcfit[ntrtpc]/D");
+  // tree->Branch("trpztpcfit",event.trpztpcfit,"trpztpcfit[ntrtpc]/D");
+  // tree->Branch("trpptpcfit",event.trpptpcfit,"trpptpcfit[ntrtpc]/D");
+  // tree->Branch("trpttpcfit",event.trpttpcfit,"trpttpcfit[ntrtpc]/D");
 
-  // TPC_g->Branch("vtpxtpc",event.vtpxtpc,"vtpxtpc[ntrtpc]/D");
-  // TPC_g->Branch("vtpytpc",event.vtpytpc,"vtpytpc[ntrtpc]/D");
-  // TPC_g->Branch("vtpztpc",event.vtpztpc,"vtpztpc[ntrtpc]/D");
-  // TPC_g->Branch("vtpptpc",event.vtpptpc,"vtpptpc[ntrtpc]/D");
+  // tree->Branch("vtpxtpc",event.vtpxtpc,"vtpxtpc[ntrtpc]/D");
+  // tree->Branch("vtpytpc",event.vtpytpc,"vtpytpc[ntrtpc]/D");
+  // tree->Branch("vtpztpc",event.vtpztpc,"vtpztpc[ntrtpc]/D");
+  // tree->Branch("vtpptpc",event.vtpptpc,"vtpptpc[ntrtpc]/D");
 
-  // TPC_g->Branch("vtxtpc",event.vtxtpc,"vtxtpc[ntrtpc]/D");
-  // TPC_g->Branch("vtytpc",event.vtytpc,"vtytpc[ntrtpc]/D");
-  // TPC_g->Branch("vtztpc",event.vtztpc,"vtztpc[ntrtpc]/D");
+  // tree->Branch("vtxtpc",event.vtxtpc,"vtxtpc[ntrtpc]/D");
+  // tree->Branch("vtytpc",event.vtytpc,"vtytpc[ntrtpc]/D");
+  // tree->Branch("vtztpc",event.vtztpc,"vtztpc[ntrtpc]/D");
 
-  // TPC_g->Branch("vtxtpcfit",event.vtxtpcfit,"vtxtpcfit[ntrtpc]/D");
-  // TPC_g->Branch("vtytpcfit",event.vtytpcfit,"vtytpcfit[ntrtpc]/D");
-  // TPC_g->Branch("vtztpcfit",event.vtztpcfit,"vtztpcfit[ntrtpc]/D");
+  // tree->Branch("vtxtpcfit",event.vtxtpcfit,"vtxtpcfit[ntrtpc]/D");
+  // tree->Branch("vtytpcfit",event.vtytpcfit,"vtytpcfit[ntrtpc]/D");
+  // tree->Branch("vtztpcfit",event.vtztpcfit,"vtztpcfit[ntrtpc]/D");
 
-  // TPC_g->Branch("trdetpc",event.trdetpc,"trdetpc[ntrtpc]/D");
-  // TPC_g->Branch("trlentpc",event.trlentpc,"trlentpc[ntrtpc]/D");
-  // TPC_g->Branch("trdedxtpc",event.trdedxtpc,"trdedxtpc[ntrtpc]/D");
-  // TPC_g->Branch("trdedxtrtpc",event.trdedxtrtpc,"trdedxtrtpc[ntrtpc]/D");
-  // TPC_g->Branch("trlaytpc",event.trlaytpc,"trlaytpc[ntrtpc]/I");
-  // TPC_g->Branch("cir_r",event.cir_r,"cir_r[ntrtpc]/D");
-  // TPC_g->Branch("cir_x",event.cir_x,"cir_x[ntrtpc]/D");
-  // TPC_g->Branch("cir_z",event.cir_z,"cir_z[ntrtpc]/D");
-  // TPC_g->Branch("cir_fit",event.cir_fit,"cir_fit[ntrtpc]/D");
-  // TPC_g->Branch("vtx_flag",event.vtx_flag,"vtx_flag[ntrtpc]/I");
-  // TPC_g->Branch("a_fory",event.a_fory,"a_fory[ntrtpc]/D");
-  // TPC_g->Branch("b_fory",event.b_fory,"b_fory[ntrtpc]/D");
+  // tree->Branch("trdetpc",event.trdetpc,"trdetpc[ntrtpc]/D");
+  // tree->Branch("trlentpc",event.trlentpc,"trlentpc[ntrtpc]/D");
+  // tree->Branch("trdedxtpc",event.trdedxtpc,"trdedxtpc[ntrtpc]/D");
+  // tree->Branch("trdedxtrtpc",event.trdedxtrtpc,"trdedxtrtpc[ntrtpc]/D");
+  // tree->Branch("trlaytpc",event.trlaytpc,"trlaytpc[ntrtpc]/I");
+  // tree->Branch("cir_r",event.cir_r,"cir_r[ntrtpc]/D");
+  // tree->Branch("cir_x",event.cir_x,"cir_x[ntrtpc]/D");
+  // tree->Branch("cir_z",event.cir_z,"cir_z[ntrtpc]/D");
+  // tree->Branch("cir_fit",event.cir_fit,"cir_fit[ntrtpc]/D");
+  // tree->Branch("vtx_flag",event.vtx_flag,"vtx_flag[ntrtpc]/I");
+  // tree->Branch("a_fory",event.a_fory,"a_fory[ntrtpc]/D");
+  // tree->Branch("b_fory",event.b_fory,"b_fory[ntrtpc]/D");
 
   // TARGET
-  TPC_g->Branch("nhTgt", &event.nhTgt, "nhTgt/I");
-  TPC_g->Branch("tidTgt", event.tidTgt, "tidTgt[nhTgt]/I");
-  TPC_g->Branch("pidTgt", event.pidTgt, "pidTgt[nhTgt]/I");
-  TPC_g->Branch("prtTgt", event.prtTgt, "prtTgt[nhTgt]/I");
-  TPC_g->Branch("xTgt", event.xTgt, "xTgt[nhTgt]/D");
-  TPC_g->Branch("yTgt", event.yTgt, "yTgt[nhTgt]/D");
-  TPC_g->Branch("zTgt", event.zTgt, "zTgt[nhTgt]/D");
-  TPC_g->Branch("vtxTgt", event.vtxTgt, "vtxTgt[nhTgt]/D");
-  TPC_g->Branch("vtyTgt", event.vtyTgt, "vtyTgt[nhTgt]/D");
-  TPC_g->Branch("vtzTgt", event.vtzTgt, "vtzTgt[nhTgt]/D");
+  tree->Branch("nhTgt", &event.nhTgt, "nhTgt/I");
+  tree->Branch("tidTgt", event.tidTgt, "tidTgt[nhTgt]/I");
+  tree->Branch("pidTgt", event.pidTgt, "pidTgt[nhTgt]/I");
+  tree->Branch("prtTgt", event.prtTgt, "prtTgt[nhTgt]/I");
+  tree->Branch("xTgt", event.xTgt, "xTgt[nhTgt]/D");
+  tree->Branch("yTgt", event.yTgt, "yTgt[nhTgt]/D");
+  tree->Branch("zTgt", event.zTgt, "zTgt[nhTgt]/D");
+  tree->Branch("vtxTgt", event.vtxTgt, "vtxTgt[nhTgt]/D");
+  tree->Branch("vtyTgt", event.vtyTgt, "vtyTgt[nhTgt]/D");
+  tree->Branch("vtzTgt", event.vtzTgt, "vtzTgt[nhTgt]/D");
   // HTOF
-  TPC_g->Branch("nhHtof", &event.nhHtof, "nhHtof/I");
-  TPC_g->Branch("tidHtof", event.tidHtof, "tidHtof[nhHtof]/I");
-  TPC_g->Branch("pidHtof", event.pidHtof, "pidHtof[nhHtof]/I");
-  TPC_g->Branch("didHtof", event.didHtof, "didHtof[nhHtof]/I");
-  TPC_g->Branch("prtHtof", event.prtHtof, "prtHtof[nhHtof]/I");
-  TPC_g->Branch("qHtof", event.qHtof, "qHtof[nhHtof]/I");
-  TPC_g->Branch("massHtof", event.massHtof, "massHtof[nhHtof]/D");
-  TPC_g->Branch("xHtof", event.xHtof, "xHtof[nhHtof]/D");
-  TPC_g->Branch("yHtof", event.yHtof, "yHtof[nhHtof]/D");
-  TPC_g->Branch("zHtof", event.zHtof, "zHtof[nhHtof]/D");
-  TPC_g->Branch("pxHtof", event.pxHtof, "pxHtof[nhHtof]/D");
-  TPC_g->Branch("pyHtof", event.pyHtof, "pyHtof[nhHtof]/D");
-  TPC_g->Branch("pzHtof", event.pzHtof, "pzHtof[nhHtof]/D");
-  TPC_g->Branch("ppHtof", event.ppHtof, "ppHtof[nhHtof]/D");
-  TPC_g->Branch("deHtof", event.deHtof, "deHtof[nhHtof]/D");
-  TPC_g->Branch("tHtof", event.tHtof, "tHtof[nhHtof]/D");
-  TPC_g->Branch("vtpxHtof", event.vtpxHtof, "vtpxHtof[nhHtof]/D");
-  TPC_g->Branch("vtpyHtof", event.vtpyHtof, "vtpyHtof[nhHtof]/D");
-  TPC_g->Branch("vtpzHtof", event.vtpzHtof, "vtpzHtof[nhHtof]/D");
-  TPC_g->Branch("vtppHtof", event.vtppHtof, "vtppHtof[nhHtof]/D");
-  TPC_g->Branch("vtxHtof", event.vtxHtof, "vtxHtof[nhHtof]/D");
-  TPC_g->Branch("vtyHtof", event.vtyHtof, "vtyHtof[nhHtof]/D");
-  TPC_g->Branch("vtzHtof", event.vtzHtof, "vtzHtof[nhHtof]/D");
-  TPC_g->Branch("lengthHtof", event.lengthHtof, "lengthHtof[nhHtof]/D");
-  // SDC
-  TPC_g->Branch("nhSdc", &event.nhSdc, "nhSdc/I");
-  TPC_g->Branch("tidSdc", event.tidSdc, "tidSdc[nhSdc]/I");
-  TPC_g->Branch("pidSdc", event.pidSdc, "pidSdc[nhSdc]/I");
-  TPC_g->Branch("didSdc", event.didSdc, "didSdc[nhSdc]/I");
-  TPC_g->Branch("prtSdc", event.prtSdc, "prtSdc[nhSdc]/I");
-  TPC_g->Branch("qSdc", event.qSdc, "qSdc[nhSdc]/I");
-  TPC_g->Branch("massSdc", event.massSdc, "massSdc[nhSdc]/D");
-  TPC_g->Branch("xSdc", event.xSdc, "xSdc[nhSdc]/D");
-  TPC_g->Branch("ySdc", event.ySdc, "ySdc[nhSdc]/D");
-  TPC_g->Branch("zSdc", event.zSdc, "zSdc[nhSdc]/D");
-  TPC_g->Branch("pxSdc", event.pxSdc, "pxSdc[nhSdc]/D");
-  TPC_g->Branch("pySdc", event.pySdc, "pySdc[nhSdc]/D");
-  TPC_g->Branch("pzSdc", event.pzSdc, "pzSdc[nhSdc]/D");
-  TPC_g->Branch("ppSdc", event.ppSdc, "ppSdc[nhSdc]/D");
-  TPC_g->Branch("deSdc", event.deSdc, "deSdc[nhSdc]/D");
-  TPC_g->Branch("tSdc", event.tSdc, "tSdc[nhSdc]/D");
-  TPC_g->Branch("vtpxSdc", event.vtpxSdc, "vtpxSdc[nhSdc]/D");
-  TPC_g->Branch("vtpySdc", event.vtpySdc, "vtpySdc[nhSdc]/D");
-  TPC_g->Branch("vtpzSdc", event.vtpzSdc, "vtpzSdc[nhSdc]/D");
-  TPC_g->Branch("vtppSdc", event.vtppSdc, "vtppSdc[nhSdc]/D");
-  TPC_g->Branch("vtxSdc", event.vtxSdc, "vtxSdc[nhSdc]/D");
-  TPC_g->Branch("vtySdc", event.vtySdc, "vtySdc[nhSdc]/D");
-  TPC_g->Branch("vtzSdc", event.vtzSdc, "vtzSdc[nhSdc]/D");
-  TPC_g->Branch("lengthSdc", event.lengthSdc, "lengthSdc[nhSdc]/D");
-  // SCH
-  TPC_g->Branch("nhSch", &event.nhSch, "nhSch/I");
-  TPC_g->Branch("tidSch", event.tidSch, "tidSch[nhSch]/I");
-  TPC_g->Branch("pidSch", event.pidSch, "pidSch[nhSch]/I");
-  TPC_g->Branch("didSch", event.didSch, "didSch[nhSch]/I");
-  TPC_g->Branch("prtSch", event.prtSch, "prtSch[nhSch]/I");
-  TPC_g->Branch("qSch", event.qSch, "qSch[nhSch]/I");
-  TPC_g->Branch("massSch", event.massSch, "massSch[nhSch]/D");
-  TPC_g->Branch("xSch", event.xSch, "xSch[nhSch]/D");
-  TPC_g->Branch("ySch", event.ySch, "ySch[nhSch]/D");
-  TPC_g->Branch("zSch", event.zSch, "zSch[nhSch]/D");
-  TPC_g->Branch("pxSch", event.pxSch, "pxSch[nhSch]/D");
-  TPC_g->Branch("pySch", event.pySch, "pySch[nhSch]/D");
-  TPC_g->Branch("pzSch", event.pzSch, "pzSch[nhSch]/D");
-  TPC_g->Branch("ppSch", event.ppSch, "ppSch[nhSch]/D");
-  TPC_g->Branch("deSch", event.deSch, "deSch[nhSch]/D");
-  TPC_g->Branch("tSch", event.tSch, "tSch[nhSch]/D");
-  TPC_g->Branch("vtpxSch", event.vtpxSch, "vtpxSch[nhSch]/D");
-  TPC_g->Branch("vtpySch", event.vtpySch, "vtpySch[nhSch]/D");
-  TPC_g->Branch("vtpzSch", event.vtpzSch, "vtpzSch[nhSch]/D");
-  TPC_g->Branch("vtppSch", event.vtppSch, "vtppSch[nhSch]/D");
-  TPC_g->Branch("vtxSch", event.vtxSch, "vtxSch[nhSch]/D");
-  TPC_g->Branch("vtySch", event.vtySch, "vtySch[nhSch]/D");
-  TPC_g->Branch("vtzSch", event.vtzSch, "vtzSch[nhSch]/D");
-  TPC_g->Branch("lengthSch", event.lengthSch, "lengthSch[nhSch]/D");
+  tree->Branch("nhHtof", &event.nhHtof, "nhHtof/I");
+  tree->Branch("tidHtof", event.tidHtof, "tidHtof[nhHtof]/I");
+  tree->Branch("pidHtof", event.pidHtof, "pidHtof[nhHtof]/I");
+  tree->Branch("didHtof", event.didHtof, "didHtof[nhHtof]/I");
+  tree->Branch("prtHtof", event.prtHtof, "prtHtof[nhHtof]/I");
+  tree->Branch("qHtof", event.qHtof, "qHtof[nhHtof]/I");
+  tree->Branch("massHtof", event.massHtof, "massHtof[nhHtof]/D");
+  tree->Branch("xHtof", event.xHtof, "xHtof[nhHtof]/D");
+  tree->Branch("yHtof", event.yHtof, "yHtof[nhHtof]/D");
+  tree->Branch("zHtof", event.zHtof, "zHtof[nhHtof]/D");
+  tree->Branch("pxHtof", event.pxHtof, "pxHtof[nhHtof]/D");
+  tree->Branch("pyHtof", event.pyHtof, "pyHtof[nhHtof]/D");
+  tree->Branch("pzHtof", event.pzHtof, "pzHtof[nhHtof]/D");
+  tree->Branch("ppHtof", event.ppHtof, "ppHtof[nhHtof]/D");
+  tree->Branch("deHtof", event.deHtof, "deHtof[nhHtof]/D");
+  tree->Branch("tHtof", event.tHtof, "tHtof[nhHtof]/D");
+  tree->Branch("vtpxHtof", event.vtpxHtof, "vtpxHtof[nhHtof]/D");
+  tree->Branch("vtpyHtof", event.vtpyHtof, "vtpyHtof[nhHtof]/D");
+  tree->Branch("vtpzHtof", event.vtpzHtof, "vtpzHtof[nhHtof]/D");
+  tree->Branch("vtppHtof", event.vtppHtof, "vtppHtof[nhHtof]/D");
+  tree->Branch("vtxHtof", event.vtxHtof, "vtxHtof[nhHtof]/D");
+  tree->Branch("vtyHtof", event.vtyHtof, "vtyHtof[nhHtof]/D");
+  tree->Branch("vtzHtof", event.vtzHtof, "vtzHtof[nhHtof]/D");
+  tree->Branch("lengthHtof", event.lengthHtof, "lengthHtof[nhHtof]/D");
   // FTOF
-  TPC_g->Branch("nhFtof", &event.nhFtof, "nhFtof/I");
-  TPC_g->Branch("tidFtof", event.tidFtof, "tidFtof[nhFtof]/I");
-  TPC_g->Branch("pidFtof", event.pidFtof, "pidFtof[nhFtof]/I");
-  TPC_g->Branch("didFtof", event.didFtof, "didFtof[nhFtof]/I");
-  TPC_g->Branch("prtFtof", event.prtFtof, "prtFtof[nhFtof]/I");
-  TPC_g->Branch("qFtof", event.qFtof, "qFtof[nhFtof]/I");
-  TPC_g->Branch("massFtof", event.massFtof, "massFtof[nhFtof]/D");
-  TPC_g->Branch("xFtof", event.xFtof, "xFtof[nhFtof]/D");
-  TPC_g->Branch("yFtof", event.yFtof, "yFtof[nhFtof]/D");
-  TPC_g->Branch("zFtof", event.zFtof, "zFtof[nhFtof]/D");
-  TPC_g->Branch("pxFtof", event.pxFtof, "pxFtof[nhFtof]/D");
-  TPC_g->Branch("pyFtof", event.pyFtof, "pyFtof[nhFtof]/D");
-  TPC_g->Branch("pzFtof", event.pzFtof, "pzFtof[nhFtof]/D");
-  TPC_g->Branch("ppFtof", event.ppFtof, "ppFtof[nhFtof]/D");
-  TPC_g->Branch("deFtof", event.deFtof, "deFtof[nhFtof]/D");
-  TPC_g->Branch("tFtof", event.tFtof, "tFtof[nhFtof]/D");
-  TPC_g->Branch("vtpxFtof", event.vtpxFtof, "vtpxFtof[nhFtof]/D");
-  TPC_g->Branch("vtpyFtof", event.vtpyFtof, "vtpyFtof[nhFtof]/D");
-  TPC_g->Branch("vtpzFtof", event.vtpzFtof, "vtpzFtof[nhFtof]/D");
-  TPC_g->Branch("vtppFtof", event.vtppFtof, "vtppFtof[nhFtof]/D");
-  TPC_g->Branch("vtxFtof", event.vtxFtof, "vtxFtof[nhFtof]/D");
-  TPC_g->Branch("vtyFtof", event.vtyFtof, "vtyFtof[nhFtof]/D");
-  TPC_g->Branch("vtzFtof", event.vtzFtof, "vtzFtof[nhFtof]/D");
-  TPC_g->Branch("lengthFtof", event.lengthFtof, "lengthFtof[nhFtof]/D");
-  // LAC
-  TPC_g->Branch("nhLac", &event.nhLac, "nhLac/I");
-  TPC_g->Branch("tidLac", event.tidLac, "tidLac[nhLac]/I");
-  TPC_g->Branch("pidLac", event.pidLac, "pidLac[nhLac]/I");
-  TPC_g->Branch("didLac", event.didLac, "didLac[nhLac]/I");
-  TPC_g->Branch("prtLac", event.prtLac, "prtLac[nhLac]/I");
-  TPC_g->Branch("qLac", event.qLac, "qLac[nhLac]/I");
-  TPC_g->Branch("massLac", event.massLac, "massLac[nhLac]/D");
-  TPC_g->Branch("xLac", event.xLac, "xLac[nhLac]/D");
-  TPC_g->Branch("yLac", event.yLac, "yLac[nhLac]/D");
-  TPC_g->Branch("zLac", event.zLac, "zLac[nhLac]/D");
-  TPC_g->Branch("pxLac", event.pxLac, "pxLac[nhLac]/D");
-  TPC_g->Branch("pyLac", event.pyLac, "pyLac[nhLac]/D");
-  TPC_g->Branch("pzLac", event.pzLac, "pzLac[nhLac]/D");
-  TPC_g->Branch("ppLac", event.ppLac, "ppLac[nhLac]/D");
-  TPC_g->Branch("deLac", event.deLac, "deLac[nhLac]/D");
-  TPC_g->Branch("tLac", event.tLac, "tLac[nhLac]/D");
-  TPC_g->Branch("vtpxLac", event.vtpxLac, "vtpxLac[nhLac]/D");
-  TPC_g->Branch("vtpyLac", event.vtpyLac, "vtpyLac[nhLac]/D");
-  TPC_g->Branch("vtpzLac", event.vtpzLac, "vtpzLac[nhLac]/D");
-  TPC_g->Branch("vtppLac", event.vtppLac, "vtppLac[nhLac]/D");
-  TPC_g->Branch("vtxLac", event.vtxLac, "vtxLac[nhLac]/D");
-  TPC_g->Branch("vtyLac", event.vtyLac, "vtyLac[nhLac]/D");
-  TPC_g->Branch("vtzLac", event.vtzLac, "vtzLac[nhLac]/D");
-  TPC_g->Branch("lengthLac", event.lengthLac, "lengthLac[nhLac]/D");
-  // WC
-  TPC_g->Branch("nhWc", &event.nhWc, "nhWc/I");
-  TPC_g->Branch("tidWc", event.tidWc, "tidWc[nhWc]/I");
-  TPC_g->Branch("pidWc", event.pidWc, "pidWc[nhWc]/I");
-  TPC_g->Branch("didWc", event.didWc, "didWc[nhWc]/I");
-  TPC_g->Branch("prtWc", event.prtWc, "prtWc[nhWc]/I");
-  TPC_g->Branch("qWc", event.qWc, "qWc[nhWc]/I");
-  TPC_g->Branch("massWc", event.massWc, "massWc[nhWc]/D");
-  TPC_g->Branch("xWc", event.xWc, "xWc[nhWc]/D");
-  TPC_g->Branch("yWc", event.yWc, "yWc[nhWc]/D");
-  TPC_g->Branch("zWc", event.zWc, "zWc[nhWc]/D");
-  TPC_g->Branch("pxWc", event.pxWc, "pxWc[nhWc]/D");
-  TPC_g->Branch("pyWc", event.pyWc, "pyWc[nhWc]/D");
-  TPC_g->Branch("pzWc", event.pzWc, "pzWc[nhWc]/D");
-  TPC_g->Branch("ppWc", event.ppWc, "ppWc[nhWc]/D");
-  TPC_g->Branch("deWc", event.deWc, "deWc[nhWc]/D");
-  TPC_g->Branch("tWc", event.tWc, "tWc[nhWc]/D");
-  TPC_g->Branch("vtpxWc", event.vtpxWc, "vtpxWc[nhWc]/D");
-  TPC_g->Branch("vtpyWc", event.vtpyWc, "vtpyWc[nhWc]/D");
-  TPC_g->Branch("vtpzWc", event.vtpzWc, "vtpzWc[nhWc]/D");
-  TPC_g->Branch("vtppWc", event.vtppWc, "vtppWc[nhWc]/D");
-  TPC_g->Branch("vtxWc", event.vtxWc, "vtxWc[nhWc]/D");
-  TPC_g->Branch("vtyWc", event.vtyWc, "vtyWc[nhWc]/D");
-  TPC_g->Branch("vtzWc", event.vtzWc, "vtzWc[nhWc]/D");
-  TPC_g->Branch("lengthWc", event.lengthWc, "lengthWc[nhWc]/D");
+  tree->Branch("nhFtof", &event.nhFtof, "nhFtof/I");
+  tree->Branch("tidFtof", event.tidFtof, "tidFtof[nhFtof]/I");
+  tree->Branch("pidFtof", event.pidFtof, "pidFtof[nhFtof]/I");
+  tree->Branch("didFtof", event.didFtof, "didFtof[nhFtof]/I");
+  tree->Branch("prtFtof", event.prtFtof, "prtFtof[nhFtof]/I");
+  tree->Branch("qFtof", event.qFtof, "qFtof[nhFtof]/I");
+  tree->Branch("massFtof", event.massFtof, "massFtof[nhFtof]/D");
+  tree->Branch("xFtof", event.xFtof, "xFtof[nhFtof]/D");
+  tree->Branch("yFtof", event.yFtof, "yFtof[nhFtof]/D");
+  tree->Branch("zFtof", event.zFtof, "zFtof[nhFtof]/D");
+  tree->Branch("pxFtof", event.pxFtof, "pxFtof[nhFtof]/D");
+  tree->Branch("pyFtof", event.pyFtof, "pyFtof[nhFtof]/D");
+  tree->Branch("pzFtof", event.pzFtof, "pzFtof[nhFtof]/D");
+  tree->Branch("ppFtof", event.ppFtof, "ppFtof[nhFtof]/D");
+  tree->Branch("deFtof", event.deFtof, "deFtof[nhFtof]/D");
+  tree->Branch("tFtof", event.tFtof, "tFtof[nhFtof]/D");
+  tree->Branch("vtpxFtof", event.vtpxFtof, "vtpxFtof[nhFtof]/D");
+  tree->Branch("vtpyFtof", event.vtpyFtof, "vtpyFtof[nhFtof]/D");
+  tree->Branch("vtpzFtof", event.vtpzFtof, "vtpzFtof[nhFtof]/D");
+  tree->Branch("vtppFtof", event.vtppFtof, "vtppFtof[nhFtof]/D");
+  tree->Branch("vtxFtof", event.vtxFtof, "vtxFtof[nhFtof]/D");
+  tree->Branch("vtyFtof", event.vtyFtof, "vtyFtof[nhFtof]/D");
+  tree->Branch("vtzFtof", event.vtzFtof, "vtzFtof[nhFtof]/D");
+  tree->Branch("lengthFtof", event.lengthFtof, "lengthFtof[nhFtof]/D");
+  // BAC
+  tree->Branch("nhBac", &event.nhBac, "nhBac/I");
+  tree->Branch("tidBac", event.tidBac, "tidBac[nhBac]/I");
+  tree->Branch("pidBac", event.pidBac, "pidBac[nhBac]/I");
+  tree->Branch("didBac", event.didBac, "didBac[nhBac]/I");
+  tree->Branch("prtBac", event.prtBac, "prtBac[nhBac]/I");
+  tree->Branch("qBac", event.qBac, "qBac[nhBac]/I");
+  tree->Branch("massBac", event.massBac, "massBac[nhBac]/D");
+  tree->Branch("xBac", event.xBac, "xBac[nhBac]/D");
+  tree->Branch("yBac", event.yBac, "yBac[nhBac]/D");
+  tree->Branch("zBac", event.zBac, "zBac[nhBac]/D");
+  tree->Branch("pxBac", event.pxBac, "pxBac[nhBac]/D");
+  tree->Branch("pyBac", event.pyBac, "pyBac[nhBac]/D");
+  tree->Branch("pzBac", event.pzBac, "pzBac[nhBac]/D");
+  tree->Branch("ppBac", event.ppBac, "ppBac[nhBac]/D");
+  tree->Branch("deBac", event.deBac, "deBac[nhBac]/D");
+  tree->Branch("tBac", event.tBac, "tBac[nhBac]/D");
+  tree->Branch("vtpxBac", event.vtpxBac, "vtpxBac[nhBac]/D");
+  tree->Branch("vtpyBac", event.vtpyBac, "vtpyBac[nhBac]/D");
+  tree->Branch("vtpzBac", event.vtpzBac, "vtpzBac[nhBac]/D");
+  tree->Branch("vtppBac", event.vtppBac, "vtppBac[nhBac]/D");
+  tree->Branch("vtxBac", event.vtxBac, "vtxBac[nhBac]/D");
+  tree->Branch("vtyBac", event.vtyBac, "vtyBac[nhBac]/D");
+  tree->Branch("vtzBac", event.vtzBac, "vtzBac[nhBac]/D");
+  tree->Branch("lengthBac", event.lengthBac, "lengthBac[nhBac]/D");
+  // KVC
+  tree->Branch("nhKvc", &event.nhKvc, "nhKvc/I");
+  tree->Branch("tidKvc", event.tidKvc, "tidKvc[nhKvc]/I");
+  tree->Branch("pidKvc", event.pidKvc, "pidKvc[nhKvc]/I");
+  tree->Branch("didKvc", event.didKvc, "didKvc[nhKvc]/I");
+  tree->Branch("prtKvc", event.prtKvc, "prtKvc[nhKvc]/I");
+  tree->Branch("qKvc", event.qKvc, "qKvc[nhKvc]/I");
+  tree->Branch("massKvc", event.massKvc, "massKvc[nhKvc]/D");
+  tree->Branch("xKvc", event.xKvc, "xKvc[nhKvc]/D");
+  tree->Branch("yKvc", event.yKvc, "yKvc[nhKvc]/D");
+  tree->Branch("zKvc", event.zKvc, "zKvc[nhKvc]/D");
+  tree->Branch("pxKvc", event.pxKvc, "pxKvc[nhKvc]/D");
+  tree->Branch("pyKvc", event.pyKvc, "pyKvc[nhKvc]/D");
+  tree->Branch("pzKvc", event.pzKvc, "pzKvc[nhKvc]/D");
+  tree->Branch("ppKvc", event.ppKvc, "ppKvc[nhKvc]/D");
+  tree->Branch("deKvc", event.deKvc, "deKvc[nhKvc]/D");
+  tree->Branch("tKvc", event.tKvc, "tKvc[nhKvc]/D");
+  tree->Branch("vtpxKvc", event.vtpxKvc, "vtpxKvc[nhKvc]/D");
+  tree->Branch("vtpyKvc", event.vtpyKvc, "vtpyKvc[nhKvc]/D");
+  tree->Branch("vtpzKvc", event.vtpzKvc, "vtpzKvc[nhKvc]/D");
+  tree->Branch("vtppKvc", event.vtppKvc, "vtppKvc[nhKvc]/D");
+  tree->Branch("vtxKvc", event.vtxKvc, "vtxKvc[nhKvc]/D");
+  tree->Branch("vtyKvc", event.vtyKvc, "vtyKvc[nhKvc]/D");
+  tree->Branch("vtzKvc", event.vtzKvc, "vtzKvc[nhKvc]/D");
+  tree->Branch("lengthKvc", event.lengthKvc, "lengthKvc[nhKvc]/D");
   // VP
-  TPC_g->Branch("nhVp", &event.nhVp, "nhVp/I");
-  TPC_g->Branch("tidVp", event.tidVp, "tidVp[nhVp]/I");
-  TPC_g->Branch("pidVp", event.pidVp, "pidVp[nhVp]/I");
-  TPC_g->Branch("didVp", event.didVp, "didVp[nhVp]/I");
-  TPC_g->Branch("prtVp", event.prtVp, "prtVp[nhVp]/I");
-  TPC_g->Branch("qVp", event.qVp, "qVp[nhVp]/I");
-  TPC_g->Branch("massVp", event.massVp, "massVp[nhVp]/D");
-  TPC_g->Branch("xVp", event.xVp, "xVp[nhVp]/D");
-  TPC_g->Branch("yVp", event.yVp, "yVp[nhVp]/D");
-  TPC_g->Branch("zVp", event.zVp, "zVp[nhVp]/D");
-  TPC_g->Branch("pxVp", event.pxVp, "pxVp[nhVp]/D");
-  TPC_g->Branch("pyVp", event.pyVp, "pyVp[nhVp]/D");
-  TPC_g->Branch("pzVp", event.pzVp, "pzVp[nhVp]/D");
-  TPC_g->Branch("ppVp", event.ppVp, "ppVp[nhVp]/D");
-  TPC_g->Branch("deVp", event.deVp, "deVp[nhVp]/D");
-  TPC_g->Branch("tVp", event.tVp, "tVp[nhVp]/D");
-  TPC_g->Branch("vtpxVp", event.vtpxVp, "vtpxVp[nhVp]/D");
-  TPC_g->Branch("vtpyVp", event.vtpyVp, "vtpyVp[nhVp]/D");
-  TPC_g->Branch("vtpzVp", event.vtpzVp, "vtpzVp[nhVp]/D");
-  TPC_g->Branch("vtppVp", event.vtppVp, "vtppVp[nhVp]/D");
-  TPC_g->Branch("vtxVp", event.vtxVp, "vtxVp[nhVp]/D");
-  TPC_g->Branch("vtyVp", event.vtyVp, "vtyVp[nhVp]/D");
-  TPC_g->Branch("vtzVp", event.vtzVp, "vtzVp[nhVp]/D");
-  TPC_g->Branch("lengthVp", event.lengthVp, "lengthVp[nhVp]/D");
+  tree->Branch("nhVp", &event.nhVp, "nhVp/I");
+  tree->Branch("tidVp", event.tidVp, "tidVp[nhVp]/I");
+  tree->Branch("pidVp", event.pidVp, "pidVp[nhVp]/I");
+  tree->Branch("didVp", event.didVp, "didVp[nhVp]/I");
+  tree->Branch("prtVp", event.prtVp, "prtVp[nhVp]/I");
+  tree->Branch("qVp", event.qVp, "qVp[nhVp]/I");
+  tree->Branch("massVp", event.massVp, "massVp[nhVp]/D");
+  tree->Branch("xVp", event.xVp, "xVp[nhVp]/D");
+  tree->Branch("yVp", event.yVp, "yVp[nhVp]/D");
+  tree->Branch("zVp", event.zVp, "zVp[nhVp]/D");
+  tree->Branch("pxVp", event.pxVp, "pxVp[nhVp]/D");
+  tree->Branch("pyVp", event.pyVp, "pyVp[nhVp]/D");
+  tree->Branch("pzVp", event.pzVp, "pzVp[nhVp]/D");
+  tree->Branch("ppVp", event.ppVp, "ppVp[nhVp]/D");
+  tree->Branch("deVp", event.deVp, "deVp[nhVp]/D");
+  tree->Branch("tVp", event.tVp, "tVp[nhVp]/D");
+  tree->Branch("vtpxVp", event.vtpxVp, "vtpxVp[nhVp]/D");
+  tree->Branch("vtpyVp", event.vtpyVp, "vtpyVp[nhVp]/D");
+  tree->Branch("vtpzVp", event.vtpzVp, "vtpzVp[nhVp]/D");
+  tree->Branch("vtppVp", event.vtppVp, "vtppVp[nhVp]/D");
+  tree->Branch("vtxVp", event.vtxVp, "vtxVp[nhVp]/D");
+  tree->Branch("vtyVp", event.vtyVp, "vtyVp[nhVp]/D");
+  tree->Branch("vtzVp", event.vtzVp, "vtzVp[nhVp]/D");
+  tree->Branch("lengthVp", event.lengthVp, "lengthVp[nhVp]/D");
 }
 
 //_____________________________________________________________________________
@@ -539,7 +488,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
 void
 AnaManager::EndOfRunAction()
 {
-  TPC_g->Write();
+  tree->Write();
   for(auto& p : hmap){
     p.second->Write();
   }
@@ -563,11 +512,9 @@ AnaManager::BeginOfEventAction()
   event.nhBh2 = 0;
   event.nhTgt = 0;
   event.nhHtof = 0;
-  event.nhSdc = 0;
-  event.nhSch = 0;
   event.nhFtof = 0;
-  event.nhLac = 0;
-  event.nhWc = 0;
+  event.nhBac = 0;
+  event.nhKvc = 0;
   event.nhVp = 0;
   for(G4int i=0; i<MaxHits; ++i){
     // BH2
@@ -624,48 +571,6 @@ AnaManager::BeginOfEventAction()
     event.vtyHtof[i] = -9999.;
     event.vtzHtof[i] = -9999.;
     event.lengthHtof[i] = -9999.;
-    // SDC
-    event.tidSdc[i] = -9999;
-    event.pidSdc[i] = -9999;
-    event.didSdc[i] = -9999;
-    event.prtSdc[i] = -9999;
-    event.qSdc[i] = -9999;
-    event.massSdc[i] = -9999.;
-    event.xSdc[i] = -9999.;
-    event.ySdc[i] = -9999.;
-    event.zSdc[i] = -9999.;
-    event.pxSdc[i] = -9999.;
-    event.pySdc[i] = -9999.;
-    event.pzSdc[i] = -9999.;
-    event.tSdc[i] = -9999.;
-    event.vtppSdc[i] = -9999.;
-    event.vtpxSdc[i] = -9999.;
-    event.vtpySdc[i] = -9999.;
-    event.vtpzSdc[i] = -9999.;
-    event.vtxSdc[i] = -9999.;
-    event.vtySdc[i] = -9999.;
-    event.vtzSdc[i] = -9999.;
-    // SCH
-    event.tidSch[i] = -9999;
-    event.pidSch[i] = -9999;
-    event.didSch[i] = -9999;
-    event.prtSch[i] = -9999;
-    event.qSch[i] = -9999;
-    event.massSch[i] = -9999.;
-    event.xSch[i] = -9999.;
-    event.ySch[i] = -9999.;
-    event.zSch[i] = -9999.;
-    event.pxSch[i] = -9999.;
-    event.pySch[i] = -9999.;
-    event.pzSch[i] = -9999.;
-    event.tSch[i] = -9999.;
-    event.vtppSch[i] = -9999.;
-    event.vtpxSch[i] = -9999.;
-    event.vtpySch[i] = -9999.;
-    event.vtpzSch[i] = -9999.;
-    event.vtxSch[i] = -9999.;
-    event.vtySch[i] = -9999.;
-    event.vtzSch[i] = -9999.;
     // FTOF
     event.tidFtof[i] = -9999;
     event.pidFtof[i] = -9999;
@@ -687,48 +592,48 @@ AnaManager::BeginOfEventAction()
     event.vtxFtof[i] = -9999.;
     event.vtyFtof[i] = -9999.;
     event.vtzFtof[i] = -9999.;
-    // LAC
-    event.tidLac[i] = -9999;
-    event.pidLac[i] = -9999;
-    event.didLac[i] = -9999;
-    event.prtLac[i] = -9999;
-    event.qLac[i] = -9999;
-    event.massLac[i] = -9999.;
-    event.xLac[i] = -9999.;
-    event.yLac[i] = -9999.;
-    event.zLac[i] = -9999.;
-    event.pxLac[i] = -9999.;
-    event.pyLac[i] = -9999.;
-    event.pzLac[i] = -9999.;
-    event.tLac[i] = -9999.;
-    event.vtppLac[i] = -9999.;
-    event.vtpxLac[i] = -9999.;
-    event.vtpyLac[i] = -9999.;
-    event.vtpzLac[i] = -9999.;
-    event.vtxLac[i] = -9999.;
-    event.vtyLac[i] = -9999.;
-    event.vtzLac[i] = -9999.;
-    // WC
-    event.tidWc[i] = -9999;
-    event.pidWc[i] = -9999;
-    event.didWc[i] = -9999;
-    event.prtWc[i] = -9999;
-    event.qWc[i] = -9999;
-    event.massWc[i] = -9999.;
-    event.xWc[i] = -9999.;
-    event.yWc[i] = -9999.;
-    event.zWc[i] = -9999.;
-    event.pxWc[i] = -9999.;
-    event.pyWc[i] = -9999.;
-    event.pzWc[i] = -9999.;
-    event.tWc[i] = -9999.;
-    event.vtppWc[i] = -9999.;
-    event.vtpxWc[i] = -9999.;
-    event.vtpyWc[i] = -9999.;
-    event.vtpzWc[i] = -9999.;
-    event.vtxWc[i] = -9999.;
-    event.vtyWc[i] = -9999.;
-    event.vtzWc[i] = -9999.;
+    // BAC
+    event.tidBac[i] = -9999;
+    event.pidBac[i] = -9999;
+    event.didBac[i] = -9999;
+    event.prtBac[i] = -9999;
+    event.qBac[i] = -9999;
+    event.massBac[i] = -9999.;
+    event.xBac[i] = -9999.;
+    event.yBac[i] = -9999.;
+    event.zBac[i] = -9999.;
+    event.pxBac[i] = -9999.;
+    event.pyBac[i] = -9999.;
+    event.pzBac[i] = -9999.;
+    event.tBac[i] = -9999.;
+    event.vtppBac[i] = -9999.;
+    event.vtpxBac[i] = -9999.;
+    event.vtpyBac[i] = -9999.;
+    event.vtpzBac[i] = -9999.;
+    event.vtxBac[i] = -9999.;
+    event.vtyBac[i] = -9999.;
+    event.vtzBac[i] = -9999.;
+    // KVC
+    event.tidKvc[i] = -9999;
+    event.pidKvc[i] = -9999;
+    event.didKvc[i] = -9999;
+    event.prtKvc[i] = -9999;
+    event.qKvc[i] = -9999;
+    event.massKvc[i] = -9999.;
+    event.xKvc[i] = -9999.;
+    event.yKvc[i] = -9999.;
+    event.zKvc[i] = -9999.;
+    event.pxKvc[i] = -9999.;
+    event.pyKvc[i] = -9999.;
+    event.pzKvc[i] = -9999.;
+    event.tKvc[i] = -9999.;
+    event.vtppKvc[i] = -9999.;
+    event.vtpxKvc[i] = -9999.;
+    event.vtpyKvc[i] = -9999.;
+    event.vtpzKvc[i] = -9999.;
+    event.vtxKvc[i] = -9999.;
+    event.vtyKvc[i] = -9999.;
+    event.vtzKvc[i] = -9999.;
     // VP
     event.tidVp[i] = -9999;
     event.pidVp[i] = -9999;
@@ -1545,7 +1450,7 @@ AnaManager::EndOfEventAction()
     }
   }//trigger parts
 
-  TPC_g->Fill();
+  tree->Fill();
 
   event.pb->SetXYZ(0., 0., 0.);
   event.nhPrm = 0;
@@ -1895,76 +1800,26 @@ AnaManager::SetHTOFData(const VHitInfo* hit)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetLACData(const VHitInfo* hit)
+AnaManager::SetBACData(const VHitInfo* hit)
 {
-  if(event.nhLac >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhLac << G4endl;
+  if(event.nhBac >= MaxHits){
+    G4cerr << FUNC_NAME << " too much nhit " << event.nhBac << G4endl;
   } else {
-    Int_t i = event.nhLac;
-    event.tidLac[i] = hit->GetTrackID();
-    event.pidLac[i] = hit->GetParticleID();
-    event.didLac[i] = hit->GetDetectorID();
-    event.prtLac[i] = hit->GetParentID();
-    event.xLac[i] = hit->GetPosition().x();
-    event.yLac[i] = hit->GetPosition().y();
-    event.zLac[i] = hit->GetPosition().z();
-    event.pxLac[i] = hit->GetMomentum().x();
-    event.pyLac[i] = hit->GetMomentum().y();
-    event.pzLac[i] = hit->GetMomentum().z();
-    event.ppLac[i] = hit->GetMomentum().mag();
-    event.deLac[i] = hit->GetEnergyDeposit();
-    event.tLac[i] = hit->GetTime();
-    event.nhLac++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetSCHData(const VHitInfo* hit)
-{
-  if(event.nhSch >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhSch << G4endl;
-  } else {
-    Int_t i = event.nhSch;
-    event.tidSch[i] = hit->GetTrackID();
-    event.pidSch[i] = hit->GetParticleID();
-    event.didSch[i] = hit->GetDetectorID();
-    event.prtSch[i] = hit->GetParentID();
-    event.xSch[i] = hit->GetPosition().x();
-    event.ySch[i] = hit->GetPosition().y();
-    event.zSch[i] = hit->GetPosition().z();
-    event.pxSch[i] = hit->GetMomentum().x();
-    event.pySch[i] = hit->GetMomentum().y();
-    event.pzSch[i] = hit->GetMomentum().z();
-    event.ppSch[i] = hit->GetMomentum().mag();
-    event.deSch[i] = hit->GetEnergyDeposit();
-    event.tSch[i] = hit->GetTime();
-    event.nhSch++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetSDCData(const VHitInfo* hit)
-{
-  if(event.nhSdc >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhSdc << G4endl;
-  } else {
-    Int_t i = event.nhSdc;
-    event.tidSdc[i] = hit->GetTrackID();
-    event.pidSdc[i] = hit->GetParticleID();
-    event.didSdc[i] = hit->GetDetectorID();
-    event.prtSdc[i] = hit->GetParentID();
-    event.xSdc[i] = hit->GetPosition().x();
-    event.ySdc[i] = hit->GetPosition().y();
-    event.zSdc[i] = hit->GetPosition().z();
-    event.pxSdc[i] = hit->GetMomentum().x();
-    event.pySdc[i] = hit->GetMomentum().y();
-    event.pzSdc[i] = hit->GetMomentum().z();
-    event.ppSdc[i] = hit->GetMomentum().mag();
-    event.deSdc[i] = hit->GetEnergyDeposit();
-    event.tSdc[i] = hit->GetTime();
-    event.nhSdc++;
+    Int_t i = event.nhBac;
+    event.tidBac[i] = hit->GetTrackID();
+    event.pidBac[i] = hit->GetParticleID();
+    event.didBac[i] = hit->GetDetectorID();
+    event.prtBac[i] = hit->GetParentID();
+    event.xBac[i] = hit->GetPosition().x();
+    event.yBac[i] = hit->GetPosition().y();
+    event.zBac[i] = hit->GetPosition().z();
+    event.pxBac[i] = hit->GetMomentum().x();
+    event.pyBac[i] = hit->GetMomentum().y();
+    event.pzBac[i] = hit->GetMomentum().z();
+    event.ppBac[i] = hit->GetMomentum().mag();
+    event.deBac[i] = hit->GetEnergyDeposit();
+    event.tBac[i] = hit->GetTime();
+    event.nhBac++;
   }
 }
 
@@ -1995,26 +1850,26 @@ AnaManager::SetVPData(const VHitInfo* hit)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetWCData(const VHitInfo* hit)
+AnaManager::SetKVCData(const VHitInfo* hit)
 {
-  if(event.nhWc >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhWc << G4endl;
+  if(event.nhKvc >= MaxHits){
+    G4cerr << FUNC_NAME << " too much nhit " << event.nhKvc << G4endl;
   } else {
-    Int_t i = event.nhWc;
-    event.tidWc[i] = hit->GetTrackID();
-    event.pidWc[i] = hit->GetParticleID();
-    event.didWc[i] = hit->GetDetectorID();
-    event.prtWc[i] = hit->GetParentID();
-    event.xWc[i] = hit->GetPosition().x();
-    event.yWc[i] = hit->GetPosition().y();
-    event.zWc[i] = hit->GetPosition().z();
-    event.pxWc[i] = hit->GetMomentum().x();
-    event.pyWc[i] = hit->GetMomentum().y();
-    event.pzWc[i] = hit->GetMomentum().z();
-    event.ppWc[i] = hit->GetMomentum().mag();
-    event.deWc[i] = hit->GetEnergyDeposit();
-    event.tWc[i] = hit->GetTime();
-    event.nhWc++;
+    Int_t i = event.nhKvc;
+    event.tidKvc[i] = hit->GetTrackID();
+    event.pidKvc[i] = hit->GetParticleID();
+    event.didKvc[i] = hit->GetDetectorID();
+    event.prtKvc[i] = hit->GetParentID();
+    event.xKvc[i] = hit->GetPosition().x();
+    event.yKvc[i] = hit->GetPosition().y();
+    event.zKvc[i] = hit->GetPosition().z();
+    event.pxKvc[i] = hit->GetMomentum().x();
+    event.pyKvc[i] = hit->GetMomentum().y();
+    event.pzKvc[i] = hit->GetMomentum().z();
+    event.ppKvc[i] = hit->GetMomentum().mag();
+    event.deKvc[i] = hit->GetEnergyDeposit();
+    event.tKvc[i] = hit->GetTime();
+    event.nhKvc++;
   }
 }
 

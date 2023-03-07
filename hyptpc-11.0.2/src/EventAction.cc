@@ -22,13 +22,13 @@
 #include "BH2SD.hh"
 #include "FTOFSD.hh"
 #include "HTOFSD.hh"
-#include "LACSD.hh"
+#include "BACSD.hh"
 #include "TPCSD.hh"
 #include "SCHSD.hh"
 #include "SDCSD.hh"
 #include "TargetSD.hh"
 #include "VPSD.hh"
-#include "WCSD.hh"
+#include "KVCSD.hh"
 
 namespace
 {
@@ -258,32 +258,6 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     }
   }
 
-  // if(gConf.Get<G4int>("UseAC") == 1.){
-  //   static const G4int id_ac = SDManager->GetCollectionID("AC/hit");
-  //   if(id_ac >= 0){
-  //     const auto HC = (G4THitsCollection<BACHit>*)HCTE->GetHC(id_ac);
-  //     for(G4int i=0, n=HC->entries(); i<n; ++i){
-  // 	gAnaMan.SetACData((*HC)[i]);
-  //     }
-  //   }
-  // }
-
-  static const G4int id_sdc = SDManager-> GetCollectionID("SDC/hit");
-  if(id_sdc >= 0){
-    const auto HC = (G4THitsCollection<SDCHit>*)HCTE->GetHC(id_sdc);
-    for(G4int i=0, n=HC->entries(); i<n; ++i){
-      gAnaMan.SetSDCData((*HC)[i]);
-    }
-  }
-
-  static const G4int id_sch = SDManager-> GetCollectionID("SCH/hit");
-  if(id_sch >= 0){
-    const auto HC = (G4THitsCollection<SCHHit>*)HCTE->GetHC(id_sch);
-    for(G4int i=0, n=HC->entries(); i<n; ++i){
-      gAnaMan.SetSCHData((*HC)[i]);
-    }
-  }
-
   static const G4int id_ftof = SDManager-> GetCollectionID("FTOF/hit");
   if(id_ftof >= 0){
     const auto HC = (G4THitsCollection<FTOFHit>*)HCTE->GetHC(id_ftof);
@@ -292,19 +266,19 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     }
   }
 
-  static const G4int id_lac = SDManager-> GetCollectionID("LAC/hit");
-  if(id_lac >= 0){
-    const auto HC = (G4THitsCollection<LACHit>*)HCTE->GetHC(id_lac);
+  static const G4int id_bac = SDManager-> GetCollectionID("BAC/hit");
+  if(id_bac >= 0){
+    const auto HC = (G4THitsCollection<BACHit>*)HCTE->GetHC(id_bac);
     for(G4int i=0, n=HC->entries(); i<n; ++i){
-      gAnaMan.SetLACData((*HC)[i]);
+      gAnaMan.SetBACData((*HC)[i]);
     }
   }
 
-  static const G4int id_wc = SDManager-> GetCollectionID("WC/hit");
-  if(id_wc >= 0){
-    const auto HC = (G4THitsCollection<WCHit>*)HCTE->GetHC(id_wc);
+  static const G4int id_kvc = SDManager-> GetCollectionID("KVC/hit");
+  if(id_kvc >= 0){
+    const auto HC = (G4THitsCollection<KVCHit>*)HCTE->GetHC(id_kvc);
     for(G4int i=0, n=HC->entries(); i<n; ++i){
-      gAnaMan.SetWCData((*HC)[i]);
+      gAnaMan.SetKVCData((*HC)[i]);
     }
   }
 

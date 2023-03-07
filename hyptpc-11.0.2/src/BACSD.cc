@@ -8,11 +8,14 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VTouchable.hh>
 
+#include "FuncName.hh"
 #include "BACHit.hh"
 
 //_____________________________________________________________________________
 BACSD::BACSD(const G4String& name)
-  : G4VSensitiveDetector(name)
+  : G4VSensitiveDetector(name),
+    m_hits_collection(),
+    m_refractive_index()
 {
   collectionName.insert("hit");
 }
@@ -26,81 +29,51 @@ BACSD::~BACSD()
 void
 BACSD::Initialize(G4HCofThisEvent* HCTE)
 {
-  hitsCollection = new G4THitsCollection<BACHit>(SensitiveDetectorName,
-						    collectionName[0]);
-  G4int hcid = GetCollectionID(0);
-  HCTE->AddHitsCollection(hcid, hitsCollection);
+  m_hits_collection = new G4THitsCollection<BACHit>(SensitiveDetectorName,
+                                                    collectionName[0]);
+  HCTE->AddHitsCollection(GetCollectionID(0), m_hits_collection);
 }
 
 //_____________________________________________________________________________
 G4bool
 BACSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
 {
-  const G4StepPoint* preStepPoint= aStep-> GetPreStepPoint();
-  G4String particleName;
+  const auto preStepPoint = aStep->GetPreStepPoint();
+  const auto aTrack = aStep->GetTrack();
+  const auto Definition = aTrack->GetDefinition();
+  const G4String particleName = Definition->GetParticleName();
+  const G4String particleType = Definition->GetParticleType();
 
-  if(aStep-> GetTrack()-> GetDefinition()-> GetPDGCharge() == 0.)
+  if(preStepPoint->GetStepStatus() != fGeomBoundary)
+    return false;
+  if(Definition->GetPDGCharge() == 0.)
     return false;
 
-  particleName = aStep-> GetTrack()-> GetDefinition()-> GetParticleName();
-  /*
-  // e+/e- rejection
-  if(particleName == "e-")
-    return false;
-  if(particleName == "e+")
-    return false;
-  */
-  const G4Track* aTrack = aStep->GetTrack();
-  G4String particleType;
-  particleType = aTrack->GetDefinition()->GetParticleType();
+  // if(particleName == "e-")
+  //   return false;
+  // if(particleName == "e+")
+  //   return false;
+  // if(particleName != "kaon+")
+  //   return false;
+  // if(particleName != "pi-" && particleName != "pi+")
+  //   return false;
+  // if(particleName != "pi+" && particleName != "pi-" &&
+  //     particleName != "proton")
+  //   return false;
+  // if(particleType == "lepton")
+  //   return false;
 
-  //    if(particleType == "lepton")
-  //      return false;
-  //
-  //  if((particleName != "kaon+")){
-  //    return false;
-  //  }
+  // const G4double momentum_threshold =
+  //   hit->GetMass() / std::sqrt(m_refractive_index*m_refractive_index - 1.);
+  // if(hit->GetMomentum().mag() < momentum_threshold)
+  //   return false;
 
-  //  if((particleName != "pi-") && (particleName != "pi+")){
-  //    return false;
-  //  }
-  //  if((particleName != "pi+")&& (particleName != "pi-")
-  //     && (particleName != "proton")){
-  //    return false;
-  //  }
-  if(preStepPoint-> GetStepStatus() != fGeomBoundary) return false;
+  // if(hit->GetParticleName().contains("proton")){
+  //   hit->Print();
+  //   G4cout << momentum_threshold << G4endl;
+  // }
 
-  G4TouchableHistory* theTouchable
-    = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
-  G4VPhysicalVolume* physVol = theTouchable->GetVolume();
-
-
-  G4ThreeVector VertexPosition = aTrack->GetVertexPosition();
-  G4ThreeVector VertexMomentum = aTrack->GetVertexMomentumDirection();
-  G4double VertexEnergy = aTrack -> GetVertexKineticEnergy(); // Ek = sqrt(p^2+m^2)-m
-
-  G4ThreeVector pos= preStepPoint-> GetPosition();
-  G4ThreeVector mom= preStepPoint-> GetMomentum();
-  G4double tof= preStepPoint-> GetGlobalTime();
-  G4int tid =  aStep-> GetTrack()-> GetTrackID();
-  G4int pid =  aStep-> GetTrack()-> GetDefinition() -> GetPDGEncoding();
-  G4double mass =  aStep-> GetTrack()-> GetDynamicParticle() -> GetMass();
-  G4int qq =  aStep-> GetTrack()-> GetDynamicParticle() -> GetCharge();
-  G4double tlength = aStep->GetTrack()-> GetTrackLength();
-  //  G4double slength = aStep->GetTrack()-> GetStepLength();
-  //  G4cout<<mass<<":"<<tlength<<":"<<slength<<G4endl;
-  G4int parentID =  aStep-> GetTrack()-> GetParentID();
-  //    G4cout <<"test: "<<parentID << G4endl;
-  // Get Pad number
-  G4int iDet;
-  G4String name = physVol->GetName();
-  //  G4cout << name << G4endl;
-
-  sscanf(name,"ACPV%d",&iDet);
-
-  // create a new hit and push them to "Hit Coleltion"
-  BACHit* ahit= new BACHit(pos, mom, tof, tid, pid, iDet,mass,qq,parentID, VertexPosition, VertexMomentum, VertexEnergy,tlength);
-  hitsCollection-> insert(ahit);
+  m_hits_collection->insert(new BACHit(SensitiveDetectorName, aStep));
 
   return true;
 }
@@ -121,5 +94,5 @@ BACSD::DrawAll()
 void
 BACSD::PrintAll()
 {
-  hitsCollection-> PrintAllHits();
+  m_hits_collection->PrintAllHits();
 }
