@@ -7,6 +7,8 @@
 
 #include <TVector3.h>
 
+class G4ParticleDefinition;
+
 struct Track;
 
 class VHitInfo;
@@ -488,6 +490,10 @@ public:
   void SetTargetData(const VHitInfo* hit);
   void SetPrimaryBeam(const G4ThreeVector& p);
   void SetPrimaryBeam(G4double px, G4double py, G4double pz);
+  void SetPrimaryParticle(G4int id,
+                          const G4ParticleDefinition* const particle,
+                          const G4ThreeVector& x,
+                          const G4ThreeVector& p);
   void SetPrimaryParticle(G4double px, G4double py, G4double pz);
   void SetPrimaryParticle(G4int id, const G4ThreeVector& p, G4double mass,
                           G4int pid=-9999);

@@ -3,6 +3,7 @@
 #include "AnaManager.hh"
 
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
 #include <Randomize.hh>
 
@@ -1950,6 +1951,30 @@ void
 AnaManager::SetNumberOfPrimaryParticle(G4int n)
 {
   event.nhPrm = n;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetPrimaryParticle(G4int id,
+                               const G4ParticleDefinition* const particle,
+                               const G4ThreeVector& x,
+                               const G4ThreeVector& p)
+{
+  if(id >= event.nhPrm){
+    G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
+  } else {
+    event.xPrm[id] = x.x();
+    event.yPrm[id] = x.y();
+    event.zPrm[id] = x.z();
+    event.pxPrm[id] = p.x();
+    event.pyPrm[id] = p.y();
+    event.pzPrm[id] = p.z();
+    event.ppPrm[id] = p.mag();
+    event.mPrm[id] = particle->GetPDGMass();
+    event.thetaPrm[id] = p.theta();
+    event.phiPrm[id] = p.phi();
+    event.pidPrm[id] = particle->GetPDGEncoding();
+  }
 }
 
 //_____________________________________________________________________________

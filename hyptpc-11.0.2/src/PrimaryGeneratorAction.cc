@@ -3775,7 +3775,9 @@ PrimaryGeneratorAction::GenerateTest2(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
 {
-  G4double mass = m_KaonMinus->GetPDGMass();
+  static const G4String particle_name = "kaon-";
+  static const auto KaonMinus = particleTable->FindParticle("kaon-");
+  static const auto mass = KaonMinus->GetPDGMass();
   G4LorentzVector lv(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(lv.v());
@@ -3783,8 +3785,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(m_beam->pos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetNumberOfPrimaryParticle(1);
-  gAnaMan.SetPrimaryParticle(0, lv.v(), mass);
-  gAnaMan.SetPrimaryVertex(0, m_beam->pos);
+  gAnaMan.SetPrimaryParticle(0, KaonMinus, m_beam->pos, lv.v());
 }
 
 //_____________________________________________________________________________
