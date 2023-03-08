@@ -51,8 +51,11 @@ add_executable(g4hyptpc main.cc ${sources} ${headers})
 target_link_libraries(g4hyptpc ${Geant4_LIBRARIES})
 target_link_libraries(g4hyptpc ${ROOT_LIBRARIES})
 
-ROOT_GENERATE_DICTIONARY(g4hytpc_dict TParticle.h TVector3.h LINKDEF
-			${PROJECT_SOURCE_DIR}/dict/LinkDef.h MODULE g4hyptpc)
+root_generate_dictionary(g4hyptpc_dict TParticle.h TVector3.h
+			LINKDEF ${PROJECT_SOURCE_DIR}/linkdef/LinkDef.h
+			MODULE g4hyptpc)
+add_library(g4hyptpc_lib SHARED g4hyptpc_dict)
+target_link_libraries(g4hyptpc g4hyptpc_lib)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

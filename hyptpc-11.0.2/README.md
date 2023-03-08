@@ -41,9 +41,9 @@ Arguments of ConfFile and OutputName are necessary.
 G4Macro is an optional argument.
 
 ```shell
-./bin/hyptpc [ConfFile] [OutputName] (G4Macro)
-./bin/hyptpc param/conf/default.conf foo.root
-./bin/hyptpc param/conf/default.conf foo.root bar.mac
+./obj/hyptpc [ConfFile] [OutputName] (G4Macro)
+./obj/hyptpc param/conf/default.conf foo.root
+./obj/hyptpc param/conf/default.conf foo.root bar.mac
 ```
 
 
