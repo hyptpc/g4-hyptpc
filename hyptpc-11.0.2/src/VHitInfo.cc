@@ -55,9 +55,9 @@ VHitInfo::VHitInfo(const G4String& name, G4Step* step)
     TLorentzVector p(m_momentum.x(), m_momentum.y(), m_momentum.z(), dp->GetTotalEnergy());
     TLorentzVector v(m_position.x(), m_position.y(), m_position.z(), point->GetGlobalTime());
     m_particle = new TParticle(m_pdg_encoding,
-                               0, // fStatus
+                               0, // fStatusCode
                                m_parent_id, // fMother[0]
-                               0, // fMother[1]
+                               m_copy_number, // fMother[1]
                                0, // fDaughter[0]
                                0, // fDaughter[1]
                                p, v);

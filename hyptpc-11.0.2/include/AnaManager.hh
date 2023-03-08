@@ -96,16 +96,6 @@ struct TPCData
 };
 
 //_____________________________________________________________________________
-struct PrimaryInfo
-{
-  G4double mm_d;
-  G4double mm_p;
-  G4double theta;
-  G4double theta_scat;
-  G4double theta_CM;
-};
-
-//_____________________________________________________________________________
 struct Event
 {
   Int_t evnum; // Event number
@@ -113,13 +103,6 @@ struct Event
   Int_t generator;
   Int_t mode;        // mode number
   Int_t inc;        // INC id number
-
-  Double_t mm_d; //missing-mass of d(pi,K) reaction
-  Double_t mm_p;  //missing-mass for proton target kinematic
-  Double_t mm; //missing-mass (should be same as mm_d)
-  Double_t theta; //theta of scat K
-  Double_t theta_scat; //theta of (pi, K) reaction
-  Double_t theta_CM; //theta of (pi, K) reaction (CM flame)
 
   Int_t HitNum_K;
   //  int tpctrNum_K;
@@ -130,31 +113,20 @@ struct Event
   Int_t nhPrm;
   std::vector<TParticle> Prm;
 
-  // BH2
   Int_t nhBh2;
-  Int_t tidBh2[MaxHits];
-  Int_t pidBh2[MaxHits];
-  Int_t didBh2[MaxHits];
-  Int_t prtBh2[MaxHits];
-  Int_t qBh2[MaxHits];
-  Double_t massBh2[MaxHits];
-  Double_t xBh2[MaxHits];
-  Double_t yBh2[MaxHits];
-  Double_t zBh2[MaxHits];
-  Double_t pxBh2[MaxHits];
-  Double_t pyBh2[MaxHits];
-  Double_t pzBh2[MaxHits];
-  Double_t ppBh2[MaxHits];
-  Double_t deBh2[MaxHits];
-  Double_t tBh2[MaxHits];
-  Double_t vtxBh2[MaxHits];
-  Double_t vtyBh2[MaxHits];
-  Double_t vtzBh2[MaxHits];
-  Double_t vtpxBh2[MaxHits];
-  Double_t vtpyBh2[MaxHits];
-  Double_t vtpzBh2[MaxHits];
-  Double_t vtppBh2[MaxHits];
-  Double_t lengthBh2[MaxHits];
+  Int_t nhBac;
+  Int_t nhTgt;
+  Int_t nhHtof;
+  Int_t nhKvc;
+  Int_t nhFtof;
+  Int_t nhVp;
+  std::vector<TParticle> Bh2;
+  std::vector<TParticle> Bac;
+  std::vector<TParticle> Tgt;
+  std::vector<TParticle> Htof;
+  std::vector<TParticle> Kvc;
+  std::vector<TParticle> Ftof;
+  std::vector<TParticle> Vp;
 
   /* number of ntrks in TPC by shhwang*/
   Int_t ntrtpc;
@@ -237,13 +209,6 @@ struct Event
   Double_t timetpc[MaxTrack];    // global time
   Double_t tlengthtpc[MaxTrack];    // global time
 
-
-
-
-
-
-
-
   Double_t betatpc[MaxTrack];    // beta
 
   Double_t edeptpc[MaxTrack];    // Energy deposit
@@ -262,143 +227,6 @@ struct Event
   Int_t vtx_flag[MaxTrack]; // flag, how to estimate vtx
   Double_t a_fory[MaxTrack]; // co-efficient a for linear track (y, theta)
   Double_t b_fory[MaxTrack]; // co-efficient b for linear track (y, theta)
-
-  // TARGET
-  Int_t nhTgt;
-  Int_t tidTgt[MaxHits];
-  Int_t pidTgt[MaxHits];
-  Int_t prtTgt[MaxHits];
-  Double_t xTgt[MaxHits];
-  Double_t yTgt[MaxHits];
-  Double_t zTgt[MaxHits];
-  Double_t vtxTgt[MaxHits];
-  Double_t vtyTgt[MaxHits];
-  Double_t vtzTgt[MaxHits];
-  // HTOF
-  Int_t nhHtof;
-  Int_t tidHtof[MaxHits];
-  Int_t pidHtof[MaxHits];
-  Int_t didHtof[MaxHits];
-  Int_t prtHtof[MaxHits];
-  Int_t qHtof[MaxHits];
-  Double_t massHtof[MaxHits];
-  Double_t xHtof[MaxHits];
-  Double_t yHtof[MaxHits];
-  Double_t zHtof[MaxHits];
-  Double_t pxHtof[MaxHits];
-  Double_t pyHtof[MaxHits];
-  Double_t pzHtof[MaxHits];
-  Double_t ppHtof[MaxHits];
-  Double_t deHtof[MaxHits];
-  Double_t tHtof[MaxHits];
-  Double_t vtxHtof[MaxHits];
-  Double_t vtyHtof[MaxHits];
-  Double_t vtzHtof[MaxHits];
-  Double_t vtpxHtof[MaxHits];
-  Double_t vtpyHtof[MaxHits];
-  Double_t vtpzHtof[MaxHits];
-  Double_t vtppHtof[MaxHits];
-  Double_t lengthHtof[MaxHits];
-  // FTOF
-  Int_t nhFtof;
-  Int_t tidFtof[MaxHits];
-  Int_t pidFtof[MaxHits];
-  Int_t didFtof[MaxHits];
-  Int_t prtFtof[MaxHits];
-  Int_t qFtof[MaxHits];
-  Double_t massFtof[MaxHits];
-  Double_t xFtof[MaxHits];
-  Double_t yFtof[MaxHits];
-  Double_t zFtof[MaxHits];
-  Double_t pxFtof[MaxHits];
-  Double_t pyFtof[MaxHits];
-  Double_t pzFtof[MaxHits];
-  Double_t ppFtof[MaxHits];
-  Double_t deFtof[MaxHits];
-  Double_t tFtof[MaxHits];
-  Double_t vtxFtof[MaxHits];
-  Double_t vtyFtof[MaxHits];
-  Double_t vtzFtof[MaxHits];
-  Double_t vtpxFtof[MaxHits];
-  Double_t vtpyFtof[MaxHits];
-  Double_t vtpzFtof[MaxHits];
-  Double_t vtppFtof[MaxHits];
-  Double_t lengthFtof[MaxHits];
-  // BAC
-  Int_t nhBac;
-  Int_t tidBac[MaxHits];
-  Int_t pidBac[MaxHits];
-  Int_t didBac[MaxHits];
-  Int_t prtBac[MaxHits];
-  Int_t qBac[MaxHits];
-  Double_t massBac[MaxHits];
-  Double_t xBac[MaxHits];
-  Double_t yBac[MaxHits];
-  Double_t zBac[MaxHits];
-  Double_t pxBac[MaxHits];
-  Double_t pyBac[MaxHits];
-  Double_t pzBac[MaxHits];
-  Double_t ppBac[MaxHits];
-  Double_t deBac[MaxHits];
-  Double_t tBac[MaxHits];
-  Double_t vtxBac[MaxHits];
-  Double_t vtyBac[MaxHits];
-  Double_t vtzBac[MaxHits];
-  Double_t vtpxBac[MaxHits];
-  Double_t vtpyBac[MaxHits];
-  Double_t vtpzBac[MaxHits];
-  Double_t vtppBac[MaxHits];
-  Double_t lengthBac[MaxHits];
-  // KVC
-  Int_t nhKvc;
-  Int_t tidKvc[MaxHits];
-  Int_t pidKvc[MaxHits];
-  Int_t didKvc[MaxHits];
-  Int_t prtKvc[MaxHits];
-  Int_t qKvc[MaxHits];
-  Double_t massKvc[MaxHits];
-  Double_t xKvc[MaxHits];
-  Double_t yKvc[MaxHits];
-  Double_t zKvc[MaxHits];
-  Double_t pxKvc[MaxHits];
-  Double_t pyKvc[MaxHits];
-  Double_t pzKvc[MaxHits];
-  Double_t ppKvc[MaxHits];
-  Double_t deKvc[MaxHits];
-  Double_t tKvc[MaxHits];
-  Double_t vtxKvc[MaxHits];
-  Double_t vtyKvc[MaxHits];
-  Double_t vtzKvc[MaxHits];
-  Double_t vtpxKvc[MaxHits];
-  Double_t vtpyKvc[MaxHits];
-  Double_t vtpzKvc[MaxHits];
-  Double_t vtppKvc[MaxHits];
-  Double_t lengthKvc[MaxHits];
-  // VP
-  Int_t nhVp;
-  Int_t tidVp[MaxHits];
-  Int_t pidVp[MaxHits];
-  Int_t didVp[MaxHits];
-  Int_t prtVp[MaxHits];
-  Int_t qVp[MaxHits];
-  Double_t massVp[MaxHits];
-  Double_t xVp[MaxHits];
-  Double_t yVp[MaxHits];
-  Double_t zVp[MaxHits];
-  Double_t pxVp[MaxHits];
-  Double_t pyVp[MaxHits];
-  Double_t pzVp[MaxHits];
-  Double_t ppVp[MaxHits];
-  Double_t deVp[MaxHits];
-  Double_t tVp[MaxHits];
-  Double_t vtxVp[MaxHits];
-  Double_t vtyVp[MaxHits];
-  Double_t vtzVp[MaxHits];
-  Double_t vtpxVp[MaxHits];
-  Double_t vtpyVp[MaxHits];
-  Double_t vtpzVp[MaxHits];
-  Double_t vtppVp[MaxHits];
-  Double_t lengthVp[MaxHits];
 };
 
 //_____________________________________________________________________________
@@ -422,7 +250,6 @@ private:
   CounterData counterData[MaxTrack];
   TPCData tpcData[MAXtpctrNum];
 
-  PrimaryInfo primaryInfo;
   int HitNum;
   int tpctrNum;
   int HitNum_K;
@@ -495,8 +322,6 @@ public:
                           G4double mass, G4int pid=-9999);
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
-  void SetPrimaryInfo(G4double mm_d, G4double mm_p, G4double theta,
-                      G4double theta_scat, G4double theta_cm);
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
 		      double ca1, double cb1, double ct01, int qq1,
 		      double ca2, double cb2, double ct02, int qq2,

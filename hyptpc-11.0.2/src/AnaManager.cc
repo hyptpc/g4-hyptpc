@@ -42,47 +42,25 @@ AnaManager::AnaManager()
   tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
   tree->Branch("Prm", "std::vector<TParticle>", &event.Prm, bufsize, -1);
 
-  tree->Branch("mm_d",&event.mm_d,"mm_d/D");
-  // tree->Branch("mm_p",&event.mm_p,"mm_p/D");
-  tree->Branch("theta",&event.theta,"theta/D");
-  tree->Branch("theta_scat",&event.theta_scat,"theta_scat/D");
-  tree->Branch("theta_CM",&event.theta_CM,"theta_CM/D");
-
-  // tree->Branch("mm",&event.mm,"mm/D");
-
-  // generator
   tree->Branch("generator", &event.generator, "generator/I");
   tree->Branch("mode",&event.mode,"mode/I");
   tree->Branch("inc",&event.inc,"inc/I");
-  // BH2
+
   tree->Branch("nhBh2", &event.nhBh2, "nhBh2/I");
-  tree->Branch("tidBh2", event.tidBh2, "tidBh2[nhBh2]/I");
-  tree->Branch("pidBh2", event.pidBh2, "pidBh2[nhBh2]/I");
-  tree->Branch("didBh2", event.didBh2, "didBh2[nhBh2]/I");
-  tree->Branch("prtBh2", event.prtBh2, "prtBh2[nhBh2]/I");
-  tree->Branch("qBh2", event.qBh2, "qBh2[nhBh2]/I");
-  tree->Branch("massBh2", event.massBh2, "massBh2[nhBh2]/D");
-  tree->Branch("xBh2", event.xBh2, "xBh2[nhBh2]/D");
-  tree->Branch("yBh2", event.yBh2, "yBh2[nhBh2]/D");
-  tree->Branch("zBh2", event.zBh2, "zBh2[nhBh2]/D");
-  tree->Branch("pxBh2", event.pxBh2, "pxBh2[nhBh2]/D");
-  tree->Branch("pyBh2", event.pyBh2, "pyBh2[nhBh2]/D");
-  tree->Branch("pzBh2", event.pzBh2, "pzBh2[nhBh2]/D");
-  tree->Branch("ppBh2", event.ppBh2, "ppBh2[nhBh2]/D");
-  tree->Branch("deBh2", event.deBh2, "deBh2[nhBh2]/D");
-  tree->Branch("tBh2", event.tBh2, "tBh2[nhBh2]/D");
-  tree->Branch("vtpxBh2", event.vtpxBh2, "vtpxBh2[nhBh2]/D");
-  tree->Branch("vtpyBh2", event.vtpyBh2, "vtpyBh2[nhBh2]/D");
-  tree->Branch("vtpzBh2", event.vtpzBh2, "vtpzBh2[nhBh2]/D");
-  tree->Branch("vtppBh2", event.vtppBh2, "vtppBh2[nhBh2]/D");
-  tree->Branch("vtxBh2", event.vtxBh2, "vtxBh2[nhBh2]/D");
-  tree->Branch("vtyBh2", event.vtyBh2, "vtyBh2[nhBh2]/D");
-  tree->Branch("vtzBh2", event.vtzBh2, "vtzBh2[nhBh2]/D");
-  tree->Branch("lengthBh2", event.lengthBh2, "lengthBh2[nhBh2]/D");
+  tree->Branch("nhBac", &event.nhBac, "nhBac/I");
+  tree->Branch("nhTgt", &event.nhTgt, "nhTgt/I");
+  tree->Branch("nhHtof", &event.nhHtof, "nhHtof/I");
+  tree->Branch("nhKvc", &event.nhKvc, "nhKvc/I");
+  tree->Branch("nhFtof", &event.nhFtof, "nhFtof/I");
+  tree->Branch("nhVp", &event.nhVp, "nhVp/I");
+  tree->Branch("Bh2", "std::vector<TParticle>", &event.Bh2, bufsize, -1);
+  tree->Branch("Bac", "std::vector<TParticle>", &event.Bac, bufsize, -1);
+  tree->Branch("Tgt", "std::vector<TParticle>", &event.Tgt, bufsize, -1);
+  tree->Branch("Htof", "std::vector<TParticle>", &event.Htof, bufsize, -1);
+  tree->Branch("Kvc", "std::vector<TParticle>", &event.Kvc, bufsize, -1);
+  tree->Branch("Ftof", "std::vector<TParticle>", &event.Ftof, bufsize, -1);
+  tree->Branch("Vp", "std::vector<TParticle>", &event.Vp, bufsize, -1);
 
-  ///////shhwang tpc hit step
-
-  // comment out for trigger study
   tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
   tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
   tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
@@ -115,10 +93,6 @@ AnaManager::AnaManager()
   tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
   tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
   tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
-
-
-
-
 
   //// Study on multiplicity
   // tree->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
@@ -171,143 +145,6 @@ AnaManager::AnaManager()
   // tree->Branch("vtx_flag",event.vtx_flag,"vtx_flag[ntrtpc]/I");
   // tree->Branch("a_fory",event.a_fory,"a_fory[ntrtpc]/D");
   // tree->Branch("b_fory",event.b_fory,"b_fory[ntrtpc]/D");
-
-  // TARGET
-  tree->Branch("nhTgt", &event.nhTgt, "nhTgt/I");
-  tree->Branch("tidTgt", event.tidTgt, "tidTgt[nhTgt]/I");
-  tree->Branch("pidTgt", event.pidTgt, "pidTgt[nhTgt]/I");
-  tree->Branch("prtTgt", event.prtTgt, "prtTgt[nhTgt]/I");
-  tree->Branch("xTgt", event.xTgt, "xTgt[nhTgt]/D");
-  tree->Branch("yTgt", event.yTgt, "yTgt[nhTgt]/D");
-  tree->Branch("zTgt", event.zTgt, "zTgt[nhTgt]/D");
-  tree->Branch("vtxTgt", event.vtxTgt, "vtxTgt[nhTgt]/D");
-  tree->Branch("vtyTgt", event.vtyTgt, "vtyTgt[nhTgt]/D");
-  tree->Branch("vtzTgt", event.vtzTgt, "vtzTgt[nhTgt]/D");
-  // HTOF
-  tree->Branch("nhHtof", &event.nhHtof, "nhHtof/I");
-  tree->Branch("tidHtof", event.tidHtof, "tidHtof[nhHtof]/I");
-  tree->Branch("pidHtof", event.pidHtof, "pidHtof[nhHtof]/I");
-  tree->Branch("didHtof", event.didHtof, "didHtof[nhHtof]/I");
-  tree->Branch("prtHtof", event.prtHtof, "prtHtof[nhHtof]/I");
-  tree->Branch("qHtof", event.qHtof, "qHtof[nhHtof]/I");
-  tree->Branch("massHtof", event.massHtof, "massHtof[nhHtof]/D");
-  tree->Branch("xHtof", event.xHtof, "xHtof[nhHtof]/D");
-  tree->Branch("yHtof", event.yHtof, "yHtof[nhHtof]/D");
-  tree->Branch("zHtof", event.zHtof, "zHtof[nhHtof]/D");
-  tree->Branch("pxHtof", event.pxHtof, "pxHtof[nhHtof]/D");
-  tree->Branch("pyHtof", event.pyHtof, "pyHtof[nhHtof]/D");
-  tree->Branch("pzHtof", event.pzHtof, "pzHtof[nhHtof]/D");
-  tree->Branch("ppHtof", event.ppHtof, "ppHtof[nhHtof]/D");
-  tree->Branch("deHtof", event.deHtof, "deHtof[nhHtof]/D");
-  tree->Branch("tHtof", event.tHtof, "tHtof[nhHtof]/D");
-  tree->Branch("vtpxHtof", event.vtpxHtof, "vtpxHtof[nhHtof]/D");
-  tree->Branch("vtpyHtof", event.vtpyHtof, "vtpyHtof[nhHtof]/D");
-  tree->Branch("vtpzHtof", event.vtpzHtof, "vtpzHtof[nhHtof]/D");
-  tree->Branch("vtppHtof", event.vtppHtof, "vtppHtof[nhHtof]/D");
-  tree->Branch("vtxHtof", event.vtxHtof, "vtxHtof[nhHtof]/D");
-  tree->Branch("vtyHtof", event.vtyHtof, "vtyHtof[nhHtof]/D");
-  tree->Branch("vtzHtof", event.vtzHtof, "vtzHtof[nhHtof]/D");
-  tree->Branch("lengthHtof", event.lengthHtof, "lengthHtof[nhHtof]/D");
-  // FTOF
-  tree->Branch("nhFtof", &event.nhFtof, "nhFtof/I");
-  tree->Branch("tidFtof", event.tidFtof, "tidFtof[nhFtof]/I");
-  tree->Branch("pidFtof", event.pidFtof, "pidFtof[nhFtof]/I");
-  tree->Branch("didFtof", event.didFtof, "didFtof[nhFtof]/I");
-  tree->Branch("prtFtof", event.prtFtof, "prtFtof[nhFtof]/I");
-  tree->Branch("qFtof", event.qFtof, "qFtof[nhFtof]/I");
-  tree->Branch("massFtof", event.massFtof, "massFtof[nhFtof]/D");
-  tree->Branch("xFtof", event.xFtof, "xFtof[nhFtof]/D");
-  tree->Branch("yFtof", event.yFtof, "yFtof[nhFtof]/D");
-  tree->Branch("zFtof", event.zFtof, "zFtof[nhFtof]/D");
-  tree->Branch("pxFtof", event.pxFtof, "pxFtof[nhFtof]/D");
-  tree->Branch("pyFtof", event.pyFtof, "pyFtof[nhFtof]/D");
-  tree->Branch("pzFtof", event.pzFtof, "pzFtof[nhFtof]/D");
-  tree->Branch("ppFtof", event.ppFtof, "ppFtof[nhFtof]/D");
-  tree->Branch("deFtof", event.deFtof, "deFtof[nhFtof]/D");
-  tree->Branch("tFtof", event.tFtof, "tFtof[nhFtof]/D");
-  tree->Branch("vtpxFtof", event.vtpxFtof, "vtpxFtof[nhFtof]/D");
-  tree->Branch("vtpyFtof", event.vtpyFtof, "vtpyFtof[nhFtof]/D");
-  tree->Branch("vtpzFtof", event.vtpzFtof, "vtpzFtof[nhFtof]/D");
-  tree->Branch("vtppFtof", event.vtppFtof, "vtppFtof[nhFtof]/D");
-  tree->Branch("vtxFtof", event.vtxFtof, "vtxFtof[nhFtof]/D");
-  tree->Branch("vtyFtof", event.vtyFtof, "vtyFtof[nhFtof]/D");
-  tree->Branch("vtzFtof", event.vtzFtof, "vtzFtof[nhFtof]/D");
-  tree->Branch("lengthFtof", event.lengthFtof, "lengthFtof[nhFtof]/D");
-  // BAC
-  tree->Branch("nhBac", &event.nhBac, "nhBac/I");
-  tree->Branch("tidBac", event.tidBac, "tidBac[nhBac]/I");
-  tree->Branch("pidBac", event.pidBac, "pidBac[nhBac]/I");
-  tree->Branch("didBac", event.didBac, "didBac[nhBac]/I");
-  tree->Branch("prtBac", event.prtBac, "prtBac[nhBac]/I");
-  tree->Branch("qBac", event.qBac, "qBac[nhBac]/I");
-  tree->Branch("massBac", event.massBac, "massBac[nhBac]/D");
-  tree->Branch("xBac", event.xBac, "xBac[nhBac]/D");
-  tree->Branch("yBac", event.yBac, "yBac[nhBac]/D");
-  tree->Branch("zBac", event.zBac, "zBac[nhBac]/D");
-  tree->Branch("pxBac", event.pxBac, "pxBac[nhBac]/D");
-  tree->Branch("pyBac", event.pyBac, "pyBac[nhBac]/D");
-  tree->Branch("pzBac", event.pzBac, "pzBac[nhBac]/D");
-  tree->Branch("ppBac", event.ppBac, "ppBac[nhBac]/D");
-  tree->Branch("deBac", event.deBac, "deBac[nhBac]/D");
-  tree->Branch("tBac", event.tBac, "tBac[nhBac]/D");
-  tree->Branch("vtpxBac", event.vtpxBac, "vtpxBac[nhBac]/D");
-  tree->Branch("vtpyBac", event.vtpyBac, "vtpyBac[nhBac]/D");
-  tree->Branch("vtpzBac", event.vtpzBac, "vtpzBac[nhBac]/D");
-  tree->Branch("vtppBac", event.vtppBac, "vtppBac[nhBac]/D");
-  tree->Branch("vtxBac", event.vtxBac, "vtxBac[nhBac]/D");
-  tree->Branch("vtyBac", event.vtyBac, "vtyBac[nhBac]/D");
-  tree->Branch("vtzBac", event.vtzBac, "vtzBac[nhBac]/D");
-  tree->Branch("lengthBac", event.lengthBac, "lengthBac[nhBac]/D");
-  // KVC
-  tree->Branch("nhKvc", &event.nhKvc, "nhKvc/I");
-  tree->Branch("tidKvc", event.tidKvc, "tidKvc[nhKvc]/I");
-  tree->Branch("pidKvc", event.pidKvc, "pidKvc[nhKvc]/I");
-  tree->Branch("didKvc", event.didKvc, "didKvc[nhKvc]/I");
-  tree->Branch("prtKvc", event.prtKvc, "prtKvc[nhKvc]/I");
-  tree->Branch("qKvc", event.qKvc, "qKvc[nhKvc]/I");
-  tree->Branch("massKvc", event.massKvc, "massKvc[nhKvc]/D");
-  tree->Branch("xKvc", event.xKvc, "xKvc[nhKvc]/D");
-  tree->Branch("yKvc", event.yKvc, "yKvc[nhKvc]/D");
-  tree->Branch("zKvc", event.zKvc, "zKvc[nhKvc]/D");
-  tree->Branch("pxKvc", event.pxKvc, "pxKvc[nhKvc]/D");
-  tree->Branch("pyKvc", event.pyKvc, "pyKvc[nhKvc]/D");
-  tree->Branch("pzKvc", event.pzKvc, "pzKvc[nhKvc]/D");
-  tree->Branch("ppKvc", event.ppKvc, "ppKvc[nhKvc]/D");
-  tree->Branch("deKvc", event.deKvc, "deKvc[nhKvc]/D");
-  tree->Branch("tKvc", event.tKvc, "tKvc[nhKvc]/D");
-  tree->Branch("vtpxKvc", event.vtpxKvc, "vtpxKvc[nhKvc]/D");
-  tree->Branch("vtpyKvc", event.vtpyKvc, "vtpyKvc[nhKvc]/D");
-  tree->Branch("vtpzKvc", event.vtpzKvc, "vtpzKvc[nhKvc]/D");
-  tree->Branch("vtppKvc", event.vtppKvc, "vtppKvc[nhKvc]/D");
-  tree->Branch("vtxKvc", event.vtxKvc, "vtxKvc[nhKvc]/D");
-  tree->Branch("vtyKvc", event.vtyKvc, "vtyKvc[nhKvc]/D");
-  tree->Branch("vtzKvc", event.vtzKvc, "vtzKvc[nhKvc]/D");
-  tree->Branch("lengthKvc", event.lengthKvc, "lengthKvc[nhKvc]/D");
-  // VP
-  tree->Branch("nhVp", &event.nhVp, "nhVp/I");
-  tree->Branch("tidVp", event.tidVp, "tidVp[nhVp]/I");
-  tree->Branch("pidVp", event.pidVp, "pidVp[nhVp]/I");
-  tree->Branch("didVp", event.didVp, "didVp[nhVp]/I");
-  tree->Branch("prtVp", event.prtVp, "prtVp[nhVp]/I");
-  tree->Branch("qVp", event.qVp, "qVp[nhVp]/I");
-  tree->Branch("massVp", event.massVp, "massVp[nhVp]/D");
-  tree->Branch("xVp", event.xVp, "xVp[nhVp]/D");
-  tree->Branch("yVp", event.yVp, "yVp[nhVp]/D");
-  tree->Branch("zVp", event.zVp, "zVp[nhVp]/D");
-  tree->Branch("pxVp", event.pxVp, "pxVp[nhVp]/D");
-  tree->Branch("pyVp", event.pyVp, "pyVp[nhVp]/D");
-  tree->Branch("pzVp", event.pzVp, "pzVp[nhVp]/D");
-  tree->Branch("ppVp", event.ppVp, "ppVp[nhVp]/D");
-  tree->Branch("deVp", event.deVp, "deVp[nhVp]/D");
-  tree->Branch("tVp", event.tVp, "tVp[nhVp]/D");
-  tree->Branch("vtpxVp", event.vtpxVp, "vtpxVp[nhVp]/D");
-  tree->Branch("vtpyVp", event.vtpyVp, "vtpyVp[nhVp]/D");
-  tree->Branch("vtpzVp", event.vtpzVp, "vtpzVp[nhVp]/D");
-  tree->Branch("vtppVp", event.vtppVp, "vtppVp[nhVp]/D");
-  tree->Branch("vtxVp", event.vtxVp, "vtxVp[nhVp]/D");
-  tree->Branch("vtyVp", event.vtyVp, "vtyVp[nhVp]/D");
-  tree->Branch("vtzVp", event.vtzVp, "vtzVp[nhVp]/D");
-  tree->Branch("lengthVp", event.lengthVp, "lengthVp[nhVp]/D");
 }
 
 //_____________________________________________________________________________
@@ -504,152 +341,19 @@ AnaManager::BeginOfEventAction()
   //  tpctrNum_K=0;
 
   event.nhBh2 = 0;
+  event.nhBac = 0;
   event.nhTgt = 0;
   event.nhHtof = 0;
-  event.nhFtof = 0;
-  event.nhBac = 0;
   event.nhKvc = 0;
+  event.nhFtof = 0;
   event.nhVp = 0;
-  for(G4int i=0; i<MaxHits; ++i){
-    // BH2
-    event.tidBh2[i] = -9999;
-    event.pidBh2[i] = -9999;
-    event.didBh2[i] = -9999;
-    event.prtBh2[i] = -9999;
-    event.qBh2[i] = -9999;
-    event.massBh2[i] = -9999.;
-    event.xBh2[i] = -9999.;
-    event.yBh2[i] = -9999.;
-    event.zBh2[i] = -9999.;
-    event.pxBh2[i] = -9999.;
-    event.pyBh2[i] = -9999.;
-    event.pzBh2[i] = -9999.;
-    event.tBh2[i] = -9999.;
-    event.vtppBh2[i] = -9999.;
-    event.vtpxBh2[i] = -9999.;
-    event.vtpyBh2[i] = -9999.;
-    event.vtpzBh2[i] = -9999.;
-    event.vtxBh2[i] = -9999.;
-    event.vtyBh2[i] = -9999.;
-    event.vtzBh2[i] = -9999.;
-    // TARGET
-    event.pidTgt[i] = -9999;
-    event.tidTgt[i] = -9999;
-    event.prtTgt[i] = -9999;
-    event.xTgt[i] = -9999.;
-    event.yTgt[i] = -9999.;
-    event.zTgt[i] = -9999.;
-    event.vtxTgt[i] = -9999.;
-    event.vtyTgt[i] = -9999.;
-    event.vtzTgt[i] = -9999.;
-    // HTOF
-    event.tidHtof[i] = -9999;
-    event.pidHtof[i] = -9999;
-    event.didHtof[i] = -9999;
-    event.prtHtof[i] = -9999;
-    event.qHtof[i] = -9999;
-    event.massHtof[i] = -9999.;
-    event.xHtof[i] = -9999.;
-    event.yHtof[i] = -9999.;
-    event.zHtof[i] = -9999.;
-    event.pxHtof[i] = -9999.;
-    event.pyHtof[i] = -9999.;
-    event.pzHtof[i] = -9999.;
-    event.ppHtof[i] = -9999.;
-    event.tHtof[i] = -9999.;
-    event.vtppHtof[i] = -9999.;
-    event.vtpxHtof[i] = -9999.;
-    event.vtpyHtof[i] = -9999.;
-    event.vtpzHtof[i] = -9999.;
-    event.vtxHtof[i] = -9999.;
-    event.vtyHtof[i] = -9999.;
-    event.vtzHtof[i] = -9999.;
-    event.lengthHtof[i] = -9999.;
-    // FTOF
-    event.tidFtof[i] = -9999;
-    event.pidFtof[i] = -9999;
-    event.didFtof[i] = -9999;
-    event.prtFtof[i] = -9999;
-    event.qFtof[i] = -9999;
-    event.massFtof[i] = -9999.;
-    event.xFtof[i] = -9999.;
-    event.yFtof[i] = -9999.;
-    event.zFtof[i] = -9999.;
-    event.pxFtof[i] = -9999.;
-    event.pyFtof[i] = -9999.;
-    event.pzFtof[i] = -9999.;
-    event.tFtof[i] = -9999.;
-    event.vtppFtof[i] = -9999.;
-    event.vtpxFtof[i] = -9999.;
-    event.vtpyFtof[i] = -9999.;
-    event.vtpzFtof[i] = -9999.;
-    event.vtxFtof[i] = -9999.;
-    event.vtyFtof[i] = -9999.;
-    event.vtzFtof[i] = -9999.;
-    // BAC
-    event.tidBac[i] = -9999;
-    event.pidBac[i] = -9999;
-    event.didBac[i] = -9999;
-    event.prtBac[i] = -9999;
-    event.qBac[i] = -9999;
-    event.massBac[i] = -9999.;
-    event.xBac[i] = -9999.;
-    event.yBac[i] = -9999.;
-    event.zBac[i] = -9999.;
-    event.pxBac[i] = -9999.;
-    event.pyBac[i] = -9999.;
-    event.pzBac[i] = -9999.;
-    event.tBac[i] = -9999.;
-    event.vtppBac[i] = -9999.;
-    event.vtpxBac[i] = -9999.;
-    event.vtpyBac[i] = -9999.;
-    event.vtpzBac[i] = -9999.;
-    event.vtxBac[i] = -9999.;
-    event.vtyBac[i] = -9999.;
-    event.vtzBac[i] = -9999.;
-    // KVC
-    event.tidKvc[i] = -9999;
-    event.pidKvc[i] = -9999;
-    event.didKvc[i] = -9999;
-    event.prtKvc[i] = -9999;
-    event.qKvc[i] = -9999;
-    event.massKvc[i] = -9999.;
-    event.xKvc[i] = -9999.;
-    event.yKvc[i] = -9999.;
-    event.zKvc[i] = -9999.;
-    event.pxKvc[i] = -9999.;
-    event.pyKvc[i] = -9999.;
-    event.pzKvc[i] = -9999.;
-    event.tKvc[i] = -9999.;
-    event.vtppKvc[i] = -9999.;
-    event.vtpxKvc[i] = -9999.;
-    event.vtpyKvc[i] = -9999.;
-    event.vtpzKvc[i] = -9999.;
-    event.vtxKvc[i] = -9999.;
-    event.vtyKvc[i] = -9999.;
-    event.vtzKvc[i] = -9999.;
-    // VP
-    event.tidVp[i] = -9999;
-    event.pidVp[i] = -9999;
-    event.didVp[i] = -9999;
-    event.prtVp[i] = -9999;
-    event.qVp[i] = -9999;
-    event.massVp[i] = -9999.;
-    event.xVp[i] = -9999.;
-    event.yVp[i] = -9999.;
-    event.zVp[i] = -9999.;
-    event.pxVp[i] = -9999.;
-    event.pyVp[i] = -9999.;
-    event.pzVp[i] = -9999.;
-    event.tVp[i] = -9999.;
-    event.vtppVp[i] = -9999.;
-    event.vtpxVp[i] = -9999.;
-    event.vtpyVp[i] = -9999.;
-    event.vtpzVp[i] = -9999.;
-    event.vtxVp[i] = -9999.;
-    event.vtyVp[i] = -9999.;
-    event.vtzVp[i] = -9999.;
-  }
+  event.Bh2.clear();
+  event.Bac.clear();
+  event.Tgt.clear();
+  event.Htof.clear();
+  event.Kvc.clear();
+  event.Ftof.clear();
+  event.Vp.clear();
 
   event.nhittpc = 0;
   event.ntrtpc = 0;
@@ -657,13 +361,6 @@ AnaManager::BeginOfEventAction()
   event.HitNum_K=-1;
 
   event.HitNum_p=-1;
-
-
-  event.mm_d = 0.;
-  event.mm_p = 0.;
-  event.theta = 0.;
-  event.theta_scat = 0.;
-  event.theta_CM = 0.;
 
 
   /* ntrtpc initialization */
@@ -772,16 +469,6 @@ int
 AnaManager::EndOfEventAction()
 {
   event.evnum++;
-
-  //Fill Primary Infomation for E27
-  if(m_experiment == 27 || m_experiment == 45){
-    event.mm_d = primaryInfo.mm_d;
-    event.mm_p = primaryInfo.mm_p;
-    event.theta = primaryInfo.theta;
-    event.theta_scat = primaryInfo.theta_scat;
-    event.theta_CM = primaryInfo.theta_CM;
-    event.mm = CLHEP::mm;
-  }
 
   if(HitNum > 0){
     G4int c[MAX_TRACK] = {};
@@ -1365,7 +1052,7 @@ AnaManager::EndOfEventAction()
       }
       //      }
     }
-    if(HitNum >= MaxHits){
+    if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
     } else {
 
@@ -1457,23 +1144,8 @@ AnaManager::EndOfEventAction()
 void
 AnaManager::SetBH2Data(const VHitInfo* hit)
 {
-  if(event.nhBh2 >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhBh2 << G4endl;
-  } else {
-    Int_t i = event.nhBh2;
-    event.tidBh2[i] = hit->GetTrackID();
-    event.pidBh2[i] = hit->GetPDGEncoding();
-    event.didBh2[i] = hit->GetCopyNumber();
-    event.prtBh2[i] = hit->GetParentID();
-    event.xBh2[i] = hit->GetPosition().x();
-    event.yBh2[i] = hit->GetPosition().y();
-    event.zBh2[i] = hit->GetPosition().z();
-    event.pxBh2[i] = hit->GetMomentum().x();
-    event.pyBh2[i] = hit->GetMomentum().y();
-    event.pzBh2[i] = hit->GetMomentum().z();
-    event.ppBh2[i] = hit->GetMomentum().mag();
-    event.deBh2[i] = hit->GetEnergyDeposit();
-    event.tBh2[i] = hit->GetTime();
+  if(hit && hit->GetParticle()){
+    event.Bh2.push_back(*hit->GetParticle());
     event.nhBh2++;
   }
 }
@@ -1725,23 +1397,8 @@ AnaManager::SetFermiMomentum(const G4ThreeVector& p)
 void
 AnaManager::SetFTOFData(const VHitInfo* hit)
 {
-  if(event.nhFtof >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhFtof << G4endl;
-  } else {
-    Int_t i = event.nhFtof;
-    event.tidFtof[i] = hit->GetTrackID();
-    event.pidFtof[i] = hit->GetPDGEncoding();
-    event.didFtof[i] = hit->GetCopyNumber();
-    event.prtFtof[i] = hit->GetParentID();
-    event.xFtof[i] = hit->GetPosition().x();
-    event.yFtof[i] = hit->GetPosition().y();
-    event.zFtof[i] = hit->GetPosition().z();
-    event.pxFtof[i] = hit->GetMomentum().x();
-    event.pyFtof[i] = hit->GetMomentum().y();
-    event.pzFtof[i] = hit->GetMomentum().z();
-    event.ppFtof[i] = hit->GetMomentum().mag();
-    event.deFtof[i] = hit->GetEnergyDeposit();
-    event.tFtof[i] = hit->GetTime();
+  if(hit && hit->GetParticle()){
+    event.Ftof.push_back(*hit->GetParticle());
     event.nhFtof++;
   }
 }
@@ -1750,33 +1407,8 @@ AnaManager::SetFTOFData(const VHitInfo* hit)
 void
 AnaManager::SetHTOFData(const VHitInfo* hit)
 {
-  if(event.nhHtof >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhHtof << G4endl;
-  } else {
-    Int_t i = event.nhHtof;
-    event.tidHtof[i] = hit->GetTrackID();
-    event.pidHtof[i] = hit->GetPDGEncoding();
-    event.didHtof[i] = hit->GetCopyNumber();
-    event.prtHtof[i] = hit->GetParentID();
-    event.qHtof[i] = hit->GetCharge();
-    event.massHtof[i] = hit->GetMass();
-    event.xHtof[i] = hit->GetPosition().x();
-    event.yHtof[i] = hit->GetPosition().y();
-    event.zHtof[i] = hit->GetPosition().z();
-    event.pxHtof[i] = hit->GetMomentum().x();
-    event.pyHtof[i] = hit->GetMomentum().y();
-    event.pzHtof[i] = hit->GetMomentum().z();
-    event.ppHtof[i] = hit->GetMomentum().mag();
-    event.deHtof[i] = hit->GetEnergyDeposit();
-    event.tHtof[i] = hit->GetTime();
-    event.vtppHtof[i] = hit->GetVertexMomentum().mag();
-    event.vtpxHtof[i] = hit->GetVertexMomentum().x();
-    event.vtpyHtof[i] = hit->GetVertexMomentum().y();
-    event.vtpzHtof[i] = hit->GetVertexMomentum().z();
-    event.vtxHtof[i] = hit->GetVertexPosition().x();
-    event.vtyHtof[i] = hit->GetVertexPosition().y();
-    event.vtzHtof[i] = hit->GetVertexPosition().z();
-    event.lengthHtof[i] = hit->GetTrackLength();
+  if(hit && hit->GetParticle()){
+    event.Htof.push_back(*hit->GetParticle());
     event.nhHtof++;
   }
 }
@@ -1785,23 +1417,8 @@ AnaManager::SetHTOFData(const VHitInfo* hit)
 void
 AnaManager::SetBACData(const VHitInfo* hit)
 {
-  if(event.nhBac >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhBac << G4endl;
-  } else {
-    Int_t i = event.nhBac;
-    event.tidBac[i] = hit->GetTrackID();
-    event.pidBac[i] = hit->GetPDGEncoding();
-    event.didBac[i] = hit->GetCopyNumber();
-    event.prtBac[i] = hit->GetParentID();
-    event.xBac[i] = hit->GetPosition().x();
-    event.yBac[i] = hit->GetPosition().y();
-    event.zBac[i] = hit->GetPosition().z();
-    event.pxBac[i] = hit->GetMomentum().x();
-    event.pyBac[i] = hit->GetMomentum().y();
-    event.pzBac[i] = hit->GetMomentum().z();
-    event.ppBac[i] = hit->GetMomentum().mag();
-    event.deBac[i] = hit->GetEnergyDeposit();
-    event.tBac[i] = hit->GetTime();
+  if(hit && hit->GetParticle()){
+    event.Bac.push_back(*hit->GetParticle());
     event.nhBac++;
   }
 }
@@ -1810,23 +1427,8 @@ AnaManager::SetBACData(const VHitInfo* hit)
 void
 AnaManager::SetVPData(const VHitInfo* hit)
 {
-  if(event.nhVp >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhVp << G4endl;
-  } else {
-    Int_t i = event.nhVp;
-    event.tidVp[i] = hit->GetTrackID();
-    event.pidVp[i] = hit->GetPDGEncoding();
-    event.didVp[i] = hit->GetCopyNumber();
-    event.prtVp[i] = hit->GetParentID();
-    event.xVp[i] = hit->GetPosition().x();
-    event.yVp[i] = hit->GetPosition().y();
-    event.zVp[i] = hit->GetPosition().z();
-    event.pxVp[i] = hit->GetMomentum().x();
-    event.pyVp[i] = hit->GetMomentum().y();
-    event.pzVp[i] = hit->GetMomentum().z();
-    event.ppVp[i] = hit->GetMomentum().mag();
-    event.deVp[i] = hit->GetEnergyDeposit();
-    event.tVp[i] = hit->GetTime();
+  if(hit && hit->GetParticle()){
+    event.Vp.push_back(*hit->GetParticle());
     event.nhVp++;
   }
 }
@@ -1835,23 +1437,8 @@ AnaManager::SetVPData(const VHitInfo* hit)
 void
 AnaManager::SetKVCData(const VHitInfo* hit)
 {
-  if(event.nhKvc >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhKvc << G4endl;
-  } else {
-    Int_t i = event.nhKvc;
-    event.tidKvc[i] = hit->GetTrackID();
-    event.pidKvc[i] = hit->GetPDGEncoding();
-    event.didKvc[i] = hit->GetCopyNumber();
-    event.prtKvc[i] = hit->GetParentID();
-    event.xKvc[i] = hit->GetPosition().x();
-    event.yKvc[i] = hit->GetPosition().y();
-    event.zKvc[i] = hit->GetPosition().z();
-    event.pxKvc[i] = hit->GetMomentum().x();
-    event.pyKvc[i] = hit->GetMomentum().y();
-    event.pzKvc[i] = hit->GetMomentum().z();
-    event.ppKvc[i] = hit->GetMomentum().mag();
-    event.deKvc[i] = hit->GetEnergyDeposit();
-    event.tKvc[i] = hit->GetTime();
+  if(hit && hit->GetParticle()){
+    event.Kvc.push_back(*hit->GetParticle());
     event.nhKvc++;
   }
 }
@@ -1913,19 +1500,6 @@ AnaManager::SetTPCData(G4int tpctr2, G4int tpcpid2, G4int tpcparentid2,
   tpcData[hitnum].tpclay = tpclay2;
   tpctrNum++;
   return;
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryInfo(G4double mm_d, G4double mm_p,
-                           G4double theta, G4double theta_scat,
-                           G4double theta_CM)
-{
-  primaryInfo.mm_d = mm_d;
-  primaryInfo.mm_p = mm_p;
-  primaryInfo.theta = theta;
-  primaryInfo.theta_scat = theta_scat;
-  primaryInfo.theta_CM = theta_CM;
 }
 
 //_____________________________________________________________________________
@@ -1995,19 +1569,8 @@ AnaManager::SetPrimaryBeam(G4double px, G4double py, G4double pz)
 void
 AnaManager::SetTargetData(const VHitInfo* hit)
 {
-  if(event.nhTgt >= MaxHits){
-    G4cerr << FUNC_NAME << " too much nhit " << event.nhTgt << G4endl;
-  } else {
-    Int_t i = event.nhTgt;
-    event.tidTgt[i] = hit->GetTrackID();
-    event.pidTgt[i] = hit->GetPDGEncoding();
-    event.prtTgt[i] = hit->GetParentID();
-    event.xTgt[i] = hit->GetPosition().x();
-    event.yTgt[i] = hit->GetPosition().y();
-    event.zTgt[i] = hit->GetPosition().z();
-    event.vtxTgt[i] = hit->GetVertexPosition().x();
-    event.vtyTgt[i] = hit->GetVertexPosition().y();
-    event.vtzTgt[i] = hit->GetVertexPosition().z();
+  if(hit && hit->GetParticle()){
+    event.Tgt.push_back(*hit->GetParticle());
     event.nhTgt++;
   }
 }

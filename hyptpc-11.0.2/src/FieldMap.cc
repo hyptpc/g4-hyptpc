@@ -127,16 +127,16 @@ FieldMap::GetFieldValue(const G4double point[3] /* cm */,
   iz1 = G4int((zt-m_zmin)/m_dz);
 
   G4double wx1, wx2, wy1, wy2, wz1, wz2;
-  if(ix1<0) { ix1=ix2=0; wx1=1.; wx2=0.; }
-  else if(ix1>=m_nx-1) { ix1=ix2=m_nx-1; wx1=1.; wx2=0.; }
+  if(ix1<0) return false; // { ix1=ix2=0; wx1=1.; wx2=0.; }
+  else if(ix1>=m_nx-1) return false; // { ix1=ix2=m_nx-1; wx1=1.; wx2=0.; }
   else { ix2=ix1+1; wx1=(m_xmin+m_dx*ix2-xt)/m_dx; wx2=1.-wx1; }
 
-  if(iy1<0) { iy1=iy2=0; wy1=1.; wy2=0.; }
-  else if(iy1>=m_ny-1) { iy1=iy2=m_ny-1; wy1=1.; wy2=0.; }
+  if(iy1<0) return false; // { iy1=iy2=0; wy1=1.; wy2=0.; }
+  else if(iy1>=m_ny-1) return false; // { iy1=iy2=m_ny-1; wy1=1.; wy2=0.; }
   else { iy2=iy1+1; wy1=(m_ymin+m_dy*iy2-yt)/m_dy; wy2=1.-wy1; }
 
-  if(iz1<0) { iz1=iz2=0; wz1=1.; wz2=0.; }
-  else if(iz1>=m_nz-1) { iz1=iz2=m_nz-1; wz1=1.; wz2=0.; }
+  if(iz1<0) return false; // { iz1=iz2=0; wz1=1.; wz2=0.; }
+  else if(iz1>=m_nz-1) return false; // { iz1=iz2=m_nz-1; wz1=1.; wz2=0.; }
   else { iz2=iz1+1; wz1=(m_zmin+m_dz*iz2-zt)/m_dz; wz2=1.-wz1; }
 
   G4double bx1 = wx1*wy1*m_b[ix1][iy1][iz1].x() + wx1*wy2*m_b[ix1][iy2][iz1].x()
