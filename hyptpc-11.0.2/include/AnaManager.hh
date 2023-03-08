@@ -3,8 +3,12 @@
 #ifndef ANA_MANAGER_HH
 #define ANA_MANAGER_HH
 
+#include <vector>
+
+#include <G4LorentzVector.hh>
 #include <G4ThreeVector.hh>
 
+#include <TParticle.h>
 #include <TVector3.h>
 
 class G4ParticleDefinition;
@@ -124,17 +128,7 @@ struct Event
   //  int tpctrNum_p;
 
   Int_t nhPrm;
-  Int_t pidPrm[MaxPrimaryParticle];
-  Double_t xPrm[MaxPrimaryParticle];
-  Double_t yPrm[MaxPrimaryParticle];
-  Double_t zPrm[MaxPrimaryParticle];
-  Double_t pxPrm[MaxPrimaryParticle];
-  Double_t pyPrm[MaxPrimaryParticle];
-  Double_t pzPrm[MaxPrimaryParticle];
-  Double_t ppPrm[MaxPrimaryParticle];
-  Double_t mPrm[MaxPrimaryParticle];
-  Double_t thetaPrm[MaxPrimaryParticle];
-  Double_t phiPrm[MaxPrimaryParticle];
+  std::vector<TParticle> Prm;
 
   // BH2
   Int_t nhBh2;
@@ -465,6 +459,7 @@ public:
   void EndOfRunAction();
   void BeginOfEventAction();
   int  EndOfEventAction();
+  void SetHitData();
   void SetTPCData(G4int tpctr, G4int tpcpid, G4int tpcparentid,
                   G4int tpcparentid_pid, G4double tpcpx, G4double tpcpy,
                   G4double tpcpz,G4double tpcpp,  G4int tpcqq, G4double tpcpm,
@@ -490,10 +485,9 @@ public:
   void SetTargetData(const VHitInfo* hit);
   void SetPrimaryBeam(const G4ThreeVector& p);
   void SetPrimaryBeam(G4double px, G4double py, G4double pz);
-  void SetPrimaryParticle(G4int id,
-                          const G4ParticleDefinition* const particle,
-                          const G4ThreeVector& x,
-                          const G4ThreeVector& p);
+  void SetPrimaryParticle(G4int id, G4int pdg,
+                          const G4LorentzVector& p,
+                          const G4LorentzVector& v);
   void SetPrimaryParticle(G4double px, G4double py, G4double pz);
   void SetPrimaryParticle(G4int id, const G4ThreeVector& p, G4double mass,
                           G4int pid=-9999);

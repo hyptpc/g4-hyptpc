@@ -207,10 +207,10 @@ PrimaryGeneratorAction::GenerateE45ElasticPionPlus(G4Event* anEvent)
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pipMass/CLHEP::GeV);///pip
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pipMass/CLHEP::GeV);///pip
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -382,8 +382,8 @@ PrimaryGeneratorAction::GenerateE45ElasticPionMinus(G4Event* anEvent)
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pinMass/CLHEP::GeV);///pin
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pinMass/CLHEP::GeV);///pin
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }

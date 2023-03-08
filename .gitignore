@@ -12,6 +12,7 @@
 backup/
 build/
 bin/
+dict/
 fieldmap
 lib/
 obj/

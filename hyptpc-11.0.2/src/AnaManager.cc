@@ -10,6 +10,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TParticle.h>
 #include <TString.h>
 #include <TTree.h>
 
@@ -33,22 +34,13 @@ std::map<TString, TH1*> hmap;
 //_____________________________________________________________________________
 AnaManager::AnaManager()
 {
-  tree = new TTree("g4tree", "GEANT4 simulation for HypTPC");
+  const Int_t bufsize = 32000;
+  tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
   event.pb = new TVector3;
   tree->Branch("evnum", &event.evnum, "evnum/I");
   tree->Branch("pb", "TVector3", event.pb);
   tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
-  tree->Branch("pidPrm", event.pidPrm, "pidPrm[nhPrm]/I");
-  tree->Branch("xPrm", event.xPrm, "xPrm[nhPrm]/D");
-  tree->Branch("yPrm", event.yPrm, "yPrm[nhPrm]/D");
-  tree->Branch("zPrm", event.zPrm, "zPrm[nhPrm]/D");
-  tree->Branch("pxPrm", event.pxPrm, "pxPrm[nhPrm]/D");
-  tree->Branch("pyPrm", event.pyPrm, "pyPrm[nhPrm]/D");
-  tree->Branch("pzPrm", event.pzPrm, "pzPrm[nhPrm]/D");
-  tree->Branch("ppPrm", event.ppPrm, "ppPrm[nhPrm]/D");
-  tree->Branch("mPrm", event.mPrm, "mPrm[nhPrm]/D");
-  tree->Branch("thetaPrm", event.thetaPrm, "thetaPrm[nhPrm]/D");
-  tree->Branch("phiPrm", event.phiPrm, "phiPrm[nhPrm]/D");
+  tree->Branch("Prm", "std::vector<TParticle>", &event.Prm, bufsize, -1);
 
   tree->Branch("mm_d",&event.mm_d,"mm_d/D");
   // tree->Branch("mm_p",&event.mm_p,"mm_p/D");
@@ -502,6 +494,7 @@ AnaManager::BeginOfEventAction()
   HitNum=0;
   tpctrNum=0;
 
+
   //for K+
   HitNum_K=0;
   //  tpctrNum_K=0;
@@ -880,8 +873,8 @@ AnaManager::EndOfEventAction()
       G4double rho1 = rad[i];
       G4double cx1 = cx[i];
       G4double cz1 = cz[i];
-      G4double cx2 = event.xPrm[0];
-      G4double cz2 = event.zPrm[0];
+      G4double cx2 = event.Prm[0].Vx();
+      G4double cz2 = event.Prm[0].Vz();
       G4double theta12=atan2(cz2-cz1, cx2-cx1);
       G4double ca1=a_fory[i];
       G4double cb1=b_fory[i];
@@ -1454,20 +1447,9 @@ AnaManager::EndOfEventAction()
   tree->Fill();
 
   event.pb->SetXYZ(0., 0., 0.);
+
   event.nhPrm = 0;
-  for(Int_t i=0; i<MaxPrimaryParticle; ++i){
-    event.pidPrm[i] = -9999;
-    event.xPrm[i] = -9999.;
-    event.yPrm[i] = -9999.;
-    event.zPrm[i] = -9999.;
-    event.pxPrm[i] = -9999.;
-    event.pyPrm[i] = -9999.;
-    event.pzPrm[i] = -9999.;
-    event.ppPrm[i] = -9999.;
-    event.mPrm[i] = -9999.;
-    event.thetaPrm[i] = -9999.;
-    event.phiPrm[i] = -9999.;
-  }
+  event.Prm.clear();
   return 0;
 }
 
@@ -1480,8 +1462,8 @@ AnaManager::SetBH2Data(const VHitInfo* hit)
   } else {
     Int_t i = event.nhBh2;
     event.tidBh2[i] = hit->GetTrackID();
-    event.pidBh2[i] = hit->GetParticleID();
-    event.didBh2[i] = hit->GetDetectorID();
+    event.pidBh2[i] = hit->GetPDGEncoding();
+    event.didBh2[i] = hit->GetCopyNumber();
     event.prtBh2[i] = hit->GetParentID();
     event.xBh2[i] = hit->GetPosition().x();
     event.yBh2[i] = hit->GetPosition().y();
@@ -1748,8 +1730,8 @@ AnaManager::SetFTOFData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhFtof;
     event.tidFtof[i] = hit->GetTrackID();
-    event.pidFtof[i] = hit->GetParticleID();
-    event.didFtof[i] = hit->GetDetectorID();
+    event.pidFtof[i] = hit->GetPDGEncoding();
+    event.didFtof[i] = hit->GetCopyNumber();
     event.prtFtof[i] = hit->GetParentID();
     event.xFtof[i] = hit->GetPosition().x();
     event.yFtof[i] = hit->GetPosition().y();
@@ -1773,8 +1755,8 @@ AnaManager::SetHTOFData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhHtof;
     event.tidHtof[i] = hit->GetTrackID();
-    event.pidHtof[i] = hit->GetParticleID();
-    event.didHtof[i] = hit->GetDetectorID();
+    event.pidHtof[i] = hit->GetPDGEncoding();
+    event.didHtof[i] = hit->GetCopyNumber();
     event.prtHtof[i] = hit->GetParentID();
     event.qHtof[i] = hit->GetCharge();
     event.massHtof[i] = hit->GetMass();
@@ -1808,8 +1790,8 @@ AnaManager::SetBACData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhBac;
     event.tidBac[i] = hit->GetTrackID();
-    event.pidBac[i] = hit->GetParticleID();
-    event.didBac[i] = hit->GetDetectorID();
+    event.pidBac[i] = hit->GetPDGEncoding();
+    event.didBac[i] = hit->GetCopyNumber();
     event.prtBac[i] = hit->GetParentID();
     event.xBac[i] = hit->GetPosition().x();
     event.yBac[i] = hit->GetPosition().y();
@@ -1833,8 +1815,8 @@ AnaManager::SetVPData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhVp;
     event.tidVp[i] = hit->GetTrackID();
-    event.pidVp[i] = hit->GetParticleID();
-    event.didVp[i] = hit->GetDetectorID();
+    event.pidVp[i] = hit->GetPDGEncoding();
+    event.didVp[i] = hit->GetCopyNumber();
     event.prtVp[i] = hit->GetParentID();
     event.xVp[i] = hit->GetPosition().x();
     event.yVp[i] = hit->GetPosition().y();
@@ -1858,8 +1840,8 @@ AnaManager::SetKVCData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhKvc;
     event.tidKvc[i] = hit->GetTrackID();
-    event.pidKvc[i] = hit->GetParticleID();
-    event.didKvc[i] = hit->GetDetectorID();
+    event.pidKvc[i] = hit->GetPDGEncoding();
+    event.didKvc[i] = hit->GetCopyNumber();
     event.prtKvc[i] = hit->GetParentID();
     event.xKvc[i] = hit->GetPosition().x();
     event.yKvc[i] = hit->GetPosition().y();
@@ -1955,36 +1937,23 @@ AnaManager::SetNumberOfPrimaryParticle(G4int n)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetPrimaryParticle(G4int id,
-                               const G4ParticleDefinition* const particle,
-                               const G4ThreeVector& x,
-                               const G4ThreeVector& p)
+AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
+                               const G4LorentzVector& p,
+                               const G4LorentzVector& v)
 {
   if(id >= event.nhPrm){
     G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
   } else {
-    event.xPrm[id] = x.x();
-    event.yPrm[id] = x.y();
-    event.zPrm[id] = x.z();
-    event.pxPrm[id] = p.x();
-    event.pyPrm[id] = p.y();
-    event.pzPrm[id] = p.z();
-    event.ppPrm[id] = p.mag();
-    event.mPrm[id] = particle->GetPDGMass();
-    event.thetaPrm[id] = p.theta();
-    event.phiPrm[id] = p.phi();
-    event.pidPrm[id] = particle->GetPDGEncoding();
+    TParticle particle(pdg,
+                       0, // fStatus
+                       1, // fMother[0]
+                       0, // fMother[1]
+                       0, // fDaughter[0]
+                       0, // fDaughter[1]
+                       TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
+                       TLorentzVector(v.x(), v.y(), v.z(), v.t()));
+    event.Prm.push_back(particle);
   }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryParticle(G4double px, G4double py, G4double pz)
-{
-  Int_t id = 0;
-  event.pxPrm[id] = px;
-  event.pyPrm[id] = py;
-  event.pzPrm[id] = pz;
 }
 
 //_____________________________________________________________________________
@@ -2010,59 +1979,6 @@ AnaManager::SetIncID(G4int inc)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetPrimaryParticle(G4int id, const G4ThreeVector& p,
-                               G4double mass, G4int pid)
-{
-  if(id >= event.nhPrm){
-    G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
-  } else {
-    event.pxPrm[id] = p.x();
-    event.pyPrm[id] = p.y();
-    event.pzPrm[id] = p.z();
-    event.ppPrm[id] = p.mag();
-    event.mPrm[id] = mass;
-    event.thetaPrm[id] = p.theta();
-    event.phiPrm[id] = p.phi();
-    event.pidPrm[id] = pid;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryParticle(G4int id, G4double px, G4double py,
-                               G4double pz, G4double mass, G4int pid)
-{
-  SetPrimaryParticle(id, G4ThreeVector(px, py, pz), mass, pid);
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z)
-{
-  if(id >= event.nhPrm){
-    G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
-  } else {
-    event.xPrm[id] = x;
-    event.yPrm[id] = y;
-    event.zPrm[id] = z;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryVertex(G4int id, const G4ThreeVector& x)
-{
-  if(id >= event.nhPrm){
-    G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
-  } else {
-    event.xPrm[id] = x.x();
-    event.yPrm[id] = x.y();
-    event.zPrm[id] = x.z();
-  }
-}
-
-//_____________________________________________________________________________
-void
 AnaManager::SetPrimaryBeam(const G4ThreeVector& p)
 {
   event.pb->SetXYZ(p.x(), p.y(), p.z());
@@ -2084,7 +2000,7 @@ AnaManager::SetTargetData(const VHitInfo* hit)
   } else {
     Int_t i = event.nhTgt;
     event.tidTgt[i] = hit->GetTrackID();
-    event.pidTgt[i] = hit->GetParticleID();
+    event.pidTgt[i] = hit->GetPDGEncoding();
     event.prtTgt[i] = hit->GetParentID();
     event.xTgt[i] = hit->GetPosition().x();
     event.yTgt[i] = hit->GetPosition().y();

@@ -245,13 +245,12 @@ PrimaryGeneratorAction::GenerateE42Hdibaryon2(G4Event* anEvent)
 
   gAnaMan.SetNumberOfPrimaryParticle(3);
 
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
-
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -351,10 +350,10 @@ PrimaryGeneratorAction::GenerateE42HdibaryonPHSG(G4Event* anEvent)
 
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -458,10 +457,10 @@ PrimaryGeneratorAction::GenerateE42HdibaryonPHSGS(G4Event* anEvent)
 
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_HdibaryonS->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_HdibaryonS->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -562,10 +561,10 @@ PrimaryGeneratorAction::GenerateE42HdibaryonPHSGLL(G4Event* anEvent)
 
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_HdibaryonLL->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_HdibaryonLL->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -666,10 +665,10 @@ PrimaryGeneratorAction::GenerateE42HdibaryonNonReso(G4Event* anEvent)
 
 
   gAnaMan.SetNumberOfPrimaryParticle(2);
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
 //_____________________________________________________________________________
@@ -801,11 +800,10 @@ PrimaryGeneratorAction::GenerateE42Hdibaryon1(G4Event* anEvent)
 
   gAnaMan.SetNumberOfPrimaryParticle(3);
 
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z, m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z, m_Lambda->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z, m_Lambda->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
-  gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
-
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z, m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z, m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z, m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
+  // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
 }
