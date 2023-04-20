@@ -48,6 +48,7 @@ private:
   void ConstructKVC();
   void ConstructShsMagnet();
   void ConstructTarget();
+  void ConstructVP();
   // For K1.8
   void ConstructAreaTent();
   void ConstructBC3();

@@ -4,11 +4,13 @@
 *.dev
 *.log
 *.pcm
+*.png
 *.pdf
 *.pyc
 *.so
 *.swp
 *.root
+*.wrl
 backup/
 build/
 bin/

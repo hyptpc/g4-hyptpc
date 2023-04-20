@@ -12,22 +12,28 @@
 const Int_t DetIdBH1     =  1;
 const Int_t DetIdBH2     =  2;
 const Int_t DetIdBAC     =  3;
-const Int_t DetIdFBH     =  4;
+const Int_t DetIdHTOF    =  4;
+const Int_t DetIdKVC     =  5;
+const Int_t DetIdFTOF    =  6;
+const Int_t NumOfSegBH1  = 11;
+const Int_t NumOfSegBH2  =  8;
+const Int_t NumOfSegBAC  =  1;
+const Int_t NumOfSegHTOF = 32;
+const Int_t NumOfSegKVC  =  8;
+const Int_t NumOfSegFTOF = 24;
+const Int_t NumOfPlaneHTOF = 8;
+const Int_t NumOfSegHTOFOnePlane = NumOfSegHTOF / NumOfPlaneHTOF;
+
 const Int_t DetIdPVAC    =  5;
 const Int_t DetIdFAC     =  6;
 const Int_t DetIdSCH     =  7;
-const Int_t DetIdTOF     =  8;
 const Int_t DetIdLAC     =  9;
 const Int_t DetIdWC      = 10;
-const Int_t NumOfSegBH1  = 11;
-const Int_t NumOfSegBH2  =  8;
-const Int_t NumOfSegBAC  =  2;
 const Int_t NumOfSegFBH  = 16;
 const Int_t NumOfSegCFBH = 31;
 const Int_t NumOfSegPVAC =  1;
 const Int_t NumOfSegFAC  =  1;
 const Int_t NumOfSegSCH  = 64;
-const Int_t NumOfSegTOF  = 24;
 const Int_t NumOfSegLAC  = 30;
 const Int_t NumOfSegWC   = 20;
 
@@ -177,12 +183,8 @@ const Int_t NumOfSegSFT_UV  = 320;
 
 // HypTPC _____________________________________________________________________
 const Int_t DetIdTPC  = 201;
-const Int_t DetIdHTOF = 202;
 const Int_t NumOfPadTPCIn  = 10;
 const Int_t NumOfPadTPCOut = 22;
 const Int_t NumOfPadTPC = NumOfPadTPCIn + NumOfPadTPCOut;
-const Int_t NumOfSegHTOF = 32;
-const Int_t NumOfPlaneHTOF = 8;
-const Int_t NumOfSegHTOFOnePlane = NumOfSegHTOF / NumOfPlaneHTOF;
 
 #endif

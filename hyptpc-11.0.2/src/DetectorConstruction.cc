@@ -114,6 +114,10 @@ DetectorConstruction::Construct()
   ConstructHTOF();
 #endif
 
+#if 0
+  ConstructVP();
+#endif
+
   m_field->Initialize();
 
   return world_pv;
@@ -466,7 +470,7 @@ DetectorConstruction::ConstructFTOF()
   G4SDManager::GetSDMpointer()->AddNewDetector(ftofSD);
   // Mother
   auto mother_solid = new G4Box("FtofMotherSolid",
-                                half_size.x()*NumOfSegTOF + 50.*mm,
+                                half_size.x()*NumOfSegFTOF + 50.*mm,
                                 half_size.y() + 50.*mm,
                                 half_size.z()*2 + 50.*mm);
   auto mother_lv = new G4LogicalVolume(mother_solid,
@@ -486,10 +490,10 @@ DetectorConstruction::ConstructFTOF()
   auto segment_lv = new G4LogicalVolume(segment_solid,
                                         m_material_map["Scintillator"],
                                         "FtofSegmentLV");
-  for(G4int i=0; i<NumOfSegTOF; ++i){
+  for(G4int i=0; i<NumOfSegFTOF; ++i){
     segment_lv->SetVisAttributes(G4Colour::Cyan());
     segment_lv->SetSensitiveDetector(ftofSD);
-    pos = G4ThreeVector((-NumOfSegTOF/2 + i)*pitch,
+    pos = G4ThreeVector((-NumOfSegFTOF/2 + i)*pitch,
                         0.0,
                         2.*(- i%2 + 0.5)*half_size.z());
     new G4PVPlacement(nullptr, pos, segment_lv,
@@ -608,8 +612,8 @@ DetectorConstruction::ConstructHTOF()
   htof_upper_lv->SetSensitiveDetector(htof_sd);
   htof_lower_lv->SetSensitiveDetector(htof_sd);
   htof_lv->SetVisAttributes(G4Colour::Cyan());
-  htof_upper_lv->SetVisAttributes(G4Colour::Green());
-  htof_lower_lv->SetVisAttributes(G4Colour::Green());
+  htof_upper_lv->SetVisAttributes(G4Colour::Cyan());
+  htof_lower_lv->SetVisAttributes(G4Colour::Cyan());
 
   // Supporting frame parts
   // Dummy for subtraction
@@ -830,7 +834,8 @@ DetectorConstruction::ConstructHypTPC()
                                    "TpcLV");
     new G4PVPlacement(rot, tpc_pos, m_tpc_lv, "TpcPV",
                       m_world_lv, false, 0);
-    m_tpc_lv->SetVisAttributes(G4Colour::White());
+    // m_tpc_lv->SetVisAttributes(G4Colour::White());
+    m_tpc_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
     //m_tpc_lv->SetSensitiveDetector(tpc_sd);
   }
   // Field Cage
@@ -850,7 +855,7 @@ DetectorConstruction::ConstructHypTPC()
                                      "FcLV");
     new G4PVPlacement(nullptr, G4ThreeVector(), fc_lv,
                       "FieldCagePV", m_tpc_lv, false, 0);
-    fc_lv->SetVisAttributes(G4Colour::Red());
+    // fc_lv->SetVisAttributes(G4Colour::Green());
   }
   // Virtual pads
   G4Tubs* pad_solid[NumOfPadTPC];
@@ -976,7 +981,8 @@ DetectorConstruction::ConstructHypTPC()
       pad_lv[i]  = new G4LogicalVolume(pad_solid[i], m_material_map["P10"],
                                        Form("TpcPadLV%d", i));
     }
-    pad_lv[i]->SetVisAttributes(G4Colour::Blue());
+    // pad_lv[i]->SetVisAttributes(G4Colour::Blue());
+    pad_lv[i]->SetVisAttributes(ORANGE);
     if(pad_out[i] < below_target){
       if(m_experiment == 42){
 	new G4PVPlacement(nullptr, G4ThreeVector(0., -pad_center_z, (-120.-25.)*mm),
@@ -1024,7 +1030,7 @@ DetectorConstruction::ConstructHypTPC()
                                pad_out[i]*mm, 0.5*mm, 0., 360.*deg);
     vpad_lv[i] = new G4LogicalVolume(vpad_solid[i], m_material_map["P10"],
                                      Form("TpcVPadLV%d", i));
-    vpad_lv[i]->SetVisAttributes(G4Colour::Blue());
+    vpad_lv[i]->SetVisAttributes(ORANGE);
     new G4PVPlacement(nullptr,
                       G4ThreeVector(0., -pad_center_z, -302.*mm),
                       vpad_lv[i], Form("TpcVPadPV%d", i), m_tpc_lv, true, 0);
@@ -1058,7 +1064,7 @@ DetectorConstruction::ConstructKVC()
   auto kvcSD = new KVCSD("/KVC");
   G4SDManager::GetSDMpointer()->AddNewDetector(kvcSD);
   auto mother_solid = new G4Box("KvcMotherSolid",
-                                half_size.x() + 10*mm,
+                                half_size.x()*NumOfSegKVC + 10*mm,
                                 half_size.y() + 10*mm,
                                 half_size.z() + 10*mm);
   auto mother_lv = new G4LogicalVolume(mother_solid,
@@ -1074,8 +1080,11 @@ DetectorConstruction::ConstructKVC()
   auto kvc_solid = new G4Box("KvcSolid",
                              half_size.x(), half_size.y(), half_size.z());
   auto kvc_lv = new G4LogicalVolume(kvc_solid, m_material_map["QuartzKVC"], "KvcLV");
-  new G4PVPlacement(nullptr, G4ThreeVector(), kvc_lv, "KvcPV",
-                    mother_lv, false, 0);
+  for(G4int i=0; i<NumOfSegKVC; ++i){
+    pos = G4ThreeVector(half_size.x()*(-NumOfSegKVC+1+2*i), 0., 0.);
+    new G4PVPlacement(nullptr, pos, kvc_lv, "KvcPV",
+                      mother_lv, false, i);
+  }
   kvc_lv->SetVisAttributes(G4Colour::Yellow());
   kvc_lv->SetSensitiveDetector(kvcSD);
 }
@@ -1213,7 +1222,8 @@ DetectorConstruction::ConstructShsMagnet()
   auto logicDetectorCS = new G4LogicalVolume(solidDetectorCS,
                                              m_material_map["Iron"],
                                              "CoilSupLV");
-  logicDetectorCS->SetVisAttributes(G4Color::Green());
+  // logicDetectorCS->SetVisAttributes(G4Color::Green());
+  logicDetectorCS->SetVisAttributes(G4VisAttributes::GetInvisible());
   G4RotationMatrix rot_sup;
   rot_sup.rotateX(90.*deg);
   new G4PVPlacement(G4Transform3D(rot_sup, G4ThreeVector(0, CoilSupPos_height, 0)),
@@ -1231,7 +1241,8 @@ DetectorConstruction::ConstructShsMagnet()
   auto logicDetectorCoil = new G4LogicalVolume(solidDetectorCoil,
                                                m_material_map["Copper"],
                                                "CoilLV");
-  logicDetectorCoil->SetVisAttributes(G4Color::Yellow());
+  // logicDetectorCoil->SetVisAttributes(G4Color::Yellow());
+  logicDetectorCoil->SetVisAttributes(G4VisAttributes::GetInvisible());
   G4RotationMatrix rot_coil;
   rot_coil.rotateX(90.*deg);
   new G4PVPlacement(G4Transform3D(rot_coil, coilu_pos),
@@ -1289,7 +1300,7 @@ DetectorConstruction::ConstructTarget()
   auto target_lv = new G4LogicalVolume(target_solid, m_material_map["Target"],
                                        "TargetLV");
   target_lv->SetSensitiveDetector(target_sd);
-  target_lv->SetVisAttributes(G4Colour::Red());
+  target_lv->SetVisAttributes(G4Colour::Blue());
   G4RotationMatrix rot_frame;
   rot_frame.rotateX(90.*deg);
   new G4PVPlacement(G4Transform3D(rot_frame, target_pos),
@@ -1298,4 +1309,37 @@ DetectorConstruction::ConstructTarget()
   auto holder_lv = new G4LogicalVolume(holder_solid, m_material_map["P10"],
                                        "TargetHolderLV");
   holder_lv->SetVisAttributes(G4Colour::Blue());
+}
+
+//_____________________________________________________________________________
+void
+DetectorConstruction::ConstructVP()
+{
+  using CLHEP::mm;
+  using CLHEP::deg;
+  const auto& ra2 = gGeom.GetRotAngle2("VP")*deg;
+  const auto& half_size = gSize.GetSize("VP")*mm/2.;
+  auto pos = gGeom.GetGlobalPosition("VP");
+  auto mother_solid = new G4Box("VpMotherSolid",
+                                half_size.x() + 1*mm,
+                                half_size.y() + 1*mm,
+                                half_size.z() + 1*mm);
+  auto mother_lv = new G4LogicalVolume(mother_solid,
+                                       m_material_map["Air"],
+                                       "VpMotherLV");
+  auto rot = new G4RotationMatrix;
+  rot->rotateY(- ra2 - m_rotation_angle);
+  pos.rotateY(m_rotation_angle);
+  new G4PVPlacement(rot, pos, mother_lv,
+                    "VpMotherPV", m_world_lv, false, 0);
+  mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+  auto vp_solid = new G4Box("VpSolid",
+                            half_size.x(), half_size.y(), half_size.z());
+  auto vp_lv = new G4LogicalVolume(vp_solid, m_material_map["Air"], "VpLV");
+  new G4PVPlacement(nullptr, G4ThreeVector(), vp_lv, "VpPV",
+                    mother_lv, false, 0);
+  vp_lv->SetVisAttributes(G4Colour::Yellow());
+  // auto vpSD = new VPSD("/VP");
+  // G4SDManager::GetSDMpointer()->AddNewDetector(vpSD);
+  // vp_lv->SetSensitiveDetector(vpSD);
 }

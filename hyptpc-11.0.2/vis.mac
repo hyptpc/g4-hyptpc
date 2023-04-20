@@ -1,3 +1,4 @@
+#/vis/open VRML2FILE
 /vis/open OGL
 /vis/viewer/set/autoRefresh false
 /vis/verbose errors
@@ -7,8 +8,8 @@
 /vis/viewer/set/style wireframe
 /vis/scene/add/trajectories smooth
 /vis/modeling/trajectories/create/drawByCharge
-/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
-/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 3
+# /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+# /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 3
 
 /vis/scene/endOfEventAction accumulate
 
@@ -17,4 +18,4 @@
 /vis/viewer/set/viewpointThetaPhi 269. -90.
 
 #/vis/scene/add/scale   # Simple scale line
-/vis/scene/add/axes    # Simple axes: x=red, y=green, z=blue.
+#/vis/scene/add/axes    # Simple axes: x=red, y=green, z=blue.
