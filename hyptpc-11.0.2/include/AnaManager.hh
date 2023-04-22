@@ -113,20 +113,7 @@ struct Event
   Int_t nhPrm;
   std::vector<TParticle> Prm;
 
-  Int_t nhBh2;
-  Int_t nhBac;
-  Int_t nhTgt;
-  Int_t nhHtof;
-  Int_t nhKvc;
-  Int_t nhFtof;
-  Int_t nhVp;
-  std::vector<TParticle> Bh2;
-  std::vector<TParticle> Bac;
-  std::vector<TParticle> Tgt;
-  std::vector<TParticle> Htof;
-  std::vector<TParticle> Kvc;
-  std::vector<TParticle> Ftof;
-  std::vector<TParticle> Vp;
+  std::map<TString, std::vector<TParticle>> hits;
 
   /* number of ntrks in TPC by shhwang*/
   Int_t ntrtpc;
@@ -286,7 +273,8 @@ public:
   void EndOfRunAction();
   void BeginOfEventAction();
   int  EndOfEventAction();
-  void SetHitData();
+  void MakeBranch(const G4String& sd_name);
+  void SetHitData(const VHitInfo* hit);
   void SetTPCData(G4int tpctr, G4int tpcpid, G4int tpcparentid,
                   G4int tpcparentid_pid, G4double tpcpx, G4double tpcpy,
                   G4double tpcpz,G4double tpcpp,  G4int tpcqq, G4double tpcpm,
@@ -294,17 +282,11 @@ public:
                   G4double vtxpxtpc2,G4double vtxpytpc2,G4double vtxpztpc2,
                   G4double vtxxtpc2,G4double vtxytpc2,G4double vtxztpc2,
                   G4double vtxenetpc2);
-  void SetBH2Data(const VHitInfo* hit);
   void SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
                       G4int parentid, G4double tlength, G4double slength);
   void SetFermiMomentum(const G4ThreeVector& p);
-  void SetHTOFData(const VHitInfo* hit);
-  void SetFTOFData(const VHitInfo* hit);
-  void SetBACData(const VHitInfo* hit);
-  void SetVPData(const VHitInfo* hit);
-  void SetKVCData(const VHitInfo* hit);
   void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);
   void SetIncID(G4int inc);

@@ -24,7 +24,8 @@ FieldMap::FieldMap(const G4String& file_name)
     m_xmax(0.), m_ymax(0.), m_zmax(0.),
     m_dx(1.), m_dy(1.), m_dz(1.),
     m_value_calc(1.),
-    m_value_nmr(1.)
+    m_value_nmr(1.),
+    m_field_size()
 {
 }
 
@@ -68,6 +69,10 @@ FieldMap::Initialize()
   m_xmax = m_xmin + (m_nx - 1) * m_dx;
   m_ymax = m_ymin + (m_ny - 1) * m_dy;
   m_zmax = m_zmin + (m_nz - 1) * m_dz;
+  m_field_size.set(m_xmax - m_xmin,
+                   m_ymax - m_ymin,
+                   m_zmax - m_zmin);
+  m_field_size *= CLHEP::cm;
 
   G4cout << "   x = (" << m_xmin << ", " << m_xmax << ")"
 	 << "  y = (" << m_ymin << ", " << m_ymax << ")"

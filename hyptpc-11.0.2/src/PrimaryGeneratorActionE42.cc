@@ -5,7 +5,6 @@
 #include <G4Event.hh>
 #include <G4IonTable.hh>
 #include <G4ParticleGun.hh>
-#include <G4ParticleTable.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4UImanager.hh>
 #include <G4IonConstructor.hh>

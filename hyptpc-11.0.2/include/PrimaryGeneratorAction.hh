@@ -7,8 +7,8 @@
 #include <G4ThreeVector.hh>
 #include <G4Types.hh>
 
-class G4ParticleGun;
 class G4ParticleDefinition;
+class G4ParticleGun;
 class TFile;
 class TTree;
 

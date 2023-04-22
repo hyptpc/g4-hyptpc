@@ -8,9 +8,10 @@
 G4Allocator<TargetHit> TargetHitAllocator;
 
 //_____________________________________________________________________________
-TargetHit::TargetHit(const G4String& name, G4Step* step)
+TargetHit::TargetHit(const G4String& name, G4Step* step,
+                     G4bool use_center_point)
   : G4VHit(),
-    VHitInfo(name, step)
+    VHitInfo(name, step, use_center_point)
 {
 }
 

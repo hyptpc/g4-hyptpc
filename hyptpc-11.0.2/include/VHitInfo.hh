@@ -14,7 +14,8 @@ class VHitInfo
 {
 public:
   static G4String ClassName();
-  VHitInfo(const G4String& name, G4Step* step=nullptr);
+  VHitInfo(const G4String& name, G4Step* step=nullptr,
+           G4bool use_center_point=false);
   ~VHitInfo();
 
 private:
@@ -39,8 +40,8 @@ private:
 
 public:
   void     AddEnergyDeposit(G4double de){ m_energy_deposit += de; }
-  G4String GetDetectorName() const { return m_detector_name; }
-  G4String GetParticleName() const { return m_particle_name; }
+  const G4String& GetDetectorName() const { return m_detector_name; }
+  const G4String& GetParticleName() const { return m_particle_name; }
   const G4ThreeVector& GetPosition() const { return m_position; }
   const G4ThreeVector& GetMomentum() const { return m_momentum; }
   G4double GetTime() const { return m_time; }

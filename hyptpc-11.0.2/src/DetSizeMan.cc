@@ -78,7 +78,7 @@ DetSizeMan::Get(const G4String& key, G4int i) const
   if(itr==m_param_map.end() ||
      i+1 > (G4int)itr->second.size()){
     Print();
-    std::string msg(FUNC_NAME+" No such key : "+key);
+    G4String msg(FUNC_NAME+" No such key : "+key);
     msg += "(i=" + std::to_string(i) + ")";
     throw std::invalid_argument(msg);
   }

@@ -56,6 +56,7 @@ ConfMan::Initialize()
 
   G4cout << FUNC_NAME << G4endl
 	 << " open file : " << m_file[m_conf_key] << G4endl;
+  m_string[m_conf_key] = m_file[m_conf_key];
 
   m_conf_dir = ::dirname(const_cast<char*>(m_file[m_conf_key].data()));
 

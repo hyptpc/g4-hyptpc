@@ -29,7 +29,7 @@ void
 BH2SD::Initialize(G4HCofThisEvent* HCTE)
 {
   m_hits_collection = new G4THitsCollection<BH2Hit>(SensitiveDetectorName,
-							 collectionName[0]);
+                                                    collectionName[0]);
   HCTE->AddHitsCollection(GetCollectionID(0), m_hits_collection);
 }
 

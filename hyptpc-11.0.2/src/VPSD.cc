@@ -29,7 +29,7 @@ void
 VPSD::Initialize(G4HCofThisEvent* HCTE)
 {
   m_hits_collection = new G4THitsCollection<VPHit>(SensitiveDetectorName,
-							 collectionName[0]);
+                                                   collectionName[0]);
   HCTE->AddHitsCollection(GetCollectionID(0), m_hits_collection);
 }
 

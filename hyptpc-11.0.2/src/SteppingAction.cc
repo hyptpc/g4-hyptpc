@@ -21,6 +21,7 @@ const auto& gConf = ConfMan::GetInstance();
 
 //_____________________________________________________________________________
 SteppingAction::SteppingAction()
+  : G4UserSteppingAction()
 {
 }
 

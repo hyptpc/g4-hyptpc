@@ -40,7 +40,7 @@ DCGeomMan::CalcWireNumber(Int_t lnum, Double_t pos) const
     return record->WireNumber(pos);
   }
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -61,7 +61,7 @@ DCGeomMan::CalcWirePosition(Int_t lnum, Double_t wire) const
     return record->WirePos(wire);
   }
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -90,7 +90,7 @@ DCGeomMan::GetLocalZ(Int_t lnum) const
   if(record){
     return record->Length();
   }else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -109,7 +109,7 @@ DCGeomMan::GetResolution(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->Resolution();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -128,7 +128,7 @@ DCGeomMan::GetRotAngle1(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->RotationAngle1();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -147,7 +147,7 @@ DCGeomMan::GetRotAngle2(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->RotationAngle2();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -166,7 +166,7 @@ DCGeomMan::GetGlobalPosition(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->Pos();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -185,7 +185,7 @@ DCGeomMan::GetTiltAngle(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->TiltAngle();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -204,7 +204,7 @@ DCGeomMan::GetWirePitch(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->WirePitch();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -231,7 +231,7 @@ DCGeomMan::NormalVector(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->NormalVector();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -250,7 +250,7 @@ DCGeomMan::UnitVector(Int_t lnum) const
   const DCGeomRecord* record = GetRecord(lnum);
   if(record) return record->UnitVector();
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }
@@ -272,7 +272,7 @@ DCGeomMan::GetRecord(Int_t lnum) const
   if(itr!=end)
     record = itr->second;
   if(!record){
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
   return record;
@@ -356,7 +356,7 @@ DCGeomMan::Local2GlobalPos(Int_t lnum, const ThreeVector& in) const
 {
   const DCGeomRecord* record = GetRecord(lnum);
   if(!record){
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 
@@ -383,7 +383,7 @@ DCGeomMan::Global2LocalPos(Int_t lnum, const ThreeVector& in) const
 {
   const DCGeomRecord* record = GetRecord(lnum);
   if(!record){
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 
@@ -416,7 +416,7 @@ DCGeomMan::Local2GlobalDir(Int_t lnum, const ThreeVector& in) const
 {
   const DCGeomRecord* record = GetRecord(lnum);
   if(!record){
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 
@@ -443,7 +443,7 @@ DCGeomMan::Global2LocalDir(Int_t lnum, const ThreeVector& in) const
 {
   const DCGeomRecord* record = GetRecord(lnum);
   if(!record){
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 
@@ -473,7 +473,7 @@ DCGeomMan::GetDetectorId(const TString& key) const
     if (itr->second->Name() == key)
       return itr->second->Id();
   }
-  std::string e(FUNC_NAME + Form(" No record : %s", key.Data()));
+  G4String e(FUNC_NAME + Form(" No record : %s", key.Data()));
   throw std::invalid_argument(e);
 }
 
@@ -493,7 +493,7 @@ DCGeomMan::SetResolution(Int_t lnum, Double_t res)
     record->SetResolution(res);
   }
   else{
-    std::string e(FUNC_NAME + Form(" No record : %d", lnum));
+    G4String e(FUNC_NAME + Form(" No record : %d", lnum));
     throw std::invalid_argument(e);
   }
 }

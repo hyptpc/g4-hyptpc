@@ -17,7 +17,7 @@ class G4Step;
 class TargetHit : public G4VHit, public VHitInfo
 {
 public:
-  TargetHit(const G4String& name, G4Step* step);
+  TargetHit(const G4String& name, G4Step* step, G4bool use_center_point);
   virtual ~TargetHit();
 
   TargetHit(const TargetHit& right);

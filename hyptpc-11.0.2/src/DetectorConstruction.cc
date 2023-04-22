@@ -56,6 +56,8 @@ const G4Colour MAROON(0.5, 0.0, 0.0);
 const G4Colour PINK(1.0, 0.753, 0.796);
 }
 
+std::vector<G4String> DetectorConstruction::s_detector_list;
+
 //_____________________________________________________________________________
 DetectorConstruction::DetectorConstruction()
   : G4VUserDetectorConstruction(),
@@ -66,7 +68,6 @@ DetectorConstruction::DetectorConstruction()
     m_tpc_lv(),
     m_rotation_angle(gConf.Get<Double_t>("SpectrometerAngle")*CLHEP::deg),
     m_rotation_matrix(new G4RotationMatrix),
-    m_sdc_sd(),
     m_field()
 {
   m_rotation_matrix->rotateY(- m_rotation_angle);
@@ -82,8 +83,10 @@ G4VPhysicalVolume*
 DetectorConstruction::Construct()
 {
   using CLHEP::m;
+
   ConstructElements();
   ConstructMaterials();
+
   auto world_solid = new G4Box("WorldSolid", 10.*m/2, 6.*m/2, 16.*m/2);
   m_world_lv = new G4LogicalVolume(world_solid, m_material_map["Air"],
                                    "World");
@@ -109,17 +112,25 @@ DetectorConstruction::Construct()
 
 #if 1
   ConstructShsMagnet();
+  m_field->Initialize();
+#endif
+
+#if 0
+  ConstructFieldOutline();
+#endif
+
+#if 1
   ConstructTarget();
   ConstructHypTPC();
   ConstructHTOF();
 #endif
 
-#if 0
+#if 1
   ConstructVP();
 #endif
 
-  m_field->Initialize();
-
+  G4cout << FUNC_NAME << " SD List Tree" << G4endl;
+  G4SDManager::GetSDMpointer()->ListTree();
   return world_pv;
 }
 
@@ -355,9 +366,17 @@ DetectorConstruction::ConstructMaterials()
     m_material_map["Target"] = m_material_map["CH2"];
   }
   else {
-    std::string e(FUNC_NAME + " No target material : " + target_material);
+    G4String e(FUNC_NAME + " No target material : " + target_material);
     throw std::invalid_argument(e);
   }
+}
+
+//_____________________________________________________________________________
+void
+DetectorConstruction::AddNewDetector(G4VSensitiveDetector* sd)
+{
+  G4SDManager::GetSDMpointer()->AddNewDetector(sd);
+  s_detector_list.push_back(sd->GetName());
 }
 
 //_____________________________________________________________________________
@@ -369,9 +388,9 @@ DetectorConstruction::ConstructBAC()
   const auto& ra2 = gGeom.GetRotAngle2("BAC")*deg;
   const auto& half_size = gSize.GetSize("BacRadiator")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("BAC");
-  auto bacSD = new BACSD("/BAC");
-  bacSD->SetRefractiveIndex(1.115);
-  G4SDManager::GetSDMpointer()->AddNewDetector(bacSD);
+  auto bacSD = new BACSD("BAC");
+  bacSD->SetRefractiveIndex(1.10);
+  AddNewDetector(bacSD);
   auto mother_solid = new G4Box("BacMotherSolid",
                                 half_size.x() + 10*mm,
                                 half_size.y() + 10*mm,
@@ -408,8 +427,8 @@ DetectorConstruction::ConstructBH2()
     effective_x += gSize.Get("Bh2SegWidth", i)*mm;
   }
   const auto& half_size = gSize.GetSize("Bh2Seg")*mm/2.;
-  auto bh2SD = new BH2SD("/BH2");
-  G4SDManager::GetSDMpointer()->AddNewDetector(bh2SD);
+  auto bh2SD = new BH2SD("BH2");
+  AddNewDetector(bh2SD);
   // Mother
   auto mother_solid = new G4Box("Bh2MotherSolid",
                                 effective_x/2 + 10.*mm,
@@ -466,8 +485,8 @@ DetectorConstruction::ConstructFTOF()
   const auto& ra2 = gGeom.GetRotAngle2("TOF") * CLHEP::deg;
   const auto& half_size = gSize.GetSize("FtofSeg") * 0.5 * mm;
   const G4double pitch = gGeom.GetWirePitch("TOF") * mm;
-  auto ftofSD = new FTOFSD("/FTOF");
-  G4SDManager::GetSDMpointer()->AddNewDetector(ftofSD);
+  auto ftofSD = new FTOFSD("FTOF");
+  AddNewDetector(ftofSD);
   // Mother
   auto mother_solid = new G4Box("FtofMotherSolid",
                                 half_size.x()*NumOfSegFTOF + 50.*mm,
@@ -507,8 +526,8 @@ DetectorConstruction::ConstructHTOF()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  auto htof_sd = new HTOFSD("/HTOF");
-  G4SDManager::GetSDMpointer()->AddNewDetector(htof_sd);
+  auto htof_sd = new HTOFSD("HTOF");
+  AddNewDetector(htof_sd);
   const auto& htof_pos = gGeom.GetGlobalPosition("HTOF");
   const auto& half_size = gSize.GetSize("HtofSeg") * 0.5 * mm;
   const G4double L = gGeom.GetLocalZ("HTOF");
@@ -805,8 +824,8 @@ DetectorConstruction::ConstructHypTPC()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  auto tpc_sd = new TPCSD("/TPC");
-  G4SDManager::GetSDMpointer()->AddNewDetector(tpc_sd);
+  auto tpc_sd = new TPCSD("TPC");
+  AddNewDetector(tpc_sd);
   const auto tpc_pos = gGeom.GetGlobalPosition("HypTPC")*mm;
   const auto target_pos = gGeom.GetGlobalPosition("SHSTarget")*mm;
   {
@@ -825,9 +844,14 @@ DetectorConstruction::ConstructHypTPC()
                                          zPlane, rInner, rOuter);
     auto pos = target_pos;
     pos.rotateX(90.*deg);
-    auto tpc_solid = new G4SubtractionSolid("TpcSolid",
-                                            tpc_out_solid, target_solid,
-                                            nullptr, pos);
+    G4VSolid* tpc_solid;
+    if (target_solid) {
+      tpc_solid = new G4SubtractionSolid("TpcSolid",
+                                         tpc_out_solid, target_solid,
+                                         nullptr, pos);
+    } else {
+      tpc_solid = tpc_out_solid;
+    }
     auto rot = new G4RotationMatrix;
     rot->rotateX(90.*deg);
     m_tpc_lv = new G4LogicalVolume(tpc_solid, m_material_map["P10"],
@@ -1061,8 +1085,8 @@ DetectorConstruction::ConstructKVC()
   const auto& ra2 = gGeom.GetRotAngle2("KVC")*deg;
   const auto& half_size = gSize.GetSize("KvcRadiator")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("KVC");
-  auto kvcSD = new KVCSD("/KVC");
-  G4SDManager::GetSDMpointer()->AddNewDetector(kvcSD);
+  auto kvcSD = new KVCSD("KVC");
+  AddNewDetector(kvcSD);
   auto mother_solid = new G4Box("KvcMotherSolid",
                                 half_size.x()*NumOfSegKVC + 10*mm,
                                 half_size.y() + 10*mm,
@@ -1211,7 +1235,7 @@ DetectorConstruction::ConstructShsMagnet()
   G4double GapRadOut = 545*mm;
   G4double SupHeight = 112*mm;
   G4double GapHeight = 62*mm;
-  std::string fullNameCoilSup = "SCCoilSup";
+  G4String fullNameCoilSup = "SCCoilSup";
   auto solidTube_Sup = new G4Tubs("CoilSupMainSolid", RadIn, RadOut, SupHeight/2.,
                                   0*deg, 360*deg);
   auto solidTube_Sub = new G4Tubs("CoilSupSubSolid", GapRadIn, GapRadOut+20*mm,
@@ -1260,8 +1284,8 @@ DetectorConstruction::ConstructTarget()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  auto target_sd = new TargetSD("/TGT");
-  G4SDManager::GetSDMpointer()->AddNewDetector(target_sd);
+  auto target_sd = new TargetSD("TGT");
+  AddNewDetector(target_sd);
   const auto target_pos = gGeom.GetGlobalPosition("SHSTarget")*mm;
   const auto target_size = gSize.GetSize("Target")*0.5*mm;
   const auto holder_size = gSize.GetSize("TargetHolder")*mm;
@@ -1295,6 +1319,10 @@ DetectorConstruction::ConstructTarget()
   }
     break;
   default:
+    G4Exception(FUNC_NAME,
+                "Invalid experiment", FatalException,
+                ("Found invalid experiment "+std::to_string(m_experiment)
+                 +" in "+gConf.Get<G4String>("CONF")).c_str());
     return;
   }
   auto target_lv = new G4LogicalVolume(target_solid, m_material_map["Target"],
@@ -1313,33 +1341,81 @@ DetectorConstruction::ConstructTarget()
 
 //_____________________________________________________________________________
 void
+DetectorConstruction::ConstructFieldOutline()
+{
+  using CLHEP::mm;
+  using CLHEP::deg;
+  if(m_field->GetStatusShsField()){
+    const auto ra2 = 0.*deg;
+    const auto half_size = m_field->GetSizeShsField()/2.;
+    if (half_size.mag() == 0.) return;
+    auto pos = G4ThreeVector();
+    auto mother_solid = new G4Box("FieldOutlineMotherSolid",
+                                  half_size.x() + 1*mm,
+                                  half_size.y() + 1*mm,
+                                  half_size.z() + 1*mm);
+    auto mother_lv = new G4LogicalVolume(mother_solid,
+                                         m_material_map["Air"],
+                                         "FieldOutlineMotherLV");
+    auto rot = new G4RotationMatrix;
+    rot->rotateY(- ra2 - m_rotation_angle);
+    pos.rotateY(m_rotation_angle);
+    new G4PVPlacement(rot, pos, mother_lv,
+                      "FieldOutlineMotherPV", m_world_lv, false, 0);
+    mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+    auto solid = new G4Box("FieldOutlineSolid",
+                           half_size.x(), half_size.y(), half_size.z());
+    auto lv = new G4LogicalVolume(solid, m_material_map["Air"],
+                                  "FieldOutlineLV");
+    new G4PVPlacement(nullptr, G4ThreeVector(), lv, "FieldOutlinePV",
+                      mother_lv, false, 0);
+    lv->SetVisAttributes(G4Colour::Yellow());
+  }
+}
+
+//_____________________________________________________________________________
+void
 DetectorConstruction::ConstructVP()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  const auto& ra2 = gGeom.GetRotAngle2("VP")*deg;
-  const auto& half_size = gSize.GetSize("VP")*mm/2.;
-  auto pos = gGeom.GetGlobalPosition("VP");
-  auto mother_solid = new G4Box("VpMotherSolid",
-                                half_size.x() + 1*mm,
-                                half_size.y() + 1*mm,
-                                half_size.z() + 1*mm);
-  auto mother_lv = new G4LogicalVolume(mother_solid,
-                                       m_material_map["Air"],
-                                       "VpMotherLV");
-  auto rot = new G4RotationMatrix;
-  rot->rotateY(- ra2 - m_rotation_angle);
-  pos.rotateY(m_rotation_angle);
-  new G4PVPlacement(rot, pos, mother_lv,
-                    "VpMotherPV", m_world_lv, false, 0);
-  mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
-  auto vp_solid = new G4Box("VpSolid",
-                            half_size.x(), half_size.y(), half_size.z());
-  auto vp_lv = new G4LogicalVolume(vp_solid, m_material_map["Air"], "VpLV");
-  new G4PVPlacement(nullptr, G4ThreeVector(), vp_lv, "VpPV",
-                    mother_lv, false, 0);
-  vp_lv->SetVisAttributes(G4Colour::Yellow());
-  // auto vpSD = new VPSD("/VP");
-  // G4SDManager::GetSDMpointer()->AddNewDetector(vpSD);
-  // vp_lv->SetSensitiveDetector(vpSD);
+  G4int i = 1;
+  try {
+    while (true) {
+      G4String name = "VP"+std::to_string(i);
+      const auto& ra2 = gGeom.GetRotAngle2(name)*deg;
+      const auto& half_size = gSize.GetSize(name)*mm/2.;
+      auto pos = gGeom.GetGlobalPosition(name);
+      auto mother_solid = new G4Box(name+"MotherSolid",
+                                    half_size.x() + 1*mm,
+                                    half_size.y() + 1*mm,
+                                    half_size.z() + 1*mm);
+      auto mother_lv = new G4LogicalVolume(mother_solid,
+                                           m_material_map["Air"],
+                                           name+"MotherLV");
+      auto rot = new G4RotationMatrix;
+      rot->rotateY(- ra2 - m_rotation_angle);
+      pos.rotateY(m_rotation_angle);
+      new G4PVPlacement(rot, pos, mother_lv,
+                        name+"MotherPV", m_world_lv, false, 0);
+      mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+      auto vp_solid = new G4Box(name+"Solid",
+                                half_size.x(), half_size.y(), half_size.z());
+      auto vp_lv = new G4LogicalVolume(vp_solid, m_material_map["Air"],
+                                       name+"LV");
+      new G4PVPlacement(nullptr, G4ThreeVector(), vp_lv, name+"PV",
+                        mother_lv, false, i);
+      vp_lv->SetVisAttributes(G4Colour::Yellow());
+      static auto vpSD = new VPSD("VP");
+      AddNewDetector(vpSD);
+      vp_lv->SetSensitiveDetector(vpSD);
+      ++i;
+    }
+  } catch (const std::exception& e) {
+#if 0
+    G4cout << FUNC_NAME // << " " << e.what()
+           << G4endl
+           << "   " << i-1 << " VPs constructed." << G4endl;
+#endif
+  }
 }

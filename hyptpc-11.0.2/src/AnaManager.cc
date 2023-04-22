@@ -15,6 +15,7 @@
 #include <TTree.h>
 
 #include "ConfMan.hh"
+#include "DetectorConstruction.hh"
 #include "FuncName.hh"
 #include "ResHypTPC.hh"
 #include "RungeKuttaTracker.hh"
@@ -25,7 +26,7 @@
 
 namespace
 {
-const ConfMan& gConf = ConfMan::GetInstance();
+const auto& gConf = ConfMan::GetInstance();
 TTree* tree;
 Event event;
 std::map<TString, TH1*> hmap;
@@ -34,33 +35,9 @@ std::map<TString, TH1*> hmap;
 //_____________________________________________________________________________
 AnaManager::AnaManager()
 {
-  const Int_t bufsize = 32000;
-  tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
   event.pb = new TVector3;
-  tree->Branch("evnum", &event.evnum, "evnum/I");
-  tree->Branch("pb", "TVector3", event.pb);
-  tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
-  tree->Branch("Prm", "std::vector<TParticle>", &event.Prm, bufsize, -1);
 
-  tree->Branch("generator", &event.generator, "generator/I");
-  tree->Branch("mode",&event.mode,"mode/I");
-  tree->Branch("inc",&event.inc,"inc/I");
-
-  tree->Branch("nhBh2", &event.nhBh2, "nhBh2/I");
-  tree->Branch("nhBac", &event.nhBac, "nhBac/I");
-  tree->Branch("nhTgt", &event.nhTgt, "nhTgt/I");
-  tree->Branch("nhHtof", &event.nhHtof, "nhHtof/I");
-  tree->Branch("nhKvc", &event.nhKvc, "nhKvc/I");
-  tree->Branch("nhFtof", &event.nhFtof, "nhFtof/I");
-  tree->Branch("nhVp", &event.nhVp, "nhVp/I");
-  tree->Branch("Bh2", "std::vector<TParticle>", &event.Bh2, bufsize, -1);
-  tree->Branch("Bac", "std::vector<TParticle>", &event.Bac, bufsize, -1);
-  tree->Branch("Tgt", "std::vector<TParticle>", &event.Tgt, bufsize, -1);
-  tree->Branch("Htof", "std::vector<TParticle>", &event.Htof, bufsize, -1);
-  tree->Branch("Kvc", "std::vector<TParticle>", &event.Kvc, bufsize, -1);
-  tree->Branch("Ftof", "std::vector<TParticle>", &event.Ftof, bufsize, -1);
-  tree->Branch("Vp", "std::vector<TParticle>", &event.Vp, bufsize, -1);
-
+  return;
   tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
   tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
   tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
@@ -154,8 +131,32 @@ AnaManager::~AnaManager()
 
 //_____________________________________________________________________________
 void
+AnaManager::MakeBranch(const G4String& sd_name)
+{
+  static const Int_t bufsize = 32000;
+  tree->Branch(sd_name.data(),
+               "std::vector<TParticle>",
+               &event.hits[sd_name], bufsize, -1);
+}
+
+//_____________________________________________________________________________
+void
 AnaManager::BeginOfRunAction(G4int /* runnum */)
 {
+  const Int_t bufsize = 32000;
+  if (tree) delete tree;
+  tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
+  tree->Branch("evnum", &event.evnum, "evnum/I");
+  tree->Branch("pb", "TVector3", event.pb);
+  tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
+  tree->Branch("Prm", "std::vector<TParticle>", &event.Prm, bufsize, -1);
+  tree->Branch("generator", &event.generator, "generator/I");
+  tree->Branch("mode",&event.mode,"mode/I");
+  tree->Branch("inc",&event.inc,"inc/I");
+  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
+    MakeBranch(sd_name);
+  }
+
   event.evnum = 0;
 
   G4double target_pos_z=-143.;
@@ -319,8 +320,8 @@ void
 AnaManager::EndOfRunAction()
 {
   tree->Write();
-  for(auto& p : hmap){
-    p.second->Write();
+  for (auto& h: hmap) {
+    h.second->Write();
   }
 }
 
@@ -340,20 +341,9 @@ AnaManager::BeginOfEventAction()
   HitNum_p=0;
   //  tpctrNum_K=0;
 
-  event.nhBh2 = 0;
-  event.nhBac = 0;
-  event.nhTgt = 0;
-  event.nhHtof = 0;
-  event.nhKvc = 0;
-  event.nhFtof = 0;
-  event.nhVp = 0;
-  event.Bh2.clear();
-  event.Bac.clear();
-  event.Tgt.clear();
-  event.Htof.clear();
-  event.Kvc.clear();
-  event.Ftof.clear();
-  event.Vp.clear();
+  for (const auto& sd_name: DetectorConstruction::GetSDList()) {
+    event.hits[sd_name].clear();
+  }
 
   event.nhittpc = 0;
   event.ntrtpc = 0;
@@ -1142,11 +1132,11 @@ AnaManager::EndOfEventAction()
 
 //_____________________________________________________________________________
 void
-AnaManager::SetBH2Data(const VHitInfo* hit)
+AnaManager::SetHitData(const VHitInfo* hit)
 {
   if(hit && hit->GetParticle()){
-    event.Bh2.push_back(*hit->GetParticle());
-    event.nhBh2++;
+    const auto& name = hit->GetDetectorName();
+    event.hits[name].push_back(*hit->GetParticle());
   }
 }
 
@@ -1395,56 +1385,6 @@ AnaManager::SetFermiMomentum(const G4ThreeVector& p)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetFTOFData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Ftof.push_back(*hit->GetParticle());
-    event.nhFtof++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetHTOFData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Htof.push_back(*hit->GetParticle());
-    event.nhHtof++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetBACData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Bac.push_back(*hit->GetParticle());
-    event.nhBac++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetVPData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Vp.push_back(*hit->GetParticle());
-    event.nhVp++;
-  }
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetKVCData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Kvc.push_back(*hit->GetParticle());
-    event.nhKvc++;
-  }
-}
-
-//_____________________________________________________________________________
-void
 AnaManager::SetTPCData(G4int tpctr2, G4int tpcpid2, G4int tpcparentid2,
                        G4int tpcparentid_pid2, G4double tpcpx2,
                        G4double tpcpy2, G4double tpcpz2,
@@ -1563,16 +1503,6 @@ void
 AnaManager::SetPrimaryBeam(G4double px, G4double py, G4double pz)
 {
   event.pb->SetXYZ(px, py, pz);
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetTargetData(const VHitInfo* hit)
-{
-  if(hit && hit->GetParticle()){
-    event.Tgt.push_back(*hit->GetParticle());
-    event.nhTgt++;
-  }
 }
 
 /*************************************

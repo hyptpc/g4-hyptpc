@@ -56,6 +56,8 @@ const G4Colour ORANGE(1.0, 0.55, 0.0);
 const G4Colour LAVENDER(0.901, 0.901, 0.98);
 const G4Colour MAROON(0.5, 0.0, 0.0);
 const G4Colour PINK(1.0, 0.753, 0.796);
+
+SDCSD* sdc_sd = nullptr;
 }
 
 //_____________________________________________________________________________
@@ -88,9 +90,9 @@ void
 DetectorConstruction::ConstructBC3()
 {
   using CLHEP::mm;
-  if(!m_sdc_sd){
-    m_sdc_sd = new SDCSD("/SDC");
-    G4SDManager::GetSDMpointer()->AddNewDetector(m_sdc_sd);
+  if(!sdc_sd){
+    sdc_sd = new SDCSD("/SDC");
+    G4SDManager::GetSDMpointer()->AddNewDetector(sdc_sd);
   }
 
   const auto& bc3_pos = (gGeom.GetGlobalPosition("KURAMA") +
@@ -122,7 +124,7 @@ DetectorConstruction::ConstructBC3()
     auto bc3pl_lv = new G4LogicalVolume(bc3pl_solid,
                                         m_material_map["Argon"],
                                         plane_name[i] + "LV", 0, 0, 0);
-    bc3pl_lv->SetSensitiveDetector(m_sdc_sd);
+    bc3pl_lv->SetSensitiveDetector(sdc_sd);
     new G4PVPlacement(nullptr, pos, bc3pl_lv, plane_name[i] + "PV",
                       bc3_lv, false, 1001+i);
   }
@@ -133,9 +135,9 @@ void
 DetectorConstruction::ConstructBC4()
 {
   using CLHEP::mm;
-  if(!m_sdc_sd){
-    m_sdc_sd = new SDCSD("/SDC");
-    G4SDManager::GetSDMpointer()->AddNewDetector(m_sdc_sd);
+  if(!sdc_sd){
+    sdc_sd = new SDCSD("/SDC");
+    G4SDManager::GetSDMpointer()->AddNewDetector(sdc_sd);
   }
 
   const auto& bc4_pos = (gGeom.GetGlobalPosition("KURAMA") +
@@ -167,7 +169,7 @@ DetectorConstruction::ConstructBC4()
     auto bc4pl_lv = new G4LogicalVolume(bc4pl_solid,
                                         m_material_map["Argon"],
                                         plane_name[i] + "LV", 0, 0, 0);
-    bc4pl_lv->SetSensitiveDetector(m_sdc_sd);
+    bc4pl_lv->SetSensitiveDetector(sdc_sd);
     new G4PVPlacement(nullptr, pos, bc4pl_lv, plane_name[i] + "PV",
                       bc4_lv, false, 2001+i);
   }
@@ -1224,9 +1226,9 @@ void
 DetectorConstruction::ConstructSDC1()
 {
   using CLHEP::mm;
-  if(!m_sdc_sd){
-    m_sdc_sd = new SDCSD("/SDC");
-    G4SDManager::GetSDMpointer()->AddNewDetector(m_sdc_sd);
+  if(!sdc_sd){
+    sdc_sd = new SDCSD("/SDC");
+    G4SDManager::GetSDMpointer()->AddNewDetector(sdc_sd);
   }
   const auto& sdc1_pos = (gGeom.GetGlobalPosition("KURAMA") +
                           (gGeom.GetGlobalPosition("SDC1-V1") +
@@ -1269,7 +1271,7 @@ DetectorConstruction::ConstructSDC1()
     auto sdc1pl_lv = new G4LogicalVolume(sdc1pl_solid,
                                          m_material_map["Argon"],
                                          plane_name[i] + "LV", 0, 0, 0);
-    sdc1pl_lv->SetSensitiveDetector(m_sdc_sd);
+    sdc1pl_lv->SetSensitiveDetector(sdc_sd);
     new G4PVPlacement(nullptr, pos, sdc1pl_lv, plane_name[i] + "PV",
                       sdc1_lv, false, 101+i);
   }
@@ -1280,9 +1282,9 @@ void
 DetectorConstruction::ConstructSDC3()
 {
   using CLHEP::mm;
-  if(!m_sdc_sd){
-    m_sdc_sd = new SDCSD("/SDC");
-    G4SDManager::GetSDMpointer()->AddNewDetector(m_sdc_sd);
+  if(!sdc_sd){
+    sdc_sd = new SDCSD("/SDC");
+    G4SDManager::GetSDMpointer()->AddNewDetector(sdc_sd);
   }
   const auto& sdc3_pos = (gGeom.GetGlobalPosition("KURAMA") +
                           (gGeom.GetGlobalPosition("SDC3-X1") +
@@ -1318,7 +1320,7 @@ DetectorConstruction::ConstructSDC3()
     auto sdc3pl_lv = new G4LogicalVolume(sdc3pl_solid,
                                          m_material_map["Argon"],
                                          plane_name[i] + "LV", 0, 0, 0);
-    sdc3pl_lv->SetSensitiveDetector(m_sdc_sd);
+    sdc3pl_lv->SetSensitiveDetector(sdc_sd);
     new G4PVPlacement(nullptr, pos, sdc3pl_lv, plane_name[i] + "PV",
                       sdc3_lv, false, 301+i);
   }
@@ -1329,9 +1331,9 @@ void
 DetectorConstruction::ConstructSDC4()
 {
   using CLHEP::mm;
-  if(!m_sdc_sd){
-    m_sdc_sd = new SDCSD("/SDC");
-    G4SDManager::GetSDMpointer()->AddNewDetector(m_sdc_sd);
+  if(!sdc_sd){
+    sdc_sd = new SDCSD("/SDC");
+    G4SDManager::GetSDMpointer()->AddNewDetector(sdc_sd);
   }
   const auto& sdc4_pos = (gGeom.GetGlobalPosition("KURAMA") +
                           (gGeom.GetGlobalPosition("SDC4-Y1") +
@@ -1367,7 +1369,7 @@ DetectorConstruction::ConstructSDC4()
     auto sdc4pl_lv = new G4LogicalVolume(sdc4pl_solid,
                                          m_material_map["Argon"],
                                          plane_name[i] + "LV", 0, 0, 0);
-    sdc4pl_lv->SetSensitiveDetector(m_sdc_sd);
+    sdc4pl_lv->SetSensitiveDetector(sdc_sd);
     new G4PVPlacement(nullptr, pos, sdc4pl_lv, plane_name[i] + "PV",
                       sdc4_lv, false, 401+i);
   }

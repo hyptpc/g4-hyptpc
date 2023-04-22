@@ -13,7 +13,6 @@ class G4Element;
 class G4Material;
 class G4LogicalVolume;
 class G4PVPlacement;
-class SDCSD;
 class MagneticField;
 
 //_____________________________________________________________________________
@@ -23,6 +22,7 @@ public:
   static G4String ClassName();
   DetectorConstruction();
   ~DetectorConstruction();
+  static const std::vector<G4String>& GetSDList() { return s_detector_list; }
 
 private:
   G4int                           m_experiment;
@@ -32,14 +32,16 @@ private:
   G4LogicalVolume*                m_tpc_lv;
   G4double                        m_rotation_angle;
   G4RotationMatrix*               m_rotation_matrix;
-  SDCSD*                          m_sdc_sd;
   MagneticField*                  m_field;
+  static std::vector<G4String>    s_detector_list;
 
 private:
+  virtual G4VPhysicalVolume* Construct();
   // Materials
   void ConstructElements();
   void ConstructMaterials();
   // Detectors
+  void AddNewDetector(G4VSensitiveDetector* sd);
   void ConstructBAC();
   void ConstructBH2();
   void ConstructFTOF();
@@ -48,6 +50,7 @@ private:
   void ConstructKVC();
   void ConstructShsMagnet();
   void ConstructTarget();
+  void ConstructFieldOutline();
   void ConstructVP();
   // For K1.8
   void ConstructAreaTent();
@@ -62,9 +65,6 @@ private:
   void ConstructSDC3();
   void ConstructSDC4();
   void ConstructWC();
-
-private:
-  virtual G4VPhysicalVolume* Construct();
 };
 
 //_____________________________________________________________________________

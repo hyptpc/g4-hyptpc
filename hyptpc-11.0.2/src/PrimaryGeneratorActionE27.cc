@@ -5,6 +5,7 @@
 #include <G4Event.hh>
 #include <G4IonConstructor.hh>
 #include <G4IonTable.hh>
+#include <G4KaonPlus.hh>
 #include <G4LorentzVector.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleGun.hh>
@@ -29,6 +30,7 @@
 #include "KinemaFermi.hh"
 #include "KinemaKstar.hh"
 
+
 namespace
 {
 auto& gAnaMan = AnaManager::GetInstance();
@@ -37,6 +39,7 @@ const double AtomicMassUnit = 0.9314932;
 const auto& gConf = ConfMan::GetInstance();
 const auto& gGeom = DCGeomMan::GetInstance();
 const auto& gSize = DetSizeMan::GetInstance();
+const auto particleTable = G4ParticleTable::GetParticleTable();
 }
 
 //_____________________________________________________________________________
@@ -49,11 +52,7 @@ PrimaryGeneratorAction::GenerateE27BeamThrough(G4Event* anEvent)
   //  G4double pbm[4];
   G4double Energy_pip,  mom_pip_x, mom_pip_y, mom_pip_z;
 
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* pionPlus;
-  //  kaonMinus = particleTable->FindParticle("kaon-");
-  //kaonMinus = particleTable->FindParticle("pi-");
-  pionPlus = particleTable->FindParticle("pi+");
+  auto pionPlus = G4PionPlus::Definition();
   G4double pbeam = CLHEP::RandGauss::shoot(gConf.Get<G4double>("BeamMom"),
                                            0.01294*gConf.Get<G4double>("BeamMom"));
   //  pbeam=CLHEP::RandGauss::shoot(env_Beam_mom,env_Beam_mom*3.3*0.0001/2.3548);
@@ -99,11 +98,9 @@ PrimaryGeneratorAction::GenerateE27Kptest(G4Event* anEvent)
   //  G4double pbm[4];
   G4double Energy_Kp,  mom_Kp_x, mom_Kp_y, mom_Kp_z;
 
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
+  auto KaonPlus = G4KaonPlus::Definition();
   //  kaonMinus = particleTable->FindParticle("kaon-");
   //kaonMinus = particleTable->FindParticle("pi-");
-  KaonPlus = particleTable->FindParticle("kaon+");
   G4double pbeam=CLHEP::RandGauss::shoot(gConf.Get<G4double>("BeamMom"),0.01294*gConf.Get<G4double>("BeamMom"));
   //  pbeam=CLHEP::RandGauss::shoot(env_Beam_mom,env_Beam_mom*3.3*0.0001/2.3548);
   //  pbeam=1.8;
@@ -234,23 +231,19 @@ PrimaryGeneratorAction::GenerateE27KppFLambdaP(G4Event* anEvent)
   Lv_K.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
+  auto KaonPlus = G4KaonPlus::Definition();
   m_particle_gun->SetParticleDefinition(KaonPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Lambda;
-  Lambda= particleTable->FindParticle("lambda");
+  auto Lambda= G4Lambda::Definition();
   m_particle_gun->SetParticleDefinition(Lambda);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Proton;
-  Proton= particleTable->FindParticle("proton");
+  auto Proton = G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf3);
@@ -363,23 +356,19 @@ PrimaryGeneratorAction::GenerateE27KppFSigmaZP(G4Event* anEvent)
   Lv_K.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
+  auto KaonPlus = G4KaonPlus::Definition();
   m_particle_gun->SetParticleDefinition(KaonPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* SigmaZ;
-  SigmaZ= particleTable->FindParticle("sigma0");
+  auto SigmaZ= G4SigmaZero::Definition();
   m_particle_gun->SetParticleDefinition(SigmaZ);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Proton;
-  Proton= particleTable->FindParticle("proton");
+  auto Proton= G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf3);
@@ -492,30 +481,25 @@ PrimaryGeneratorAction::GenerateE27KppFLambdaPizP(G4Event* anEvent)
   Lv_K.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
+  auto KaonPlus = G4KaonPlus::Definition();
   m_particle_gun->SetParticleDefinition(KaonPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Lambda;
-  Lambda= particleTable->FindParticle("lambda");
+  auto Lambda = G4Lambda::Definition();
   m_particle_gun->SetParticleDefinition(Lambda);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Proton;
-  Proton= particleTable->FindParticle("proton");
+  auto Proton = G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf3);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* PiZero;
-  PiZero= particleTable->FindParticle("pi0");
+  auto PiZero = G4PionZero::Definition();
   m_particle_gun->SetParticleDefinition(PiZero);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf4);
@@ -630,30 +614,25 @@ PrimaryGeneratorAction::GenerateE27KppFSigmaZPizP(G4Event* anEvent)
   Lv_K.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
+  auto KaonPlus = G4KaonPlus::Definition();
   m_particle_gun->SetParticleDefinition(KaonPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* SigmaZero;
-  SigmaZero= particleTable->FindParticle("sigma0");
+  auto SigmaZero= G4SigmaZero::Definition();
   m_particle_gun->SetParticleDefinition(SigmaZero);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Proton;
-  Proton= particleTable->FindParticle("proton");
+  auto Proton = G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf3);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* PiZero;
-  PiZero= particleTable->FindParticle("pi0");
+  auto PiZero = G4PionZero::Definition();
   m_particle_gun->SetParticleDefinition(PiZero);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf4);
@@ -768,30 +747,25 @@ PrimaryGeneratorAction::GenerateE27KppFSigmaPPimP(G4Event* anEvent)
   Lv_K.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
+  auto KaonPlus = G4KaonPlus::Definition();
   m_particle_gun->SetParticleDefinition(KaonPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* SigmaPlus;
-  SigmaPlus= particleTable->FindParticle("sigma+");
+  auto SigmaPlus = G4SigmaPlus::Definition();
   m_particle_gun->SetParticleDefinition(SigmaPlus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Proton;
-  Proton= particleTable->FindParticle("proton");
+  auto Proton = G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf3);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* PiMinus;
-  PiMinus= particleTable->FindParticle("pi-");
+  auto PiMinus = G4PionMinus::Definition();
   m_particle_gun->SetParticleDefinition(PiMinus);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf4);
@@ -912,16 +886,13 @@ PrimaryGeneratorAction::GenerateE27K11BLambda10Be(G4Event* anEvent)
   Lv_p.setVectM(LPf1, Mf1);
 
   gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* Proton;
-  Proton = particleTable->FindParticle("proton");
+  auto Proton = G4Proton::Definition();
   m_particle_gun->SetParticleDefinition(Proton);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf1);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  G4ParticleDefinition* Lambda;
-  Lambda= particleTable->FindParticle("lambda");
+  auto Lambda = G4Lambda::Definition();
   m_particle_gun->SetParticleDefinition(Lambda);
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf2);
@@ -983,10 +954,7 @@ PrimaryGeneratorAction::GenerateE27Kptest2(G4Event* anEvent)
 
   G4double Energy_Kp,  mom_Kp_x, mom_Kp_y, mom_Kp_z;
 
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* KaonPlus;
-  KaonPlus = particleTable->FindParticle("kaon+");
-  //KaonPlus = particleTable->FindParticle("proton");
+  auto KaonPlus = G4KaonPlus::Definition();
 
   mom_Kp_x=pbeam * sint*cos(phi);
   mom_Kp_y=pbeam * sint*sin(phi);

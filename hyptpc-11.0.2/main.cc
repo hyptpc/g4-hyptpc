@@ -66,9 +66,6 @@ main(int argc, char** argv)
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
     if(gConf.Get<G4bool>("EVDISP"))
       uiManager->ApplyCommand("/control/execute init_vis.mac");
-    // auto tcsh = new G4UItcsh("HypTPC(%s)[%/][%h]: ");
-    // auto session = new G4UIterminal(tcsh);
-    // tcsh->SetLsColor(GREEN, CYAN);
     ui->SessionStart();
     delete ui;
   }
@@ -79,11 +76,8 @@ main(int argc, char** argv)
     uiManager->ApplyCommand(command + fileName);
   }
 
-  gFile->Write();
   gFile->Close();
-
   delete visManager;
   delete runManager;
-  G4cout << "finished" << G4endl;
   return EXIT_SUCCESS;
 }

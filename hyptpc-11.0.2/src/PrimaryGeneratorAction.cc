@@ -220,7 +220,7 @@ PrimaryGeneratorAction::GenerateMonochromaticKaonMinus(G4Event* anEvent)
   static const auto mass = KaonMinus->GetPDGMass();
   G4LorentzVector p(0, 0, m_beam_p0,
                     std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4LorentzVector v(m_target_pos, 0);
+  G4LorentzVector v(m_target_pos + G4ThreeVector(0, 0, -1200*CLHEP::mm), 0);
   // p.setTheta(G4RandFlat::shoot(0., 10.)*CLHEP::deg);
   // p.setPhi(G4RandFlat::shoot(0., 360.)*CLHEP::deg);
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
@@ -240,10 +240,10 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   static const G4double ProtonMass = m_Proton->GetPDGMass()/CLHEP::GeV;
   static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/CLHEP::GeV;
   static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/CLHEP::GeV;
-  static const G4int KaonMinusID = m_KaonMinus->GetPDGEncoding();
-  static const G4int ProtonID = m_Proton->GetPDGEncoding();
-  static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
-  static const G4int XiMinusID = m_XiMinus->GetPDGEncoding();
+  // static const G4int KaonMinusID = m_KaonMinus->GetPDGEncoding();
+  // static const G4int ProtonID = m_Proton->GetPDGEncoding();
+  // static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
+  // static const G4int XiMinusID = m_XiMinus->GetPDGEncoding();
 
   G4LorentzVector KnLV, PLV, KpLV, XiLV;
   G4ThreeVector gen_pos(0, //m_beam->GetX(-m_beam->z),
@@ -351,7 +351,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateUniformProton(G4Event* anEvent)
 {
-  static const G4int ProtonID = m_Proton->GetPDGEncoding();
+  // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   G4double Energy_p,  mom_p_x, mom_p_y, mom_p_z;
 
   //angle
@@ -480,7 +480,7 @@ PrimaryGeneratorAction::GenerateBeamProton(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateUniformProton_P(G4Event* anEvent)
 {
-  static const G4int ProtonID = m_Proton->GetPDGEncoding();
+  // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   G4double Energy_p,  mom_p_x, mom_p_y, mom_p_z;
 
   //angle
@@ -525,7 +525,7 @@ PrimaryGeneratorAction::GenerateUniformProton_P(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateUniformProton_P_fixphi(G4Event* anEvent)
 {
-  static const G4int ProtonID = m_Proton->GetPDGEncoding();
+  // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   G4double Energy_p,  mom_p_x, mom_p_y, mom_p_z;
 
   //angle
@@ -571,7 +571,7 @@ PrimaryGeneratorAction::GenerateUniformProton_P_fixphi(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateUniformProton_P_Multi(G4Event* anEvent)
 {
-  static const G4int ProtonID = m_Proton->GetPDGEncoding();
+  // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   G4double Energy_p,  mom_p_x, mom_p_y, mom_p_z;
 
   int n_event = 5;
@@ -627,9 +627,9 @@ PrimaryGeneratorAction::GenerateLL_fromXiP(G4Event* anEvent)
   static const G4double LambdaMass = m_Lambda->GetPDGMass()/CLHEP::GeV;
   // static const G4int KaonMinusID = m_KaonMinus->GetPDGEncoding();
   // static const G4int ProtonID = m_Proton->GetPDGEncoding();
-  static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
+  // static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
   // static const G4int XiMinusID = m_XiMinus->GetPDGEncoding();
-  static const G4int LambdaID = m_Lambda->GetPDGEncoding();
+  // static const G4int LambdaID = m_Lambda->GetPDGEncoding();
 
   G4double beam_p=m_beam_p0;
   double beam_E = sqrt(KaonMinusMass*KaonMinusMass + beam_p*beam_p);
@@ -1229,7 +1229,7 @@ void
 PrimaryGeneratorAction::GenerateBeamVO(G4Event* anEvent)
 {
   static const G4double mass = m_KaonMinus->GetPDGMass()/CLHEP::GeV;
-  static const G4int pid = m_KaonMinus->GetPDGEncoding();
+  // static const G4int pid = m_KaonMinus->GetPDGEncoding();
   G4double energy = (std::sqrt(mass*mass + m_beam->mom.mag2()) - mass)*CLHEP::GeV;
   gAnaMan.SetPrimaryBeam(m_beam->mom);
   //std::cout<<"beam mom="<<m_beam->mom.mag()<<std::endl;

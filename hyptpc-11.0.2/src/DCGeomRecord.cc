@@ -112,8 +112,8 @@ DCGeomRecord::CalcVectors()
     m_dudz =  ct1*ct2;
     break;
   default:
-    throw std::invalid_argument(std::string(FUNC_NAME +
-                                            " Invalid global coordinate"));
+    throw std::invalid_argument(G4String(FUNC_NAME +
+                                         " Invalid global coordinate"));
   }
 }
 
