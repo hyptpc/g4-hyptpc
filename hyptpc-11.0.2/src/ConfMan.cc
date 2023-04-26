@@ -12,6 +12,9 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
+#include <TFile.h>
+#include <TNamed.h>
+
 #include "BeamMan.hh"
 #include "DCGeomMan.hh"
 #include "DetSizeMan.hh"
@@ -59,9 +62,12 @@ ConfMan::Initialize()
   m_string[m_conf_key] = m_file[m_conf_key];
 
   m_conf_dir = ::dirname(const_cast<char*>(m_file[m_conf_key].data()));
+  m_conf_buf.clear();
+  m_conf_buf += "\n";
 
   G4String line;
   while(ifs.good() && std::getline(ifs, line)){
+    m_conf_buf += line + "\n";
     if(line[0]=='#') continue;
     std::istringstream iss(line);
     G4String key, val;
@@ -98,6 +104,15 @@ ConfMan::Initialize(const G4String& file_name)
 
 //_____________________________________________________________________________
 G4bool
+ConfMan::Initialize(const std::vector<G4String>& arg)
+{
+  m_file[m_conf_key] = arg[kConfFile];
+  m_string["ROOT"] = arg[kOutFile];
+  return Initialize();
+}
+
+//_____________________________________________________________________________
+G4bool
 ConfMan::InitializeHistograms()
 {
   return true;
@@ -107,11 +122,13 @@ ConfMan::InitializeHistograms()
 G4bool
 ConfMan::InitializeParameterFiles()
 {
-  return (InitializeParameter<DCGeomMan>("DCGEO") &&
-          InitializeParameter<BeamMan>("BEAM") &&
-          InitializeParameter<DetSizeMan>("DSIZE") &&
-          InitializeParameter<JamMan>("JAM") &&
-          InitializeParameter<IncMan>("INC"));
+  return (true
+          && InitializeParameter<DCGeomMan>("DCGEO")
+          && InitializeParameter<BeamMan>("BEAM")
+          && InitializeParameter<DetSizeMan>("DSIZE")
+          && InitializeParameter<JamMan>("JAM")
+          && InitializeParameter<IncMan>("INC")
+          );
 }
 
 //_____________________________________________________________________________

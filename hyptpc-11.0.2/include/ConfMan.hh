@@ -10,6 +10,8 @@
 
 #include <globals.hh>
 
+enum EArgv { kProcess, kConfFile, kOutFile, kG4Macro, kArgc };
+
 //_____________________________________________________________________________
 class ConfMan
 {
@@ -30,6 +32,7 @@ private:
   typedef std::map<G4String, G4bool>   BoolList;
   G4String     m_conf_key;
   G4String     m_conf_dir;
+  G4String     m_conf_buf;
   G4bool       m_is_ready;
   StrList      m_file;
   StrList      m_string;
@@ -42,8 +45,10 @@ public:
   // G4bool    FinalizeProcess();
   template <typename T>
   static const T& Get(const G4String& key);
+  const G4String& ConfBuf() const { return m_conf_buf; }
   G4bool    Initialize();
   G4bool    Initialize(const G4String& file_name);
+  G4bool    Initialize(const std::vector<G4String>& arg);
   G4bool    InitializeHistograms();
   G4bool    InitializeParameterFiles();
   template <typename T>

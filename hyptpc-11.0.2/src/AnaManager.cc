@@ -34,6 +34,7 @@ std::map<TString, TH1*> hmap;
 
 //_____________________________________________________________________________
 AnaManager::AnaManager()
+  : m_file()
 {
   return;
   tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
@@ -125,6 +126,8 @@ AnaManager::AnaManager()
 //_____________________________________________________________________________
 AnaManager::~AnaManager()
 {
+  if (gFile && gFile->IsOpen())
+    gFile->Close();
 }
 
 //_____________________________________________________________________________
@@ -141,6 +144,12 @@ AnaManager::MakeBranch(const G4String& sd_name)
 void
 AnaManager::BeginOfRunAction(G4int /* runnum */)
 {
+  if (m_file && m_file->IsOpen())
+    m_file->Close();
+  m_file = new TFile(gConf.Get<G4String>("ROOT"), "RECREATE");
+  static auto obj = new TNamed("conf", gConf.ConfBuf());
+  obj->Write();
+
   if (tree) delete tree;
   tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
   tree->Branch("evnum", &event.evnum, "evnum/I");
@@ -314,6 +323,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
 void
 AnaManager::EndOfRunAction()
 {
+  m_file->cd();
   tree->Write();
   for (auto& h: hmap) {
     h.second->Write();

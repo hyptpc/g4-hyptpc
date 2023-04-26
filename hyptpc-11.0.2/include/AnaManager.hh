@@ -13,6 +13,8 @@
 
 class G4ParticleDefinition;
 
+class TFile;
+
 struct Track;
 
 class VHitInfo;
@@ -226,6 +228,7 @@ private:
   AnaManager& operator=(const AnaManager&);
 
 private:
+  TFile* m_file;
   G4int m_on_off_helm;
   G4int m_pad_config;
   G4int m_experiment;

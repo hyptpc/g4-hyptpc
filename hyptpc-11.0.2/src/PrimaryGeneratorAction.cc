@@ -95,19 +95,16 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
   delete m_particle_gun;
-  delete m_beam;
 }
 
 //_____________________________________________________________________________
 void
 PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  if(gBeam.IsReady()){
-    *m_beam = gBeam.Get();
+  *m_beam = gBeam.Get();
 #ifdef DEBUG
-    m_beam->Print();
+  m_beam->Print();
 #endif
-  }
 
   if(gJam.IsReady()){
     m_jam = gJam.Get();

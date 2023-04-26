@@ -99,7 +99,12 @@ BeamMan::Initialize(const G4String& filename)
 const BeamInfo&
 BeamMan::Get() const
 {
-  return m_param_array.at(G4RandFlat::shootInt(m_n_param));
+  if (m_is_ready && m_n_param > 0){
+    return m_param_array.at(G4RandFlat::shootInt(m_n_param));
+  } else {
+    static BeamInfo nullinfo;
+    return nullinfo;
+  }
 }
 
 //_____________________________________________________________________________

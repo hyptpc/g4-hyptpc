@@ -10,8 +10,6 @@
 #include <G4VisExecutive.hh>
 #include <QGSP_BERT.hh>
 
-#include <TFile.h>
-
 #include "ActionInitialization.hh"
 #include "ConfMan.hh"
 #include "DetectorConstruction.hh"
@@ -23,24 +21,22 @@
 
 //#include "VisManager.hh"
 
-enum EArgv { kProcess, kConfFile, kOutputName, kG4Macro, kArgc };
-
 //_____________________________________________________________________________
 int
 main(int argc, char** argv)
 {
-  if(argc != kArgc-1 && argc != kArgc){
-    G4cout << "Usage: " << argv[kProcess]
+  std::vector<G4String> arg(argv, argv + argc);
+
+  if (argc != kArgc-1 && argc != kArgc) {
+    G4cout << "Usage: " << arg[kProcess]
 	   << " [ConfFile] [OutputName] (G4Macro)" << G4endl;
     return EXIT_SUCCESS;
   }
 
-  ConfMan& gConf = ConfMan::GetInstance();
-  if(!gConf.Initialize(argv[kConfFile])){
+  auto& gConf = ConfMan::GetInstance();
+  if (!gConf.Initialize(arg)) {
     return EXIT_FAILURE;
   }
-
-  new TFile(argv[kOutputName], "RECREATE");
 
   auto runManager =
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
@@ -76,7 +72,6 @@ main(int argc, char** argv)
     uiManager->ApplyCommand(command + fileName);
   }
 
-  gFile->Close();
   delete visManager;
   delete runManager;
   return EXIT_SUCCESS;
