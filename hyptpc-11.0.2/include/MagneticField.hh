@@ -77,7 +77,7 @@ public:
 
 public:
   void   AddMagnetInfo(const MagnetInfo& mag);
-  G4ThreeVector GetSizeShsField() const;
+  const G4ThreeVector& GetSizeShsField() const;
   G4bool GetStatusK18Field() const { return m_k18_status; }
   G4bool GetStatusKuramaField() const { return m_kurama_status; }
   G4bool GetStatusShsField() const { return m_shs_status; }

@@ -136,7 +136,7 @@ PrimaryGeneratorAction::GenerateE45ElasticPionPlus(G4Event* anEvent)
   pbeam_x=0.;
   pbeam_y=0.;
 
-  gAnaMan.SetPrimaryBeam(pbeam_x,pbeam_y,pbeam_z);
+  // gAnaMan.SetPrimaryBeam(pbeam_x,pbeam_y,pbeam_z);
   G4double cosx = G4RandFlat::shoot(-1.,1.);
   G4double p_proton[4]={0};
   //  gAnaMan.SetFermiMotion(p_proton);
@@ -206,7 +206,6 @@ PrimaryGeneratorAction::GenerateE45ElasticPionPlus(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pipMass/CLHEP::GeV);///pip
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -311,7 +310,7 @@ PrimaryGeneratorAction::GenerateE45ElasticPionMinus(G4Event* anEvent)
   pbeam_x=0.;
   pbeam_y=0.;
 
-  gAnaMan.SetPrimaryBeam(pbeam_x,pbeam_y,pbeam_z);
+  // gAnaMan.SetPrimaryBeam(pbeam_x,pbeam_y,pbeam_z);
   G4double cosx = G4RandFlat::shoot(-1.,1.);
   G4double p_proton[4]={0};
   //  gAnaMan.SetFermiMotion(p_proton);
@@ -381,7 +380,6 @@ PrimaryGeneratorAction::GenerateE45ElasticPionMinus(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,pinMass/CLHEP::GeV);///pin
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,protonMass/CLHEP::GeV);///proton
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);

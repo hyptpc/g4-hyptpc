@@ -214,13 +214,14 @@ MagneticField::GetFieldValue(const G4double Point[4], G4double* Bfield) const
 }
 
 //_____________________________________________________________________________
-G4ThreeVector
+const G4ThreeVector&
 MagneticField::GetSizeShsField() const
 {
   if (m_shs_field_map) {
     return m_shs_field_map->GetFieldSize();
   } else {
-    return G4ThreeVector();
+    static G4ThreeVector nullvector;
+    return nullvector;
   }
 }
 

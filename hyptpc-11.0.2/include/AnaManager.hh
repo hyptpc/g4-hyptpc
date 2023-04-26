@@ -99,7 +99,6 @@ struct TPCData
 struct Event
 {
   Int_t evnum; // Event number
-  TVector3* pb; // momentum of inncident beam
   Int_t generator;
   Int_t mode;        // mode number
   Int_t inc;        // INC id number
@@ -109,9 +108,6 @@ struct Event
 
   Int_t HitNum_p;
   //  int tpctrNum_p;
-
-  Int_t nhPrm;
-  std::vector<TParticle> Prm;
 
   std::map<TString, std::vector<TParticle>> hits;
 
@@ -290,18 +286,10 @@ public:
   void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);
   void SetIncID(G4int inc);
-  void SetNumberOfPrimaryParticle(G4int n);
-  void SetTargetData(const VHitInfo* hit);
-  void SetPrimaryBeam(const G4ThreeVector& p);
-  void SetPrimaryBeam(G4double px, G4double py, G4double pz);
   void SetPrimaryParticle(G4int id, G4int pdg,
                           const G4LorentzVector& p,
-                          const G4LorentzVector& v);
-  void SetPrimaryParticle(G4double px, G4double py, G4double pz);
-  void SetPrimaryParticle(G4int id, const G4ThreeVector& p, G4double mass,
-                          G4int pid=-9999);
-  void SetPrimaryParticle(G4int id, G4double px, G4double py, G4double pz,
-                          G4double mass, G4int pid=-9999);
+                          const G4LorentzVector& v,
+                          G4bool is_virtual_beam=false);
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,

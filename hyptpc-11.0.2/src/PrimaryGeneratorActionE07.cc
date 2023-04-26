@@ -140,7 +140,6 @@ PrimaryGeneratorAction::GenerateE07Study(G4Event* anEvent)
   //  m_particle_gun->SetParticlePosition(vertexPos);
   //  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   //  gAnaMan.SetPrimaryParticle(1,pbm[0],pbm[1],pbm[2],m_KaonMinus->GetPDGMass()/CLHEP::GeV);
 
@@ -232,8 +231,6 @@ PrimaryGeneratorAction::GenerateE07StudyKp(G4Event* anEvent)
   m_particle_gun->SetParticleEnergy((Energy_ka - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
   m_particle_gun->SetParticlePosition(vertexPos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,0.,0.,vtx[2]);
 }
@@ -301,7 +298,7 @@ PrimaryGeneratorAction::GenerateE07StudyKpBeam(G4Event* anEvent)
   // G4double Energy_beam = pbm[3];
   G4ThreeVector momentumBeam(pbm[0],pbm[1],pbm[2]);
 
-  gAnaMan.SetPrimaryBeam(pbm[0],pbm[1],pbm[2]);
+  // gAnaMan.SetPrimaryBeam(pbm[0],pbm[1],pbm[2]);
 
   G4ThreeVector vertexPos(vtx[0],vtx[1],vtx[2]);
 
@@ -313,8 +310,6 @@ PrimaryGeneratorAction::GenerateE07StudyKpBeam(G4Event* anEvent)
   m_particle_gun->SetParticleEnergy((Energy_ka - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
   m_particle_gun->SetParticlePosition(vertexPos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx[0],vtx[1],vtx[2]);
 
@@ -466,7 +461,6 @@ PrimaryGeneratorAction::GenerateE07StudyAll(G4Event* anEvent)
   //  m_particle_gun->SetParticlePosition(vertexPos);
   //  m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   //  gAnaMan.SetPrimaryParticle(1,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   //  gAnaMan.SetPrimaryParticle(2,pka[0],pka[1],pka[2],PionPlus->GetPDGMass()/CLHEP::GeV);
@@ -502,7 +496,7 @@ PrimaryGeneratorAction::GenerateE07StudyKnP(G4Event* anEvent)
 
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   pbeam=1.8;
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
 
   pbm[0]=0;
@@ -576,8 +570,6 @@ PrimaryGeneratorAction::GenerateE07StudyKnP(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Proton->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -598,7 +590,7 @@ PrimaryGeneratorAction::GenerateE07StudyKnPBeam(G4Event* anEvent)
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   //  pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
 
   pbm[0]=0;
@@ -671,8 +663,6 @@ PrimaryGeneratorAction::GenerateE07StudyKnPBeam(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Proton->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -696,7 +686,7 @@ PrimaryGeneratorAction::GenerateE07StudyKpXiBeam(G4Event* anEvent)
   //  pbeam=G4RandGauss::shoot(1.7,1.7*3.3*0.0001/2.3548);
   //  G4cout<<pbeam<<G4endl;
 
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   pbm[0]=0;
   pbm[1]=0;
@@ -769,8 +759,6 @@ PrimaryGeneratorAction::GenerateE07StudyKpXiBeam(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_XiMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -791,7 +779,7 @@ PrimaryGeneratorAction::GenerateE07StudyKpXiBeamOnlyKp(G4Event* anEvent)
   //  pbeam=1.7;
   //  pbeam=G4RandGauss::shoot(1.7,1.7*3.3*0.0001/2.3548);
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   pbm[0]=0;
   pbm[1]=0;
@@ -865,7 +853,6 @@ PrimaryGeneratorAction::GenerateE07StudyKpXiBeamOnlyKp(G4Event* anEvent)
       m_particle_gun->GeneratePrimaryVertex(anEvent);
   */
 
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_XiMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -890,7 +877,7 @@ PrimaryGeneratorAction::GenerateE07StudyKpxi1530(G4Event* anEvent)
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   //  G4cout<<pbeam<<G4endl;
 
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   pbm[0]=0;
   pbm[1]=0;
@@ -966,8 +953,6 @@ PrimaryGeneratorAction::GenerateE07StudyKpxi1530(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Xi1530Minus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -1006,7 +991,7 @@ PrimaryGeneratorAction::GenerateE07StudyTakahashi(G4Event* anEvent)
   //  pbeam=G4RandGauss::shoot(1.7,1.7*3.3*0.0001/2.3548);
   //  G4cout<<pbeam<<G4endl;
 
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
   // G4double Ebeam = sqrt(pbeam*pbeam+
   // 	m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   G4ThreeVector pbm(0., 0., pbeam);
@@ -1080,8 +1065,6 @@ PrimaryGeneratorAction::GenerateE07StudyTakahashi(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-
-  gAnaMan.SetNumberOfPrimaryParticle(2);
   // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_XiMinus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
@@ -1135,7 +1118,6 @@ PrimaryGeneratorAction::GenerateE07StudyP08to20(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }
@@ -1188,7 +1170,6 @@ PrimaryGeneratorAction::GenerateE07StudyKp04to15(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetNumberOfPrimaryParticle(1);
   // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }

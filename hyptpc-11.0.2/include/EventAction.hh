@@ -8,6 +8,7 @@
 #include <G4Types.hh>
 
 class G4Event;
+class G4RunAction;
 
 //_____________________________________________________________________________
 class EventAction : public G4UserEventAction

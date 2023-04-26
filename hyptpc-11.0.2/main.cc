@@ -1,6 +1,8 @@
 // -*- C++ -*-
 
+#include <G4MTRunManager.hh>
 #include <G4RunManager.hh>
+#include <G4RunManagerFactory.hh>
 #include <G4TrajectoryDrawByCharge.hh>
 #include <G4UIterminal.hh>
 #include <G4UItcsh.hh>
@@ -10,6 +12,7 @@
 
 #include <TFile.h>
 
+#include "ActionInitialization.hh"
 #include "ConfMan.hh"
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
@@ -39,7 +42,9 @@ main(int argc, char** argv)
 
   new TFile(argv[kOutputName], "RECREATE");
 
-  auto runManager = new G4RunManager;
+  auto runManager =
+    G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
+  // G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT);
   runManager->SetUserInitialization(new DetectorConstruction);
   if(gConf.Get<G4String>("Physics") == "USER")
     runManager->SetUserInitialization(new PhysicsList);
@@ -47,14 +52,9 @@ main(int argc, char** argv)
     runManager->SetUserInitialization(new QGSP_BERT);
   else
     runManager->SetUserInitialization(new QGSP_BERT);
-
-  runManager->SetUserAction(new PrimaryGeneratorAction);
-  runManager->SetUserAction(new RunAction);
-  runManager->SetUserAction(new SteppingAction);
-  runManager->SetUserAction(new EventAction);
+  runManager->SetUserInitialization(new ActionInitialization);
   runManager->Initialize();
 
-  // auto visManager = new VisManager;
   auto visManager = new G4VisExecutive;
   visManager->SetVerboseLevel(0);
   visManager->Initialize();

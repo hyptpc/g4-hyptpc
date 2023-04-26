@@ -35,8 +35,6 @@ std::map<TString, TH1*> hmap;
 //_____________________________________________________________________________
 AnaManager::AnaManager()
 {
-  event.pb = new TVector3;
-
   return;
   tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
   tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
@@ -143,16 +141,13 @@ AnaManager::MakeBranch(const G4String& sd_name)
 void
 AnaManager::BeginOfRunAction(G4int /* runnum */)
 {
-  const Int_t bufsize = 32000;
   if (tree) delete tree;
   tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
   tree->Branch("evnum", &event.evnum, "evnum/I");
-  tree->Branch("pb", "TVector3", event.pb);
-  tree->Branch("nhPrm", &event.nhPrm, "nhPrm/I");
-  tree->Branch("Prm", "std::vector<TParticle>", &event.Prm, bufsize, -1);
   tree->Branch("generator", &event.generator, "generator/I");
   tree->Branch("mode",&event.mode,"mode/I");
   tree->Branch("inc",&event.inc,"inc/I");
+  MakeBranch("PRM");
   for (const auto& sd_name : DetectorConstruction::GetSDList()) {
     MakeBranch(sd_name);
   }
@@ -341,6 +336,7 @@ AnaManager::BeginOfEventAction()
   HitNum_p=0;
   //  tpctrNum_K=0;
 
+  event.hits["PRM"].clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
     event.hits[sd_name].clear();
   }
@@ -550,8 +546,8 @@ AnaManager::EndOfEventAction()
       G4double rho1 = rad[i];
       G4double cx1 = cx[i];
       G4double cz1 = cz[i];
-      G4double cx2 = event.Prm[0].Vx();
-      G4double cz2 = event.Prm[0].Vz();
+      G4double cx2 = event.hits["PRM"][0].Vx();
+      G4double cz2 = event.hits["PRM"][0].Vz();
       G4double theta12=atan2(cz2-cz1, cx2-cx1);
       G4double ca1=a_fory[i];
       G4double cb1=b_fory[i];
@@ -1123,10 +1119,6 @@ AnaManager::EndOfEventAction()
 
   tree->Fill();
 
-  event.pb->SetXYZ(0., 0., 0.);
-
-  event.nhPrm = 0;
-  event.Prm.clear();
   return 0;
 }
 
@@ -1444,30 +1436,28 @@ AnaManager::SetTPCData(G4int tpctr2, G4int tpcpid2, G4int tpcparentid2,
 
 //_____________________________________________________________________________
 void
-AnaManager::SetNumberOfPrimaryParticle(G4int n)
-{
-  event.nhPrm = n;
-}
-
-//_____________________________________________________________________________
-void
 AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
                                const G4LorentzVector& p,
-                               const G4LorentzVector& v)
+                               const G4LorentzVector& v,
+                               G4bool is_virtual_beam)
 {
-  if(id >= event.nhPrm){
-    G4cerr << FUNC_NAME << " Invalid Primary particle ID" << G4endl;
-  } else {
-    TParticle particle(pdg,
-                       0, // fStatus
-                       1, // fMother[0]
-                       0, // fMother[1]
-                       0, // fDaughter[0]
-                       0, // fDaughter[1]
-                       TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
-                       TLorentzVector(v.x(), v.y(), v.z(), v.t()));
-    event.Prm.push_back(particle);
+  G4int id1 = is_virtual_beam ? -1 : 1;
+  G4int id2 = id;
+  for (const auto& ptcl: event.hits["PRM"]) {
+    if (ptcl.GetMother(0) == id1 && ptcl.GetMother(1) == id2) {
+      G4cerr << FUNC_NAME << " id1=" << id1 << ", id2=" << id2
+             << " is already set" << G4endl;
+    }
   }
+  TParticle particle(pdg,
+                     0, // fStatus
+                     id1, // fMother[0]
+                     id2, // fMother[1]
+                     0, // fDaughter[0]
+                     0, // fDaughter[1]
+                     TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
+                     TLorentzVector(v.x(), v.y(), v.z(), v.t()));
+  event.hits["PRM"].push_back(particle);
 }
 
 //_____________________________________________________________________________
@@ -1489,20 +1479,6 @@ void
 AnaManager::SetIncID(G4int inc)
 {
   event.inc = inc;
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryBeam(const G4ThreeVector& p)
-{
-  event.pb->SetXYZ(p.x(), p.y(), p.z());
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetPrimaryBeam(G4double px, G4double py, G4double pz)
-{
-  event.pb->SetXYZ(px, py, pz);
 }
 
 /*************************************

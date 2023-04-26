@@ -151,7 +151,7 @@ PrimaryGeneratorAction::GenerateKKppLL1(G4Event* anEvent)
   Lv_targ_P.setVectM(G4ThreeVector(0.,0.,0.), Mp);
   Lv_K.setVectM(LPKz, MKz);
 
-  gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
+  // gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* PionPlus;
   PionPlus = particleTable->FindParticle("pi+");
@@ -190,10 +190,6 @@ PrimaryGeneratorAction::GenerateKKppLL1(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPf6);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-
-
-  gAnaMan.SetNumberOfPrimaryParticle(6);
 
   // double mm_d = (Lv_beam + Lv_targ_D + (-1.)*Lv_K).mag();
   // double mm_p = (Lv_beam + Lv_targ_P + (-1.)*Lv_K).mag();
@@ -338,7 +334,7 @@ PrimaryGeneratorAction::GenerateKKppLL2(G4Event* anEvent)
   Lv_targ_P.setVectM(G4ThreeVector(0.,0.,0.), Mp);
   Lv_K.setVectM(LPKz, MKz);
 
-  gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
+  // gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* Kaon0S;
   Kaon0S = particleTable->FindParticle("kaon0S");
@@ -359,10 +355,6 @@ PrimaryGeneratorAction::GenerateKKppLL2(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPL2);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-
-
-  gAnaMan.SetNumberOfPrimaryParticle(3);
 
   // double mm_d = (Lv_beam + Lv_targ_D + (-1.)*Lv_K).mag();
   // double mm_p = (Lv_beam + Lv_targ_P + (-1.)*Lv_K).mag();
@@ -501,7 +493,7 @@ PrimaryGeneratorAction::GenerateKKppLSmPip(G4Event* anEvent)
   Lv_targ_P.setVectM(G4ThreeVector(0.,0.,0.), Mp);
   Lv_K.setVectM(LPKz, MKz);
 
-  gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
+  // gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* Kaon0S;
   Kaon0S = particleTable->FindParticle("kaon0S");
@@ -531,10 +523,6 @@ PrimaryGeneratorAction::GenerateKKppLSmPip(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPpi);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-
-
-  gAnaMan.SetNumberOfPrimaryParticle(4);
 
   // double mm_d = (Lv_beam + Lv_targ_D + (-1.)*Lv_K).mag();
   // double mm_p = (Lv_beam + Lv_targ_P + (-1.)*Lv_K).mag();
@@ -673,7 +661,7 @@ PrimaryGeneratorAction::GenerateKKppLSpPim(G4Event* anEvent)
   Lv_targ_P.setVectM(G4ThreeVector(0.,0.,0.), Mp);
   Lv_K.setVectM(LPKz, MKz);
 
-  gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
+  // gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* Kaon0S;
   Kaon0S = particleTable->FindParticle("kaon0S");
@@ -703,8 +691,6 @@ PrimaryGeneratorAction::GenerateKKppLSpPim(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(LPpi);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-  gAnaMan.SetNumberOfPrimaryParticle(4);
 
   // double mm_d = (Lv_beam + Lv_targ_D + (-1.)*Lv_K).mag();
   // double mm_p = (Lv_beam + Lv_targ_P + (-1.)*Lv_K).mag();
@@ -741,7 +727,7 @@ PrimaryGeneratorAction::GenerateJAMInput(G4Event* anEvent, TTree*t1)
   // G4double mom_kp_x = 0;
   // G4double mom_kp_y = 0;
   // G4double mom_kp_z = pbeam;
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
 
   int N_first = gConf.Get<G4int>("NbeamFirst");
 
@@ -764,7 +750,6 @@ PrimaryGeneratorAction::GenerateJAMInput(G4Event* anEvent, TTree*t1)
     G4int np_JAM = np;
 
     //  G4int np_JAM = Getnp_JAM(Nbeam_JAMInput);
-    gAnaMan.SetNumberOfPrimaryParticle(np_JAM);
     // gAnaMan.SetPrimaryInfo(0., 0., 0., 0., 0.);
 
 
@@ -871,7 +856,7 @@ PrimaryGeneratorAction::GenerateKKppBeamThrough1(G4Event* anEvent)
 
   G4ThreeVector beam_mom = pb*LBeamDir;
 
-  gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
+  // gAnaMan.SetPrimaryBeam(beam_mom.x(),beam_mom.y(),beam_mom.z());
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* KaonM;
   KaonM = particleTable->FindParticle("kaon-");
@@ -879,10 +864,6 @@ PrimaryGeneratorAction::GenerateKKppBeamThrough1(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(LPos);
   m_particle_gun->SetParticleMomentum(beam_mom);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-
-
-
-  gAnaMan.SetNumberOfPrimaryParticle(1);
 
   // gAnaMan.SetPrimaryInfo(0., 0., 0., 0., 0.);
   // gAnaMan.SetPrimaryParticle(0,beam_mom.x(),beam_mom.y(),beam_mom.z(),
@@ -902,7 +883,7 @@ PrimaryGeneratorAction::GenerateJAMInputK0(G4Event* anEvent, TTree*t1)
   // G4double mom_kp_x = 0;
   // G4double mom_kp_y = 0;
   // G4double mom_kp_z = pbeam;
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
 
   int N_first = gConf.Get<G4int>("NbeamFirst");
 
@@ -922,7 +903,6 @@ PrimaryGeneratorAction::GenerateJAMInputK0(G4Event* anEvent, TTree*t1)
   G4int np_JAM = np;
 
   //  G4int np_JAM = Getnp_JAM(Nbeam_JAMInput);
-  gAnaMan.SetNumberOfPrimaryParticle(np_JAM);
   // gAnaMan.SetPrimaryInfo(0., 0., 0., 0., 0.);
   std::cout<<"Nbeam_JAMInpu="<<Nbeam_JAMInput
 	   <<", Num of Primary Particle="<<np_JAM<<std::endl;;
@@ -1008,7 +988,7 @@ PrimaryGeneratorAction::GenerateJAMInputK0bar(G4Event* anEvent, TTree*t1)
   // G4double mom_kp_x = 0;
   // G4double mom_kp_y = 0;
   // G4double mom_kp_z = pbeam;
-  gAnaMan.SetPrimaryBeam(0,0,pbeam);
+  // gAnaMan.SetPrimaryBeam(0,0,pbeam);
 
   int N_first = gConf.Get<G4int>("NbeamFirst");
 
@@ -1028,7 +1008,6 @@ PrimaryGeneratorAction::GenerateJAMInputK0bar(G4Event* anEvent, TTree*t1)
   G4int np_JAM = np;
 
   //  G4int np_JAM = Getnp_JAM(Nbeam_JAMInput);
-  gAnaMan.SetNumberOfPrimaryParticle(np_JAM);
   // gAnaMan.SetPrimaryInfo(0., 0., 0., 0., 0.);
 
   std::cout<<"Nbeam_JAMInpu="<<Nbeam_JAMInput
