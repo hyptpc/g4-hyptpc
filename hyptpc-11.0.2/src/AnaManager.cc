@@ -36,19 +36,10 @@ AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC"))
 {
-  m_tree->Branch("evnum", &event.evnum, "evnum/I");
-  m_tree->Branch("generator", &event.generator, "generator/I");
-  m_tree->Branch("mode",&event.mode,"mode/I");
-  m_tree->Branch("inc",&event.inc,"inc/I");
-  MakeBranch("PRM");
-  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
-    MakeBranch(sd_name);
-  }
-
   TString key;
   key = "Time";
   hmap[key] = new TH1D(key, key, 400, 0.0, 10.0);
-  for(G4int i=0; i<G4ThreeVector::SIZE; ++i){
+  for (G4int i=0; i<G4ThreeVector::SIZE; ++i) {
     key = Form("Pos%d", i);
     hmap[key] = new TH1D(key, key, 500, -25.0*CLHEP::cm, 25.0*CLHEP::cm);
     key = Form("Mom%d", i);
@@ -161,8 +152,9 @@ AnaManager::MakeBranch(const G4String& sd_name)
 {
   static const Int_t bufsize = 32000;
   m_tree->Branch(sd_name.data(),
-               "std::vector<TParticle>",
-               &event.hits[sd_name], bufsize, -1);
+                 "std::vector<TParticle>",
+                 &event.hits[sd_name], bufsize, -1);
+  G4cout << "make branch : " << sd_name << G4endl;
 }
 
 //_____________________________________________________________________________
@@ -173,6 +165,14 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   static auto obj = new TNamed("conf", gConf.ConfBuf());
   obj->Write();
   m_tree->Reset();
+  m_tree->Branch("evnum", &event.evnum, "evnum/I");
+  m_tree->Branch("generator", &event.generator, "generator/I");
+  m_tree->Branch("mode",&event.mode,"mode/I");
+  m_tree->Branch("inc",&event.inc,"inc/I");
+  MakeBranch("PRM");
+  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
+    MakeBranch(sd_name);
+  }
 
   for (auto& h: hmap) {
     h.second->Reset();

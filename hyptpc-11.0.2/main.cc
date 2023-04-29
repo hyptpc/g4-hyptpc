@@ -42,12 +42,13 @@ main(int argc, char** argv)
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
   // G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT);
   runManager->SetUserInitialization(new DetectorConstruction);
-  if(gConf.Get<G4String>("Physics") == "USER")
-    runManager->SetUserInitialization(new PhysicsList);
-  else if(gConf.Get<G4String>("Physics") == "QGSP_BERT")
-    runManager->SetUserInitialization(new QGSP_BERT(0));
+  G4VModularPhysicsList* phys;
+  if (gConf.Get<G4String>("Physics") == "USER")
+    phys = new PhysicsList;
   else
-    runManager->SetUserInitialization(new QGSP_BERT(0));
+    phys = new QGSP_BERT(0);
+  phys->SetDefaultCutValue(gConf.Get<G4double>("DefaultCutValue"));
+  runManager->SetUserInitialization(phys);
   runManager->SetUserInitialization(new ActionInitialization);
   runManager->Initialize();
 

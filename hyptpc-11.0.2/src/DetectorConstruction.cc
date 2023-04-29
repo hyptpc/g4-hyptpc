@@ -1381,11 +1381,18 @@ DetectorConstruction::ConstructTarget()
     rot->rotateX(90.*deg);
   }
   case 72: {
-    target_solid = new G4Tubs("TargetSolid",
-                              target_size[0],
-                              target_size[1],
-                              target_size[2],
-                              0.*deg, 360.*deg);
+    if (gConf.Get<G4bool>("TargetVP")) {
+      target_solid = new G4Box("TargetSolid",
+                               target_size[1],
+                               0.001*mm,
+                               target_size[2]);
+    } else {
+      target_solid = new G4Tubs("TargetSolid",
+                                target_size[0],
+                                target_size[1],
+                                target_size[2],
+                                0.*deg, 360.*deg);
+    }
     rot->rotateX(90.*deg);
     const auto kapton_size = gSize.GetSize("TargetKapton")*mm/2.;
     const auto gfrp_size = gSize.GetSize("TargetGFRP")*mm/2.;
