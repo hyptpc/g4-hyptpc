@@ -14,6 +14,7 @@
 class G4ParticleDefinition;
 
 class TFile;
+class TTree;
 
 struct Track;
 
@@ -229,6 +230,7 @@ private:
 
 private:
   TFile* m_file;
+  TTree* m_tree;
   G4int m_on_off_helm;
   G4int m_pad_config;
   G4int m_experiment;

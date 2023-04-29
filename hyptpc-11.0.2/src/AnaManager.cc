@@ -27,100 +27,125 @@
 namespace
 {
 const auto& gConf = ConfMan::GetInstance();
-TTree* tree;
 Event event;
 std::map<TString, TH1*> hmap;
 }
 
 //_____________________________________________________________________________
 AnaManager::AnaManager()
-  : m_file()
+  : m_file(),
+    m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC"))
 {
+  m_tree->Branch("evnum", &event.evnum, "evnum/I");
+  m_tree->Branch("generator", &event.generator, "generator/I");
+  m_tree->Branch("mode",&event.mode,"mode/I");
+  m_tree->Branch("inc",&event.inc,"inc/I");
+  MakeBranch("PRM");
+  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
+    MakeBranch(sd_name);
+  }
+
+  TString key;
+  key = "Time";
+  hmap[key] = new TH1D(key, key, 400, 0.0, 10.0);
+  for(G4int i=0; i<G4ThreeVector::SIZE; ++i){
+    key = Form("Pos%d", i);
+    hmap[key] = new TH1D(key, key, 500, -25.0*CLHEP::cm, 25.0*CLHEP::cm);
+    key = Form("Mom%d", i);
+    if(i==2)
+      hmap[key] = new TH1D(key, key, 400, 0.0, 2.0);
+    else
+      hmap[key] = new TH1D(key, key, 400, -2.0, 2.);
+    key = Form("Fermi%d", i);
+    hmap[key] = new TH1D(key, key, 500, -1.0*CLHEP::GeV, 1.0*CLHEP::GeV);
+    hmap[key]->GetXaxis()->SetTitle("[MeV/c]");
+  }
+
   return;
-  tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
-  tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
-  tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
-  tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
-  tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
-  tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
-  tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
-  tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
-  tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
-  tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
-  tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
-  tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
-  tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
-  tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
-  tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
-  tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
-  tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
-  tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
-  tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
-  tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
-  tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
-  tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
-  tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
-  tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
-  tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
-  tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
-  tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
-  tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
-  tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
-  tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
-  tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
-  tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
+  m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
+  m_tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
+  m_tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
+  m_tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
+  m_tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
+  m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
+  m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
+  m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
+  m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
+  m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
+  m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
+  m_tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
+  m_tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
+  m_tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
+  m_tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
+  m_tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
+  m_tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
+  m_tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
+  m_tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
+  m_tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
+  m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
+  m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
+  m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
+  m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
+  m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
+  m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
+  m_tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
+  m_tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
+  m_tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
 
   //// Study on multiplicity
-  // tree->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
-  // tree->Branch("nthpad",event.nthpad,"nthpad[nhittpc]/I");
-  // tree->Branch("laypad",event.laypad,"laytpadpc[nhittpc][40][250]/I");
+  // m_tree->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
+  // m_tree->Branch("nthpad",event.nthpad,"nthpad[nhittpc]/I");
+  // m_tree->Branch("laypad",event.laypad,"laytpadpc[nhittpc][40][250]/I");
 
 
   //shhwang ntrtpc --> number of trak in tpc
-  // tree->Branch("ntrtpc",&event.ntrtpc,"ntrtpc/I");
-  // tree->Branch("trpmtpc",event.trpmtpc,"trpmtpc[ntrtpc]/D");
-  // tree->Branch("trqqtpc",event.trqqtpc,"trqqtpc[ntrtpc]/I");
-  // tree->Branch("trpidtpc",event.trpidtpc,"trpidtpc[ntrtpc]/I");
-  // tree->Branch("trparentidtpc",event.trparentidtpc,"trparentidtpc[ntrtpc]/I");
-  // //tree->Branch("trparentid_pid_tpc",event.trparentid_pid_tpc,"trparentid_pid_tpc[ntrtpc]/I");
+  // m_tree->Branch("ntrtpc",&event.ntrtpc,"ntrtpc/I");
+  // m_tree->Branch("trpmtpc",event.trpmtpc,"trpmtpc[ntrtpc]/D");
+  // m_tree->Branch("trqqtpc",event.trqqtpc,"trqqtpc[ntrtpc]/I");
+  // m_tree->Branch("trpidtpc",event.trpidtpc,"trpidtpc[ntrtpc]/I");
+  // m_tree->Branch("trparentidtpc",event.trparentidtpc,"trparentidtpc[ntrtpc]/I");
+  // //m_tree->Branch("trparentid_pid_tpc",event.trparentid_pid_tpc,"trparentid_pid_tpc[ntrtpc]/I");
 
-  // tree->Branch("trpxtpc",event.trpxtpc,"trpxtpc[ntrtpc]/D");
-  // tree->Branch("trpytpc",event.trpytpc,"trpytpc[ntrtpc]/D");
-  // tree->Branch("trpztpc",event.trpztpc,"trpztpc[ntrtpc]/D");
-  // tree->Branch("trpptpc",event.trpptpc,"trpptpc[ntrtpc]/D");
-  // tree->Branch("trpttpc",event.trpttpc,"trpttpc[ntrtpc]/D");
+  // m_tree->Branch("trpxtpc",event.trpxtpc,"trpxtpc[ntrtpc]/D");
+  // m_tree->Branch("trpytpc",event.trpytpc,"trpytpc[ntrtpc]/D");
+  // m_tree->Branch("trpztpc",event.trpztpc,"trpztpc[ntrtpc]/D");
+  // m_tree->Branch("trpptpc",event.trpptpc,"trpptpc[ntrtpc]/D");
+  // m_tree->Branch("trpttpc",event.trpttpc,"trpttpc[ntrtpc]/D");
 
-  // tree->Branch("trpxtpcfit",event.trpxtpcfit,"trpxtpcfit[ntrtpc]/D");
-  // tree->Branch("trpytpcfit",event.trpytpcfit,"trpytpcfit[ntrtpc]/D");
-  // tree->Branch("trpztpcfit",event.trpztpcfit,"trpztpcfit[ntrtpc]/D");
-  // tree->Branch("trpptpcfit",event.trpptpcfit,"trpptpcfit[ntrtpc]/D");
-  // tree->Branch("trpttpcfit",event.trpttpcfit,"trpttpcfit[ntrtpc]/D");
+  // m_tree->Branch("trpxtpcfit",event.trpxtpcfit,"trpxtpcfit[ntrtpc]/D");
+  // m_tree->Branch("trpytpcfit",event.trpytpcfit,"trpytpcfit[ntrtpc]/D");
+  // m_tree->Branch("trpztpcfit",event.trpztpcfit,"trpztpcfit[ntrtpc]/D");
+  // m_tree->Branch("trpptpcfit",event.trpptpcfit,"trpptpcfit[ntrtpc]/D");
+  // m_tree->Branch("trpttpcfit",event.trpttpcfit,"trpttpcfit[ntrtpc]/D");
 
-  // tree->Branch("vtpxtpc",event.vtpxtpc,"vtpxtpc[ntrtpc]/D");
-  // tree->Branch("vtpytpc",event.vtpytpc,"vtpytpc[ntrtpc]/D");
-  // tree->Branch("vtpztpc",event.vtpztpc,"vtpztpc[ntrtpc]/D");
-  // tree->Branch("vtpptpc",event.vtpptpc,"vtpptpc[ntrtpc]/D");
+  // m_tree->Branch("vtpxtpc",event.vtpxtpc,"vtpxtpc[ntrtpc]/D");
+  // m_tree->Branch("vtpytpc",event.vtpytpc,"vtpytpc[ntrtpc]/D");
+  // m_tree->Branch("vtpztpc",event.vtpztpc,"vtpztpc[ntrtpc]/D");
+  // m_tree->Branch("vtpptpc",event.vtpptpc,"vtpptpc[ntrtpc]/D");
 
-  // tree->Branch("vtxtpc",event.vtxtpc,"vtxtpc[ntrtpc]/D");
-  // tree->Branch("vtytpc",event.vtytpc,"vtytpc[ntrtpc]/D");
-  // tree->Branch("vtztpc",event.vtztpc,"vtztpc[ntrtpc]/D");
+  // m_tree->Branch("vtxtpc",event.vtxtpc,"vtxtpc[ntrtpc]/D");
+  // m_tree->Branch("vtytpc",event.vtytpc,"vtytpc[ntrtpc]/D");
+  // m_tree->Branch("vtztpc",event.vtztpc,"vtztpc[ntrtpc]/D");
 
-  // tree->Branch("vtxtpcfit",event.vtxtpcfit,"vtxtpcfit[ntrtpc]/D");
-  // tree->Branch("vtytpcfit",event.vtytpcfit,"vtytpcfit[ntrtpc]/D");
-  // tree->Branch("vtztpcfit",event.vtztpcfit,"vtztpcfit[ntrtpc]/D");
+  // m_tree->Branch("vtxtpcfit",event.vtxtpcfit,"vtxtpcfit[ntrtpc]/D");
+  // m_tree->Branch("vtytpcfit",event.vtytpcfit,"vtytpcfit[ntrtpc]/D");
+  // m_tree->Branch("vtztpcfit",event.vtztpcfit,"vtztpcfit[ntrtpc]/D");
 
-  // tree->Branch("trdetpc",event.trdetpc,"trdetpc[ntrtpc]/D");
-  // tree->Branch("trlentpc",event.trlentpc,"trlentpc[ntrtpc]/D");
-  // tree->Branch("trdedxtpc",event.trdedxtpc,"trdedxtpc[ntrtpc]/D");
-  // tree->Branch("trdedxtrtpc",event.trdedxtrtpc,"trdedxtrtpc[ntrtpc]/D");
-  // tree->Branch("trlaytpc",event.trlaytpc,"trlaytpc[ntrtpc]/I");
-  // tree->Branch("cir_r",event.cir_r,"cir_r[ntrtpc]/D");
-  // tree->Branch("cir_x",event.cir_x,"cir_x[ntrtpc]/D");
-  // tree->Branch("cir_z",event.cir_z,"cir_z[ntrtpc]/D");
-  // tree->Branch("cir_fit",event.cir_fit,"cir_fit[ntrtpc]/D");
-  // tree->Branch("vtx_flag",event.vtx_flag,"vtx_flag[ntrtpc]/I");
-  // tree->Branch("a_fory",event.a_fory,"a_fory[ntrtpc]/D");
-  // tree->Branch("b_fory",event.b_fory,"b_fory[ntrtpc]/D");
+  // m_tree->Branch("trdetpc",event.trdetpc,"trdetpc[ntrtpc]/D");
+  // m_tree->Branch("trlentpc",event.trlentpc,"trlentpc[ntrtpc]/D");
+  // m_tree->Branch("trdedxtpc",event.trdedxtpc,"trdedxtpc[ntrtpc]/D");
+  // m_tree->Branch("trdedxtrtpc",event.trdedxtrtpc,"trdedxtrtpc[ntrtpc]/D");
+  // m_tree->Branch("trlaytpc",event.trlaytpc,"trlaytpc[ntrtpc]/I");
+  // m_tree->Branch("cir_r",event.cir_r,"cir_r[ntrtpc]/D");
+  // m_tree->Branch("cir_x",event.cir_x,"cir_x[ntrtpc]/D");
+  // m_tree->Branch("cir_z",event.cir_z,"cir_z[ntrtpc]/D");
+  // m_tree->Branch("cir_fit",event.cir_fit,"cir_fit[ntrtpc]/D");
+  // m_tree->Branch("vtx_flag",event.vtx_flag,"vtx_flag[ntrtpc]/I");
+  // m_tree->Branch("a_fory",event.a_fory,"a_fory[ntrtpc]/D");
+  // m_tree->Branch("b_fory",event.b_fory,"b_fory[ntrtpc]/D");
 }
 
 //_____________________________________________________________________________
@@ -135,7 +160,7 @@ void
 AnaManager::MakeBranch(const G4String& sd_name)
 {
   static const Int_t bufsize = 32000;
-  tree->Branch(sd_name.data(),
+  m_tree->Branch(sd_name.data(),
                "std::vector<TParticle>",
                &event.hits[sd_name], bufsize, -1);
 }
@@ -144,21 +169,13 @@ AnaManager::MakeBranch(const G4String& sd_name)
 void
 AnaManager::BeginOfRunAction(G4int /* runnum */)
 {
-  if (m_file && m_file->IsOpen())
-    m_file->Close();
   m_file = new TFile(gConf.Get<G4String>("ROOT"), "RECREATE");
   static auto obj = new TNamed("conf", gConf.ConfBuf());
   obj->Write();
+  m_tree->Reset();
 
-  if (tree) delete tree;
-  tree = new TTree("g4hyptpc", "GEANT4 simulation for HypTPC");
-  tree->Branch("evnum", &event.evnum, "evnum/I");
-  tree->Branch("generator", &event.generator, "generator/I");
-  tree->Branch("mode",&event.mode,"mode/I");
-  tree->Branch("inc",&event.inc,"inc/I");
-  MakeBranch("PRM");
-  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
-    MakeBranch(sd_name);
+  for (auto& h: hmap) {
+    h.second->Reset();
   }
 
   event.evnum = 0;
@@ -297,26 +314,6 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     G4cout<<"Total pads(check):"<<all_channels<<G4endl;
     G4cout<<"------------------------"<<G4endl;
   }
-
-  for(auto& p : hmap){
-    delete p.second;
-  }
-  hmap.clear();
-  TString key;
-  key = "Time";
-  hmap[key] = new TH1D(key, key, 400, 0.0, 10.0);
-  for(G4int i=0; i<G4ThreeVector::SIZE; ++i){
-    key = Form("Pos%d", i);
-    hmap[key] = new TH1D(key, key, 500, -25.0*CLHEP::cm, 25.0*CLHEP::cm);
-    key = Form("Mom%d", i);
-    if(i==2)
-      hmap[key] = new TH1D(key, key, 400, 0.0, 2.0);
-    else
-      hmap[key] = new TH1D(key, key, 400, -2.0, 2.);
-    key = Form("Fermi%d", i);
-    hmap[key] = new TH1D(key, key, 500, -1.0*CLHEP::GeV, 1.0*CLHEP::GeV);
-    hmap[key]->GetXaxis()->SetTitle("[MeV/c]");
-  }
 }
 
 //_____________________________________________________________________________
@@ -324,10 +321,11 @@ void
 AnaManager::EndOfRunAction()
 {
   m_file->cd();
-  tree->Write();
+  m_tree->Write();
   for (auto& h: hmap) {
     h.second->Write();
   }
+  m_file->Close();
 }
 
 //_____________________________________________________________________________
@@ -1127,7 +1125,7 @@ AnaManager::EndOfEventAction()
     }
   }//trigger parts
 
-  tree->Fill();
+  m_tree->Fill();
 
   return 0;
 }

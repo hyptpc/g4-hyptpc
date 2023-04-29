@@ -65,6 +65,7 @@ private:
 private:
   typedef std::map<G4String, MagnetInfo> MagnetMap;
   typedef std::vector< std::vector< std::vector<G4ThreeVector> > > Field;
+  G4bool    m_is_ready;
   G4bool    m_k18_status;
   G4bool    m_kurama_status;
   G4bool    m_shs_status;
@@ -82,6 +83,7 @@ public:
   G4bool GetStatusKuramaField() const { return m_kurama_status; }
   G4bool GetStatusShsField() const { return m_shs_status; }
   G4bool Initialize();
+  G4bool IsReady() const { return m_is_ready; }
   void   SetKuramaFieldMap(G4String map);
   void   SetShsFieldMap(G4String map);
   void   SetStatusK18Field(G4bool flag=true){ m_k18_status = flag; }

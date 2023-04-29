@@ -45,9 +45,9 @@ main(int argc, char** argv)
   if(gConf.Get<G4String>("Physics") == "USER")
     runManager->SetUserInitialization(new PhysicsList);
   else if(gConf.Get<G4String>("Physics") == "QGSP_BERT")
-    runManager->SetUserInitialization(new QGSP_BERT);
+    runManager->SetUserInitialization(new QGSP_BERT(0));
   else
-    runManager->SetUserInitialization(new QGSP_BERT);
+    runManager->SetUserInitialization(new QGSP_BERT(0));
   runManager->SetUserInitialization(new ActionInitialization);
   runManager->Initialize();
 

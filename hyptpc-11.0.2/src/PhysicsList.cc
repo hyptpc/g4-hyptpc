@@ -45,14 +45,14 @@ namespace
 }
 
 //_____________________________________________________________________________
-PhysicsList::PhysicsList()
+PhysicsList::PhysicsList(G4int verbose)
   : G4VUserPhysicsList(),
     m_em_physics_list(),
     m_hadron_physics_list()
 {
-  SetDefaultCutValue(2.*CLHEP::mm);
-  SetVerboseLevel(0);
-  m_em_physics_list = new G4EmStandardPhysics(verboseLevel);
+  defaultCutValue = 1.0*CLHEP::mm;
+  verboseLevel = verbose;
+  m_em_physics_list = new G4EmStandardPhysics(verbose);
 }
 
 //_____________________________________________________________________________

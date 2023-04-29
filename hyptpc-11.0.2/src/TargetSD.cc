@@ -44,8 +44,9 @@ TargetSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
   const G4String particleName = Definition->GetParticleName();
   const G4String particleType = Definition->GetParticleType();
 
-  if(preStepPoint->GetStepStatus() != fGeomBoundary)
+  if(preStepPoint->GetStepStatus() != fGeomBoundary){
     return false;
+  }
   if(Definition->GetPDGCharge() == 0.)
     return false;
 

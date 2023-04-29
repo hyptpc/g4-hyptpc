@@ -29,7 +29,6 @@ private:
   std::map<G4String, G4Element*>  m_element_map;
   std::map<G4String, G4Material*> m_material_map;
   G4LogicalVolume*                m_world_lv;
-  G4LogicalVolume*                m_tpc_lv;
   G4double                        m_rotation_angle;
   G4RotationMatrix*               m_rotation_matrix;
   MagneticField*                  m_field;

@@ -68,7 +68,8 @@ MagnetInfo::CalcK18Field(const G4ThreeVector& point, G4double* bfield) const
 
 //_____________________________________________________________________________
 MagneticField::MagneticField()
-  : m_k18_status(false),
+  : m_is_ready(false),
+    m_k18_status(false),
     m_kurama_status(false),
     m_shs_status(false),
     m_kurama_field_map(),
@@ -110,6 +111,8 @@ MagneticField::Initialize()
     m_kurama_field_map->Initialize();
   }
 #endif
+
+  m_is_ready = true;
   return true;
 }
 
@@ -117,6 +120,13 @@ MagneticField::Initialize()
 void
 MagneticField::GetFieldValue(const G4double Point[4], G4double* Bfield) const
 {
+  Bfield[0] = 0.*CLHEP::tesla;
+  Bfield[1] = 0.*CLHEP::tesla;
+  Bfield[2] = 0.*CLHEP::tesla;
+
+  if (!m_is_ready)
+    return;
+
   static const G4int shs_fieldmap = gConf.Get<G4int>("ShsFieldMap");
   static const G4double h_field = gConf.Get<G4double>("ShsField") * CLHEP::tesla;
   static const auto shs_pos = gGeom.GetGlobalPosition("HypTPC") * CLHEP::mm;
@@ -139,10 +149,6 @@ MagneticField::GetFieldValue(const G4double Point[4], G4double* Bfield) const
   const G4ThreeVector pos(rot_xp, yp, rot_zp);
   const G4ThreeVector kurama_coord = pos - kurama_pos;
 #endif
-
-  Bfield[0] = 0.*CLHEP::tesla;
-  Bfield[1] = 0.*CLHEP::tesla;
-  Bfield[2] = 0.*CLHEP::tesla;
 
   if(shs_fieldmap == 0){
     if(std::abs(pos.x()) < shs_size.x() &&

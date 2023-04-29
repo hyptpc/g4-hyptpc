@@ -9,7 +9,7 @@
 class PhysicsList : public G4VModularPhysicsList
 {
 public:
-  PhysicsList();
+  PhysicsList(G4int verbose=0);
   virtual ~PhysicsList();
 
 private:
