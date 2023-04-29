@@ -43,6 +43,7 @@ private:
 public:
   // G4bool    Finalize();
   // G4bool    FinalizeProcess();
+  G4bool    Contains(const G4String& key) const;
   template <typename T>
   static const T& Get(const G4String& key);
   const G4String& ConfBuf() const { return m_conf_buf; }

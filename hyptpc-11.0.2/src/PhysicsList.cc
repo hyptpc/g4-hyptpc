@@ -50,7 +50,8 @@ PhysicsList::PhysicsList(G4int verbose)
     m_em_physics_list(),
     m_hadron_physics_list()
 {
-  defaultCutValue = 1.0*CLHEP::mm;
+  if (gConf.Contains("DefaultCutValue"))
+    defaultCutValue = gConf.Get<G4double>("DefaultCutValue")*CLHEP::mm;
   verboseLevel = verbose;
   m_em_physics_list = new G4EmStandardPhysics(verbose);
 }

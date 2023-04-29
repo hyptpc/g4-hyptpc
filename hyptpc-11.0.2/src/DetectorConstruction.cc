@@ -48,7 +48,6 @@ namespace
 const auto& gConf = ConfMan::GetInstance();
 const auto& gGeom = DCGeomMan::GetInstance();
 const auto& gSize = DetSizeMan::GetInstance();
-G4VSolid* target_solid = nullptr;
 // color
 const G4Colour AQUA(0.247, 0.8, 1.0);
 const G4Colour ORANGE(1.0, 0.55, 0.0);
@@ -111,7 +110,7 @@ DetectorConstruction::Construct()
   ConstructKVC();
 #endif
 
-#if 0
+#if 1
   ConstructShsMagnet();
   m_field->Initialize();
 #endif
@@ -121,9 +120,9 @@ DetectorConstruction::Construct()
 #endif
 
 #if 1
-  // ConstructTarget();
+  ConstructTarget();
   ConstructHypTPC();
-  // ConstructHTOF();
+  ConstructHTOF();
 #endif
 
 #if 0
@@ -310,6 +309,19 @@ DetectorConstruction::ConstructMaterials()
   m_material_map[name]->AddElement(m_element_map["Oxygen"] , natoms=2);
   m_material_map[name]->AddElement(m_element_map["Carbon"] , natoms=3);
   m_material_map[name]->AddElement(m_element_map["Hydrogen"] , natoms=3);
+  // Kapton
+  name = "Kapton";
+  m_material_map[name] = new G4Material(name, density=1.42*g/cm3,
+                                        ncomponents=4);
+  m_material_map[name]->AddElement(m_element_map["Hydrogen"],
+                                   massfraction=0.0273);
+  m_material_map[name]->AddElement(m_element_map["Carbon"],
+                                   massfraction=0.7213);
+  m_material_map[name]->AddElement(m_element_map["Nitrogen"],
+                                   massfraction=0.0765);
+  m_material_map[name]->AddElement(m_element_map["Oxygen"],
+                                   massfraction=0.1749);
+
   // Scintillator (Polystyene(C6H5CH=CH2))
   name = "Scintillator";
   m_material_map[name] = new G4Material(name, density=1.032*g/cm3, nel=2);
@@ -1352,18 +1364,13 @@ DetectorConstruction::ConstructTarget()
   auto target_sd = new TargetSD("TGT");
   AddNewDetector(target_sd);
   const auto target_pos = gGeom.GetGlobalPosition("SHSTarget")*mm;
-  const auto target_size = gSize.GetSize("Target")*0.5*mm;
-  const auto holder_size = gSize.GetSize("TargetHolder")*mm;
-  G4ThreeVector holder_pos;
-  G4VSolid* holder_solid = nullptr;
-  switch(m_experiment){
+  const auto target_size = gSize.GetSize("Target")*mm/2.;
+  G4VSolid* target_solid;
+  auto rot = new G4RotationMatrix;
+  switch (m_experiment) {
   case 42: {
     target_solid = new G4Box("Target", target_size.x(),
                              target_size.y(), target_size.z());
-    holder_solid = new G4Tubs("TargetHolderSolid", holder_size.x() /* Rin */,
-                              holder_size.y() /* Rout */,
-                              holder_size.z()/2 /* DZ */, 0., 360.*deg);
-    holder_pos = target_pos;
   }
     break;
   case 45: case 27: {
@@ -1371,16 +1378,39 @@ DetectorConstruction::ConstructTarget()
     G4double target_z = gSize.Get("Target", ThreeVector::Z);
     target_solid = new G4Tubs("TargetSolid", 0.*mm,
                               target_r*mm, target_z*mm, 0., 360*deg);
-    holder_solid = new G4Tubs("TargetHolderSolid", (target_r + 15.)*mm,
-                              (target_r + 15.2)*mm, 200.*mm, 0., 360*deg);
+    rot->rotateX(90.*deg);
   }
   case 72: {
-    G4double target_r = gSize.Get("Target", ThreeVector::X);
-    G4double target_z = gSize.Get("Target", ThreeVector::Z);
-    target_solid = new G4Tubs("TargetSolid", 0.*mm,
-                              target_r*mm, target_z*mm, 0., 360*deg);
-    holder_solid = new G4Tubs("TargetHolderSolid", (target_r + 15.)*mm,
-                              (target_r + 15.2)*mm, 200.*mm, 0., 360*deg);
+    target_solid = new G4Tubs("TargetSolid",
+                              target_size[0],
+                              target_size[1],
+                              target_size[2],
+                              0.*deg, 360.*deg);
+    rot->rotateX(90.*deg);
+    const auto kapton_size = gSize.GetSize("TargetKapton")*mm/2.;
+    const auto gfrp_size = gSize.GetSize("TargetGFRP")*mm/2.;
+    auto kapton = new G4Tubs("TargetKapton",
+                             kapton_size[0],
+                             kapton_size[1],
+                             kapton_size[2],
+                             0.*deg, 360.*deg);
+    auto kapton_lv = new G4LogicalVolume(kapton,
+                                         m_material_map["Kapton"],
+                                         "TargetKaptonLV");
+    kapton_lv->SetVisAttributes(G4Colour::Red());
+    new G4PVPlacement(rot, target_pos, kapton_lv, "TargetKaptonPV",
+                      m_world_lv, true, 0, check_overlaps);
+    auto gfrp = new G4Tubs("TargetGFRP",
+                           gfrp_size[0],
+                           gfrp_size[1],
+                           gfrp_size[2],
+                           0.*deg, 360.*deg);
+    auto gfrp_lv = new G4LogicalVolume(gfrp,
+                                       m_material_map["G10"],
+                                       "TargetGFRPLV");
+    gfrp_lv->SetVisAttributes(G4Colour::Green());
+    new G4PVPlacement(rot, target_pos, gfrp_lv, "TargetGFRPPV",
+                      m_world_lv, true, 0, check_overlaps);
   }
     break;
   default:
@@ -1390,18 +1420,14 @@ DetectorConstruction::ConstructTarget()
                  +" in "+gConf.Get<G4String>("CONF")).c_str());
     return;
   }
-  auto target_lv = new G4LogicalVolume(target_solid, m_material_map["Target"],
+  auto target_lv = new G4LogicalVolume(target_solid,
+                                       m_material_map["Target"],
                                        "TargetLV");
   target_lv->SetSensitiveDetector(target_sd);
   target_lv->SetVisAttributes(G4Colour::Blue());
-  G4RotationMatrix rot_frame;
-  rot_frame.rotateX(90.*deg);
-  new G4PVPlacement(G4Transform3D(rot_frame, target_pos),
+  new G4PVPlacement(rot, target_pos,
                     target_lv, "TargetPV",
                     m_world_lv, true, 0, check_overlaps);
-  auto holder_lv = new G4LogicalVolume(holder_solid, m_material_map["P10"],
-                                       "TargetHolderLV");
-  holder_lv->SetVisAttributes(G4Colour::Blue());
 }
 
 //_____________________________________________________________________________

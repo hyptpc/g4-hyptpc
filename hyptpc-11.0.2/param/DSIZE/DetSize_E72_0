@@ -13,13 +13,17 @@
 # Name			Value
 #
 World		4000	3000	8000
-Target	 	40.0	0.0	50.0
 
 ### Counters
 Bh2Seg		14.0	80.0	5.0
 Bh2SegWidth	17 14 14 14 14 14 14 17
 BacRadiator	115	115	12.4
 KvcRadiator	26	160	10.0
+
+### Target
+Target	 	0.0	80.0	100.0
+TargetKapton	80.0	80.5	100.0
+TargetGFRP	94.0	97.0	100.0
 
 ### HypTPC
 TpcGasVessel		634	654	620

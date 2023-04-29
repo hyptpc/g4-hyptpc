@@ -42,6 +42,13 @@ ConfMan::~ConfMan()
 
 //_____________________________________________________________________________
 G4bool
+ConfMan::Contains(const G4String& key) const
+{
+  return m_string.find(key) != m_string.end();
+}
+
+//_____________________________________________________________________________
+G4bool
 ConfMan::Initialize()
 {
   if(m_is_ready){
