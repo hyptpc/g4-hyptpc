@@ -31,6 +31,7 @@ private:
   G4LogicalVolume*                m_world_lv;
   G4double                        m_rotation_angle;
   G4RotationMatrix*               m_rotation_matrix;
+  G4bool                          m_check_overlaps;
   MagneticField*                  m_field;
   static std::vector<G4String>    s_detector_list;
 
@@ -64,6 +65,8 @@ private:
   void ConstructSDC3();
   void ConstructSDC4();
   void ConstructWC();
+
+  void CheckOverlaps(G4bool flag) { m_check_overlaps = flag; }
 };
 
 //_____________________________________________________________________________

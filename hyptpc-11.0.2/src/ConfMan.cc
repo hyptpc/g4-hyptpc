@@ -75,12 +75,15 @@ ConfMan::Initialize()
   G4String line;
   while(ifs.good() && std::getline(ifs, line)){
     m_conf_buf += line + "\n";
-    if(line[0]=='#') continue;
+    if (line[0]=='#')
+      continue;
     std::istringstream iss(line);
     G4String key, val;
     iss >> key >> val;
     if(key.empty() || val.empty())
       continue;
+    if (key.back() == ':')
+      key.pop_back();
     G4cout << " key = "   << std::setw(20) << std::left << key
 	   << " value = " << std::setw(30) << std::left << val
 	   << G4endl;
