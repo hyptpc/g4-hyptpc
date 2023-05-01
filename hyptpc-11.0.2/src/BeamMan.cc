@@ -51,8 +51,9 @@ G4bool
 BeamMan::Initialize()
 {
   const auto& gConf = ConfMan::GetInstance();
+  const auto& gGeom = DCGeomMan::GetInstance();
   const G4double p0 = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
-  const G4double x0 = gConf.Get<G4double>("BeamXoffset")*CLHEP::mm;
+  const G4double x0 = gGeom.GetGlobalPosition("BH2").x()*CLHEP::mm;
 
   if(m_file_name.empty())
     return true;
