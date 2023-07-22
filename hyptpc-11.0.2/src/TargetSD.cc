@@ -64,7 +64,7 @@ TargetSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
   // if(particleType == "lepton")
   //   return false;
 
-  m_hits_collection->insert(new TargetHit(SensitiveDetectorName, aStep, true));
+  m_hits_collection->insert(new TargetHit(SensitiveDetectorName, aStep));
 
   return true;
 }

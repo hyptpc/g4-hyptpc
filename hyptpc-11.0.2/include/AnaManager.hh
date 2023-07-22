@@ -275,6 +275,8 @@ public:
   void BeginOfEventAction();
   int  EndOfEventAction();
   void MakeBranch(const G4String& sd_name);
+  void MakeHistogram(const G4String& sd_name);
+  void SetNhits(const G4String& sd_name, G4int nhits);
   void SetHitData(const VHitInfo* hit);
   void SetTPCData(G4int tpctr, G4int tpcpid, G4int tpcparentid,
                   G4int tpcparentid_pid, G4double tpcpx, G4double tpcpy,

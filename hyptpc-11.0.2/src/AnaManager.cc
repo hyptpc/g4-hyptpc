@@ -17,6 +17,7 @@
 #include "ConfMan.hh"
 #include "DetectorConstruction.hh"
 #include "FuncName.hh"
+#include "HistMan.hh"
 #include "ResHypTPC.hh"
 #include "RungeKuttaTracker.hh"
 #include "switch.h"
@@ -27,6 +28,7 @@
 namespace
 {
 const auto& gConf = ConfMan::GetInstance();
+const auto& gHist = HistMan::GetInstance();
 Event event;
 std::map<TString, TH1*> hmap;
 }
@@ -47,9 +49,9 @@ AnaManager::AnaManager()
       hmap[key] = new TH1D(key, key, 400, 0.0, 2.0);
     else
       hmap[key] = new TH1D(key, key, 400, -2.0, 2.);
-    key = Form("Fermi%d", i);
-    hmap[key] = new TH1D(key, key, 500, -1.0*CLHEP::GeV, 1.0*CLHEP::GeV);
-    hmap[key]->GetXaxis()->SetTitle("[MeV/c]");
+    // key = Form("Fermi%d", i);
+    // hmap[key] = new TH1D(key, key, 500, -1.0*CLHEP::GeV, 1.0*CLHEP::GeV);
+    // hmap[key]->GetXaxis()->SetTitle("[MeV/c]");
   }
 
   return;
@@ -154,13 +156,34 @@ AnaManager::MakeBranch(const G4String& sd_name)
   m_tree->Branch(sd_name.data(),
                  "std::vector<TParticle>",
                  &event.hits[sd_name], bufsize, -1);
-  G4cout << "make branch : " << sd_name << G4endl;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::MakeHistogram(const G4String& sd_name)
+{
+  for(const auto& suffix: std::vector<G4String>
+        { "Nhits", "HitPat", "X", "Y", "U", "V",
+          "Y%X", "V%U", "U%X", "V%Y" }){
+    TString key = sd_name + suffix;
+    TString title = sd_name + " " + suffix;
+    const auto& params = gHist.Get(key);
+    if(G4StrUtil::contains(suffix, "%")){
+      hmap[key] = new TH2D(key, title,
+                           params.at(0), params.at(1), params.at(2),
+                           params.at(3), params.at(4), params.at(5));
+    }else{
+      hmap[key] = new TH1D(key, title,
+                           params.at(0), params.at(1), params.at(2));
+    }
+  }
 }
 
 //_____________________________________________________________________________
 void
 AnaManager::BeginOfRunAction(G4int /* runnum */)
 {
+  G4cout << FUNC_NAME << G4endl;
   m_file = new TFile(gConf.Get<G4String>("ROOT"), "RECREATE");
   static auto obj = new TNamed("conf", gConf.ConfBuf());
   obj->Write();
@@ -170,11 +193,13 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
   MakeBranch("PRM");
-  for (const auto& sd_name : DetectorConstruction::GetSDList()) {
+  for(const auto& sd_name : DetectorConstruction::GetSDList()){
+    G4cout << "   make branch : " << sd_name << G4endl;
     MakeBranch(sd_name);
+    MakeHistogram(sd_name);
   }
 
-  for (auto& h: hmap) {
+  for(auto& h: hmap){
     h.second->Reset();
   }
 
@@ -322,7 +347,7 @@ AnaManager::EndOfRunAction()
 {
   m_file->cd();
   m_tree->Write();
-  for (auto& h: hmap) {
+  for(auto& h: hmap){
     h.second->Write();
   }
   m_file->Close();
@@ -344,9 +369,9 @@ AnaManager::BeginOfEventAction()
   HitNum_p=0;
   //  tpctrNum_K=0;
 
-  event.hits["PRM"].clear();
+  event.hits.at("PRM").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
-    event.hits[sd_name].clear();
+    event.hits.at(sd_name).clear();
   }
 
   event.nhittpc = 0;
@@ -554,8 +579,8 @@ AnaManager::EndOfEventAction()
       G4double rho1 = rad[i];
       G4double cx1 = cx[i];
       G4double cz1 = cz[i];
-      G4double cx2 = event.hits["PRM"][0].Vx();
-      G4double cz2 = event.hits["PRM"][0].Vz();
+      G4double cx2 = event.hits.at("PRM")[0].Vx();
+      G4double cz2 = event.hits.at("PRM")[0].Vz();
       G4double theta12=atan2(cz2-cz1, cx2-cx1);
       G4double ca1=a_fory[i];
       G4double cb1=b_fory[i];
@@ -1048,8 +1073,7 @@ AnaManager::EndOfEventAction()
     }
     if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
-    } else {
-
+    }else{
       for(G4int i=0; i<HitNum; i++){
 	event.ntrk[event.nhittpc] = counterData[i].ntrk;
 	hmap["Time"]->Fill(counterData[i].time);
@@ -1132,11 +1156,28 @@ AnaManager::EndOfEventAction()
 
 //_____________________________________________________________________________
 void
+AnaManager::SetNhits(const G4String& sd_name, G4int nhits)
+{
+  hmap[sd_name + "Nhits"]->Fill(nhits);
+}
+
+//_____________________________________________________________________________
+void
 AnaManager::SetHitData(const VHitInfo* hit)
 {
   if(hit && hit->GetParticle()){
     const auto& name = hit->GetDetectorName();
-    event.hits[name].push_back(*hit->GetParticle());
+    const auto& p = hit->GetParticle();
+    event.hits.at(name).push_back(*p);
+    hmap[name + "HitPat"]->Fill(p->GetMother(1));
+    hmap[name + "X"]->Fill(p->Vx());
+    hmap[name + "Y"]->Fill(p->Vy());
+    hmap[name + "U"]->Fill(p->Px()/p->Pz());
+    hmap[name + "V"]->Fill(p->Py()/p->Pz());
+    hmap[name + "Y%X"]->Fill(p->Vx(), p->Vy());
+    hmap[name + "V%U"]->Fill(p->Px()/p->Pz(), p->Py()/p->Pz());
+    hmap[name + "U%X"]->Fill(p->Vx(), p->Px()/p->Pz());
+    hmap[name + "V%Y"]->Fill(p->Vy(), p->Py()/p->Pz());
   }
 }
 
@@ -1377,10 +1418,10 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
 void
 AnaManager::SetFermiMomentum(const G4ThreeVector& p)
 {
-  for(G4int i=0; i<G4ThreeVector::SIZE; ++i){
-    TString key = Form("Fermi%d", i);
-    hmap[key]->Fill(p[i]*CLHEP::GeV);
-  }
+  // for(G4int i=0; i<G4ThreeVector::SIZE; ++i){
+  //   TString key = Form("Fermi%d", i);
+  //   hmap[key]->Fill(p[i]*CLHEP::GeV);
+  // }
 }
 
 //_____________________________________________________________________________
@@ -1451,7 +1492,7 @@ AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
 {
   G4int id1 = is_virtual_beam ? -1 : 1;
   G4int id2 = id;
-  for (const auto& ptcl: event.hits["PRM"]) {
+  for (const auto& ptcl: event.hits.at("PRM")) {
     if (ptcl.GetMother(0) == id1 && ptcl.GetMother(1) == id2) {
       G4cerr << FUNC_NAME << " id1=" << id1 << ", id2=" << id2
              << " is already set" << G4endl;
@@ -1465,7 +1506,7 @@ AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
                      0, // fDaughter[1]
                      TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
                      TLorentzVector(v.x(), v.y(), v.z(), v.t()));
-  event.hits["PRM"].push_back(particle);
+  event.hits.at("PRM").push_back(particle);
 }
 
 //_____________________________________________________________________________
