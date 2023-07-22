@@ -12,6 +12,7 @@
 #include <TH2.h>
 #include <TParticle.h>
 #include <TString.h>
+#include <TSystem.h>
 #include <TTree.h>
 
 #include "ConfMan.hh"
@@ -187,6 +188,9 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_file = new TFile(gConf.Get<G4String>("ROOT"), "RECREATE");
   static auto obj = new TNamed("conf", gConf.ConfBuf());
   obj->Write();
+  static auto git = new TNamed
+    ("git", ("\n"+gSystem->GetFromPipe("git log -1")).Data());
+  git->Write();
   m_tree->Reset();
   m_tree->Branch("evnum", &event.evnum, "evnum/I");
   m_tree->Branch("generator", &event.generator, "generator/I");
