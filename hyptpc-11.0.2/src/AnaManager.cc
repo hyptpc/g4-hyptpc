@@ -164,7 +164,7 @@ void
 AnaManager::MakeHistogram(const G4String& sd_name)
 {
   for(const auto& suffix: std::vector<G4String>
-        { "Nhits", "HitPat", "X", "Y", "U", "V",
+        { "Nhits", "HitPat", "X", "Y", "Z", "U", "V",
           "Y%X", "V%U", "U%X", "V%Y" }){
     TString key = sd_name + suffix;
     TString title = sd_name + " " + suffix;
@@ -1176,6 +1176,7 @@ AnaManager::SetHitData(const VHitInfo* hit)
     hmap[name + "HitPat"]->Fill(p->GetMother(1));
     hmap[name + "X"]->Fill(p->Vx());
     hmap[name + "Y"]->Fill(p->Vy());
+    hmap[name + "Z"]->Fill(p->Vz());
     hmap[name + "U"]->Fill(p->Px()/p->Pz());
     hmap[name + "V"]->Fill(p->Py()/p->Pz());
     hmap[name + "Y%X"]->Fill(p->Vx(), p->Vy());
