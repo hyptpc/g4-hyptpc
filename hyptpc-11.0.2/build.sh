@@ -6,20 +6,22 @@ type cmake3 >/dev/null 2>&1 && alias cmake=cmake3
 main_dir=$(dirname `readlink -f $0`)
 src_dir=$main_dir/src
 linkdef_dir=$main_dir/linkdef
-obj_dir=$main_dir/obj
+build_dir=$main_dir/.build
+bin_dir=$main_dir/bin
 
-if [ "$(uname)" == 'Darwin' -a ! -e "$src_dir/Dict.cc" ]; then
+##### macOS
+if [ "$(uname)" == 'Darwin' -a ! -e "$src_dir/Dict_rdict.pcm" ]; then
     rootcling -f $src_dir/Dict.cc -c TVector3.h TParticle.h \
 	      $linkdef_dir/LinkDef.h
 fi
 
-mkdir -pv $obj_dir
-cd $obj_dir
-#cmake .. -DCMAKE_INSTALL_PREFIX=$G4WORKDIR
-cmake .. -DCMAKE_INSTALL_PREFIX=$main_dir
-cmake --build . -- -j4
-#cmake --install .
+mkdir -p $build_dir
+cd $build_dir
+cmake .. -DCMAKE_INSTALL_PREFIX=$main_dir \
+      -DCMAKE_INSTALL_RPATH_USE_LINK_PATH="ON"
+cmake --build .
+cmake --install .
 
-if [ "$(uname)" == 'Darwin' -a ! -e "$obj_dir/Dict_rdict.pcm" ]; then
-    cp $src_dir/Dict_rdict.pcm $obj_dir
+if [ "$(uname)" == 'Darwin' -a ! -e "$bin_dir/Dict_rdict.pcm" ]; then
+    cp $src_dir/Dict_rdict.pcm $bin_dir
 fi

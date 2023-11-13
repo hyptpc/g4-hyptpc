@@ -12,13 +12,13 @@
 *.root
 *.wrl
 backup/
-build/
+.build/
 bin/
 fieldmap
 lib/
-obj/
 rootfiles/
 rootfiles
 tmp/
 G4History.macro
+CMakeLists.txt
 !.gitkeep
