@@ -42,13 +42,7 @@ main(int argc, char** argv)
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
   // G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT);
   runManager->SetUserInitialization(new DetectorConstruction);
-  G4VModularPhysicsList* phys;
-  if (gConf.Get<G4String>("Physics") == "USER")
-    phys = new PhysicsList;
-  else
-    phys = new QGSP_BERT(0);
-  phys->SetDefaultCutValue(gConf.Get<G4double>("DefaultCutValue"));
-  runManager->SetUserInitialization(phys);
+  runManager->SetUserInitialization(new PhysicsList);
   runManager->SetUserInitialization(new ActionInitialization);
   runManager->Initialize();
 
@@ -61,8 +55,7 @@ main(int argc, char** argv)
   // interactive session, if no arguments given
   if(argc == kArgc-1) {
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-    if(gConf.Get<G4bool>("EVDISP"))
-      uiManager->ApplyCommand("/control/execute init_vis.mac");
+    uiManager->ApplyCommand("/control/execute init_vis.mac");
     ui->SessionStart();
     delete ui;
   }

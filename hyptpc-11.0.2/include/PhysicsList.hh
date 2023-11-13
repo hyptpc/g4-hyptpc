@@ -1,35 +1,34 @@
 // -*- C++ -*-
 
-#ifndef PHYSICS_LIST_H
-#define PHYSICS_LIST_H
+#ifndef PHYSICS_LIST_HH
+#define PHYSICS_LIST_HH 1
 
+#include <globals.hh>
 #include <G4VModularPhysicsList.hh>
 
 //_____________________________________________________________________________
 class PhysicsList : public G4VModularPhysicsList
 {
 public:
-  PhysicsList(G4int verbose=0);
-  virtual ~PhysicsList();
+  static G4String ClassName();
+  PhysicsList(G4int verbose_level=1);
+  virtual ~PhysicsList() = default;
 
-private:
-  G4VPhysicsConstructor*              m_em_physics_list;
-  std::vector<G4VPhysicsConstructor*> m_hadron_physics_list;
+  PhysicsList(const PhysicsList&) = delete;
+  PhysicsList& operator =(const PhysicsList&) = delete;
 
 protected:
-  void ConstructBaryons();
-  void ConstructBosons();
-  void ConstructEM();
-  void ConstructGeneral();
-  void ConstructHadron();
-  void ConstructIons();
-  void ConstructLeptons();
-  void ConstructMesons();
   virtual void ConstructParticle();
   virtual void ConstructProcess();
-  void ConstructShortLived();
-  void ConstructStableHyperons();
   virtual void SetCuts();
 };
+
+//_____________________________________________________________________________
+inline G4String
+PhysicsList::ClassName()
+{
+  static G4String s_name("PhysicsList");
+  return s_name;
+}
 
 #endif
