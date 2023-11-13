@@ -12,16 +12,46 @@ This tool is developed on the platform of KEKCC, CentOS 7.9.2009.
 - ROOT 6.22/08
 - Geant4 11.0.2
 
+
+## Anaconda setting
+
+To use Python,
+it is necessary to build the Anaconda local environment once using the `conda` command as follows.
+Note that it is recommended to use `conda install` instead of `pip install` in the anaconda environment.
+
+```sh
+$ conda create -n py37 python=3.7 # py37 is an example name
+$ conda activate py37
+$ conda install numpy psutil pyyaml rich
+```
+
+Add the following line in .bashrc to activate your environment.
+
+```sh
+conda activate py37
+```
+
+If the prompt header of conda is annoying, add the following line in .condarc.
+
+```yaml
+changeps1: False
+```
+
+
 ## How to install
 
 Set environment variables.
 
 ```shell
-module load git/2260
-export G4WORKDIR=$HOME/work/geant4
+. /opt/python-3.7/etc/profile.d/conda.sh
 . /group/had/sks/software/root/6.22.08/bin/thisroot.sh
 . /sw/packages/geant4/11.0.2/bin/geant4.sh
 . /sw/packages/geant4/11.0.2/share/Geant4-11.0.2/geant4make/geant4make.sh
+export PATH=$PATH:/group/had/sks/software/unpacker/s2s/bin
+export MAKEFLAGS=-j40
+conda activate py37
+module load gcc/830
+module load git/2260
 ```
 
 then
@@ -41,9 +71,9 @@ Arguments of ConfFile and OutputName are necessary.
 G4Macro is an optional argument.
 
 ```shell
-./obj/hyptpc [ConfFile] [OutputName] (G4Macro)
-./obj/hyptpc param/conf/default.conf foo.root
-./obj/hyptpc param/conf/default.conf foo.root bar.mac
+./bin/G4HypTPC [ConfFile] [OutputName] (G4Macro)
+./bin/G4HypTPC param/conf/default.conf foo.root
+./bin/G4HypTPC param/conf/default.conf foo.root bar.mac
 ```
 
 
@@ -53,7 +83,6 @@ G4Macro is an optional argument.
 Some parameter files that are out of the git control should be linked.
 
 ```shell
-ln -s /group/had/sks/E42/software/param/BEAM/* param/BEAM/
-ln -s /group/had/sks/E42/software/param/JAM/* param/JAM/
-ln -s /group/had/sks/E42/software/fieldmap .
+ln -s /group/had/sks/E72/software/param/BEAM/* param/BEAM/
+ln -s /group/had/sks/E72/software/fieldmap .
 ```
