@@ -353,7 +353,7 @@ PrimaryGeneratorAction::GenerateUniformProton(G4Event* anEvent)
   G4double phi=G4RandFlat::shoot(-1.,1.)*3.141592654;
   G4double mom_p=G4RandFlat::shoot(0.05,1.0);
   G4double theta=acos(G4RandFlat::shoot(0.,1.));
-  //  G4cout<<theta*180/3.141592<<G4endl;
+  // G4cout<<theta*180/3.141592<<G4endl;
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);

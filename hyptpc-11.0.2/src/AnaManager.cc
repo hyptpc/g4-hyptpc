@@ -56,38 +56,6 @@ AnaManager::AnaManager()
   }
 
   return;
-  m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
-  m_tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
-  m_tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
-  m_tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
-  m_tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
-  m_tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
-  m_tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
-  m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
-  m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
-  m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
-  m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
-  m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
-  m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
-  m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
-  m_tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
-  m_tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
-  m_tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
-  m_tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
-  m_tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
-  m_tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
-  m_tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
-  m_tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
-  m_tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
-  m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
-  m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
-  m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
-  m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
-  m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
-  m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
-  m_tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
-  m_tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
-  m_tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
 
   //// Study on multiplicity
   // m_tree->Branch("nthlay",event.nthlay,"nthlay[nhittpc]/I");
@@ -208,6 +176,39 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   }
 
   event.evnum = 0;
+
+  m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
+  m_tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
+  m_tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
+  m_tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
+  m_tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
+  m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
+  m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
+  m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
+  m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
+  m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
+  m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
+  m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
+  m_tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum
+  m_tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
+  m_tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
+  m_tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
+  m_tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
+  m_tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
+  m_tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
+  m_tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
+  m_tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
+  m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
+  m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
+  m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
+  m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
+  m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
+  m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
+  m_tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
+  m_tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
+  m_tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
 
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
@@ -372,11 +373,6 @@ AnaManager::BeginOfEventAction()
   //for proton
   HitNum_p=0;
   //  tpctrNum_K=0;
-
-  event.hits.at("PRM").clear();
-  for (const auto& sd_name: DetectorConstruction::GetSDList()) {
-    event.hits.at(sd_name).clear();
-  }
 
   event.nhittpc = 0;
   event.ntrtpc = 0;
@@ -1154,6 +1150,11 @@ AnaManager::EndOfEventAction()
   }//trigger parts
 
   m_tree->Fill();
+
+  event.hits.at("PRM").clear();
+  for (const auto& sd_name: DetectorConstruction::GetSDList()) {
+    event.hits.at(sd_name).clear();
+  }
 
   return 0;
 }
