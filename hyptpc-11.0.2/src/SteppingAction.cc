@@ -69,6 +69,19 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   }
 #endif
 
+  if(false
+     && particleName == "proton"){
+    auto preMaterial = prePoint->GetMaterial();
+    G4double edep = theStep->GetTotalEnergyDeposit();
+    G4cout << particleName << " " << theProcess
+	   << " " << theTrack->GetTrackStatus()
+	   << " " << preMaterial->GetName()
+	   << " x=" << prePoint->GetPosition()
+	   << " p=" << prePoint->GetMomentum()
+	   << " edep=" << edep
+	   << G4endl;
+  }
+
   if(KillStepInIron){
     auto preMaterial = prePoint->GetMaterial();
     if(preMaterial->GetName() == "Iron"){
