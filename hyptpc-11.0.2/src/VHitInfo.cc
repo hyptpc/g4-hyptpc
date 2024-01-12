@@ -67,7 +67,7 @@ VHitInfo::VHitInfo(const G4String& name, G4Step* step,
                              0, // fStatusCode
                              m_parent_id, // fMother[0]
                              m_copy_number, // fMother[1]
-                             0, // fDaughter[0]
+                             m_track_id, // fDaughter[0]
                              0, // fDaughter[1]
                              p, v);
 }

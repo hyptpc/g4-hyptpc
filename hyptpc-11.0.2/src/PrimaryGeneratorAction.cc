@@ -3730,26 +3730,18 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  auto lambda = event.GetDecay(0);
-  auto eta = event.GetDecay(1);
   G4LorentzVector v(m_target_pos); // tentative
-  {
-    G4LorentzVector p(lambda->Px(), lambda->Py(), lambda->Pz(), lambda->E());
-    m_particle_gun->SetParticleDefinition(Lambda);
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? Lambda : Eta);
+    m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p.v());
-    m_particle_gun->SetParticleEnergy(lambda->E() - LambdaMass);
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
-    gAnaMan.SetPrimaryParticle(0, Lambda->GetPDGEncoding(), p, v);
-  }
-  {
-    G4LorentzVector p(eta->Px(), eta->Py(), eta->Pz(), eta->E());
-    m_particle_gun->SetParticleDefinition(Eta);
-    m_particle_gun->SetParticleMomentumDirection(p.v());
-    m_particle_gun->SetParticleEnergy(eta->E() - EtaMass);
-    m_particle_gun->SetParticlePosition(v.v());
-    m_particle_gun->GeneratePrimaryVertex(anEvent);
-    gAnaMan.SetPrimaryParticle(1, Eta->GetPDGEncoding(), p, v);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
   }
 }
 

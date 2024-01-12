@@ -69,6 +69,27 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   }
 #endif
 
+#ifdef DEBUG
+  auto secondary = theStep->GetSecondaryInCurrentStep();
+  for(const auto& s : *secondary){
+    auto particle = s->GetDefinition();
+    auto name = particle->GetParticleName();
+    auto type = particle->GetParticleType();
+    auto charge = particle->GetPDGCharge();
+    auto energy = s->GetKineticEnergy();
+    if(particleName == "lambda" && name == "proton"){
+      {
+	auto p = prePoint->GetMomentum();
+	auto x = prePoint->GetPosition();
+	std::cout << particleName << " p" << p << " x" << x << std::endl;
+      }
+      {
+	auto p = s->GetMomentum();
+	std::cout << "   -> " << name << " p" << p <<  std::endl;
+      }
+    }
+  }
+
   if(false
      && particleName == "proton"){
     auto preMaterial = prePoint->GetMaterial();
@@ -81,6 +102,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 	   << " edep=" << edep
 	   << G4endl;
   }
+#endif
 
   if(KillStepInIron){
     auto preMaterial = prePoint->GetMaterial();
