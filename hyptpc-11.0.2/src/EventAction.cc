@@ -54,7 +54,9 @@ EventAction::~EventAction()
 void
 EventAction::BeginOfEventAction(const G4Event*)
 {
-  // G4cout << FUNC_NAME << G4endl;
+#ifdef DEBUG
+  G4cout << FUNC_NAME << G4endl;
+#endif
   gAnaMan.BeginOfEventAction();
 }
 

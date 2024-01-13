@@ -36,6 +36,9 @@
 
 namespace
 {
+using CLHEP::mm;
+using CLHEP::deg;
+using CLHEP::GeV;
 auto& gAnaMan = AnaManager::GetInstance();
 const auto& gBeam = BeamMan::GetInstance();
 const auto& gConf = ConfMan::GetInstance();
@@ -51,10 +54,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   : G4VUserPrimaryGeneratorAction(),
     m_generator(gConf.Get<G4int>("Generator")),
     m_particle_gun(new G4ParticleGun),
-    m_target_pos(gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm),
-    m_target_size(gSize.GetSize("Target")*CLHEP::mm),
+    m_target_pos(gGeom.GetGlobalPosition("SHSTarget")*mm),
+    m_target_size(gSize.GetSize("Target")*mm),
     m_beam(new BeamInfo),
-    m_beam_p0(gConf.Get<G4double>("BeamMom")*CLHEP::GeV),
+    m_beam_p0(gConf.Get<G4double>("BeamMom")*GeV),
     m_jam(),
     m_inc(),
     m_Neutron(particleTable->FindParticle("neutron")),
@@ -77,6 +80,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_KaonMinus(particleTable->FindParticle("kaon-")),
     m_KaonZeroS(particleTable->FindParticle("kaon0S")),
     m_KaonStarZero(particleTable->FindParticle("k_star0")),
+    m_Eta(particleTable->FindParticle("eta")),
     m_Hdibaryon(particleTable->FindParticle("hdibaryon")),
     m_HdibaryonS(particleTable->FindParticle("hdibaryonS")),
     m_HdibaryonLL(particleTable->FindParticle("hdibaryonLL")),
@@ -201,6 +205,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 4502: GenerateE45ElasticPionMinus(anEvent); break;
   case 7201: GenerateE72OldBeamData(anEvent); break; // old kaon beam data by Hashimoto-san
   case 7202: GenerateE72LambdaEtaPhaseSpace(anEvent); break;
+  case 7203: GenerateE72LambdaEtaPhaseSpaceWithBeam(anEvent); break;
   default:
     G4cerr << " * Generator number error : " << m_generator << G4endl;
     break;
@@ -218,9 +223,9 @@ PrimaryGeneratorAction::GenerateMonochromaticKaonMinus(G4Event* anEvent)
   static const auto mass = KaonMinus->GetPDGMass();
   G4LorentzVector p(0, 0, m_beam_p0,
                     std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4LorentzVector v(m_target_pos + G4ThreeVector(0, 0, -1200*CLHEP::mm), 0);
-  // p.setTheta(G4RandFlat::shoot(0., 10.)*CLHEP::deg);
-  // p.setPhi(G4RandFlat::shoot(0., 360.)*CLHEP::deg);
+  G4LorentzVector v(m_target_pos + G4ThreeVector(0, 0, -1200*mm), 0);
+  // p.setTheta(G4RandFlat::shoot(0., 10.)*deg);
+  // p.setPhi(G4RandFlat::shoot(0., 360.)*deg);
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(p.v());
   m_particle_gun->SetParticleEnergy(p.e() - mass);
@@ -233,10 +238,10 @@ PrimaryGeneratorAction::GenerateMonochromaticKaonMinus(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
 {
-  static const G4double KaonMinusMass = m_KaonMinus->GetPDGMass()/CLHEP::GeV;
-  static const G4double ProtonMass = m_Proton->GetPDGMass()/CLHEP::GeV;
-  static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/CLHEP::GeV;
-  static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/CLHEP::GeV;
+  static const G4double KaonMinusMass = m_KaonMinus->GetPDGMass()/GeV;
+  static const G4double ProtonMass = m_Proton->GetPDGMass()/GeV;
+  static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/GeV;
+  static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/GeV;
   // static const G4int KaonMinusID = m_KaonMinus->GetPDGEncoding();
   // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   // static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
@@ -282,7 +287,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
     gAnaMan.SetFermiMomentum(p_fermi);
     KinemaFermi kinema(KaonMinusMass, ProtonMass, KaonPlusMass, XiMinusMass,
                        m_beam->mom, p_fermi, cosx);
-    // if(kinema.GetTheta(3)/CLHEP::deg > 60.)
+    // if(kinema.GetTheta(3)/deg > 60.)
     //   theta_flag = false;
     KnLV = kinema.GetLorentzVector(0);
     PLV = kinema.GetLorentzVector(1);
@@ -298,7 +303,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   // gAnaMan.FillCrossSection(cosx);
   //  G4double momkpp=std::sqrt(std::pow(kp_mom_x,2)+std::pow(kp_mom_y,2)+std::pow(kp_mom_z,2));
   // G4double momcmk[4]={0};
-  //  G4double beta= pbeam/(proton->GetPDGMass()/CLHEP::GeV+Ebeam);
+  //  G4double beta= pbeam/(proton->GetPDGMass()/GeV+Ebeam);
   // G4double momcmkpp = std::sqrt(momcmk[0]*momcmk[0] +
   // 				 momcmk[1]*momcmk[1] +
   // 				 momcmk[2]*momcmk[2]);
@@ -311,7 +316,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   ///// KaonMinus (produced to upstream assumed with KaonPlus).
   // m_particle_gun->SetParticleDefinition(m_KaonPlus);
   // m_particle_gun->SetParticleMomentumDirection(-KnLV.v());
-  // m_particle_gun->SetParticleEnergy((KnLV.e() - KaonMinusMass)*CLHEP::GeV);
+  // m_particle_gun->SetParticleEnergy((KnLV.e() - KaonMinusMass)*GeV);
   // m_particle_gun->SetParticlePosition(gen_pos);
   // m_particle_gun->GeneratePrimaryVertex(anEvent);
   // gAnaMan.SetPrimaryParticle(0, KnLV.v(), KaonMinusMass, KaonMinusID);
@@ -319,7 +324,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   ///// Proton
   // m_particle_gun->SetParticleDefinition(m_Proton);
   // m_particle_gun->SetParticleMomentumDirection(PLV.v());
-  // m_particle_gun->SetParticleEnergy((PLV.e() - ProtonMass)*CLHEP::GeV);
+  // m_particle_gun->SetParticleEnergy((PLV.e() - ProtonMass)*GeV);
   // m_particle_gun->SetParticlePosition(gen_pos);
   // m_particle_gun->GeneratePrimaryVertex(anEvent);
   // gAnaMan.SetPrimaryParticle(1, PLV.v(), ProtonMass, ProtonID);
@@ -327,7 +332,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   ///// KaonPlus
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(KpLV.v());
-  m_particle_gun->SetParticleEnergy((KpLV.e() - KaonPlusMass)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((KpLV.e() - KaonPlusMass)*GeV);
   m_particle_gun->SetParticlePosition(gen_pos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   // gAnaMan.SetPrimaryParticle(2, KpLV.v(), KaonPlusMass, KaonPlusID);
@@ -335,7 +340,7 @@ PrimaryGeneratorAction::GenerateKpXi2Body(G4Event* anEvent)
   ///// XiMinus
   m_particle_gun->SetParticleDefinition(m_XiMinus);
   m_particle_gun->SetParticleMomentumDirection(XiLV.v());
-  m_particle_gun->SetParticleEnergy((XiLV.e() - XiMinusMass)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((XiLV.e() - XiMinusMass)*GeV);
   m_particle_gun->SetParticlePosition(gen_pos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   // gAnaMan.SetPrimaryParticle(3, XiLV.v(), XiMinusMass, XiMinusID);
@@ -358,26 +363,26 @@ PrimaryGeneratorAction::GenerateUniformProton(G4Event* anEvent)
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   //  G4double ratio=G4RandFlat::shoot(0.,1.);
   //  ratio = 0.1;
   // proton//
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
-  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV,ProtonID);
+  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV,ProtonID);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }
 
@@ -396,13 +401,13 @@ PrimaryGeneratorAction::GenerateUniformPim(G4Event* anEvent)
   mom_pi_x = mom_pi*sin(theta)*cos(phi);
   mom_pi_y = mom_pi*sin(theta)*sin(phi);
   mom_pi_z = mom_pi*cos(theta);
-  Energy_pi=sqrt(pow(mom_pi,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_pi=sqrt(pow(mom_pi,2)+pow(m_PionMinus->GetPDGMass()/GeV,2))*GeV;
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-15.,15.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-5.,5.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-15.,15.)*mm;
+    vty = G4RandFlat::shoot(-5.,5.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
 
@@ -411,14 +416,14 @@ PrimaryGeneratorAction::GenerateUniformPim(G4Event* anEvent)
   //  ratio = 0.1;
 
   // pi- //
-  //Energy_p=sqrt(pow(mom_p,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  //Energy_p=sqrt(pow(mom_p,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi_x,mom_pi_y,mom_pi_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(4);//?
-  // gAnaMan.SetPrimaryParticle(0,mom_pi_x,mom_pi_y,mom_pi_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pi_x,mom_pi_y,mom_pi_z,m_PionMinus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 
 }
@@ -442,26 +447,26 @@ PrimaryGeneratorAction::GenerateBeamProton(G4Event* anEvent)
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   //  G4double ratio=G4RandFlat::shoot(0.,1.);
   //  ratio = 0.1;
   // proton//
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
-  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }
 
@@ -487,26 +492,26 @@ PrimaryGeneratorAction::GenerateUniformProton_P(G4Event* anEvent)
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   //  G4double ratio=G4RandFlat::shoot(0.,1.);
   //  ratio = 0.1;
   // proton//
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
-  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV,ProtonID);
+  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV,ProtonID);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }
 
@@ -531,26 +536,26 @@ PrimaryGeneratorAction::GenerateUniformProton_P_fixphi(G4Event* anEvent)
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   //  G4double ratio=G4RandFlat::shoot(0.,1.);
   //  ratio = 0.1;
   // proton//
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
-  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV,ProtonID);
+  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV,ProtonID);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 }
 
@@ -579,26 +584,26 @@ PrimaryGeneratorAction::GenerateUniformProton_P_Multi(G4Event* anEvent)
     mom_p_x = mom_p*sin(theta)*cos(phi);
     mom_p_y = mom_p*sin(theta)*sin(phi);
     mom_p_z = mom_p*cos(theta);
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
     G4double vtx=0;  G4double vty=0;   G4double vtz=0;
     if(gConf.Get<G4int>("Experiment") == 42.){
-      vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-      vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-      vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+      vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+      vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+      vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
     }
 
     //  G4double ratio=G4RandFlat::shoot(0.,1.);
     //  ratio = 0.1;
     // proton//
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_Proton);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(1);
-    // gAnaMan.SetPrimaryParticle(i,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV,ProtonID);
+    // gAnaMan.SetPrimaryParticle(i,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV,ProtonID);
     // gAnaMan.SetPrimaryVertex(i,vtx,vty,vtz);
   }
 }
@@ -609,11 +614,11 @@ PrimaryGeneratorAction::GenerateUniformProton_P_Multi(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateLL_fromXiP(G4Event* anEvent)
 {
-  static const G4double KaonMinusMass = m_KaonMinus->GetPDGMass()/CLHEP::GeV;
-  static const G4double ProtonMass = m_Proton->GetPDGMass()/CLHEP::GeV;
-  static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/CLHEP::GeV;
-  static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/CLHEP::GeV;
-  static const G4double LambdaMass = m_Lambda->GetPDGMass()/CLHEP::GeV;
+  static const G4double KaonMinusMass = m_KaonMinus->GetPDGMass()/GeV;
+  static const G4double ProtonMass = m_Proton->GetPDGMass()/GeV;
+  static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/GeV;
+  static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/GeV;
+  static const G4double LambdaMass = m_Lambda->GetPDGMass()/GeV;
   // static const G4int KaonMinusID = m_KaonMinus->GetPDGEncoding();
   // static const G4int ProtonID = m_Proton->GetPDGEncoding();
   // static const G4int KaonPlusID = m_KaonPlus->GetPDGEncoding();
@@ -694,50 +699,50 @@ PrimaryGeneratorAction::GenerateLL_fromXiP(G4Event* anEvent)
 
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-m_target_size.x()/2.,m_target_size.x()/2.)*mm;
+    vty = G4RandFlat::shoot(-m_target_size.y()/2.,m_target_size.y()/2.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   //K+ gun, (skaon+ is injected)
   m_particle_gun->SetParticleDefinition(m_sKaonPlus);
   //  m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   std::cout<<"Kp Mom: "<<kp_L->P()<<std::endl;
-  m_particle_gun->SetParticleMomentum(G4ThreeVector(kp_L->Px()*CLHEP::GeV,
-						    kp_L->Py()*CLHEP::GeV,
-						    kp_L->Pz()*CLHEP::GeV));
+  m_particle_gun->SetParticleMomentum(G4ThreeVector(kp_L->Px()*GeV,
+						    kp_L->Py()*GeV,
+						    kp_L->Pz()*GeV));
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
   // gAnaMan.SetPrimaryParticle(0,kp_L->Px(),kp_L->Py(),kp_L->Pz()
-  //       		     ,m_Proton->GetPDGMass()/CLHEP::GeV,KaonPlusID);
+  //       		     ,m_Proton->GetPDGMass()/GeV,KaonPlusID);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 
   //Lambda1 gun
   m_particle_gun->SetParticleDefinition(m_Lambda);
   std::cout<<"L1 Mom: "<<L1_L->P()<<std::endl;
-  m_particle_gun->SetParticleMomentum(G4ThreeVector(L1_L->Px()*CLHEP::GeV,
-						    L1_L->Py()*CLHEP::GeV,
-						    L1_L->Pz()*CLHEP::GeV));
+  m_particle_gun->SetParticleMomentum(G4ThreeVector(L1_L->Px()*GeV,
+						    L1_L->Py()*GeV,
+						    L1_L->Pz()*GeV));
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
   // gAnaMan.SetPrimaryParticle(1,L1_L->Px(),L1_L->Py(),L1_L->Pz()
-  //       		     ,m_Lambda->GetPDGMass()/CLHEP::GeV,LambdaID);
+  //       		     ,m_Lambda->GetPDGMass()/GeV,LambdaID);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 
   //Lambda2 gun
   m_particle_gun->SetParticleDefinition(m_Lambda);
   std::cout<<"L2 Mom: "<<L2_L->P()<<std::endl;
-  m_particle_gun->SetParticleMomentum(G4ThreeVector(L2_L->Px()*CLHEP::GeV,
-						    L2_L->Py()*CLHEP::GeV,
-						    L2_L->Pz()*CLHEP::GeV));
+  m_particle_gun->SetParticleMomentum(G4ThreeVector(L2_L->Px()*GeV,
+						    L2_L->Py()*GeV,
+						    L2_L->Pz()*GeV));
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetModeID(1);
   // gAnaMan.SetPrimaryParticle(2,L2_L->Px(),L2_L->Py(),L2_L->Pz()
-  //       		     ,m_Lambda->GetPDGMass()/CLHEP::GeV,LambdaID);
+  //       		     ,m_Lambda->GetPDGMass()/GeV,LambdaID);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
 }
 
@@ -803,8 +808,8 @@ PrimaryGeneratorAction::GenerateHanul(G4Event* anEvent)
 
   // G4double Energy_beam = pbm[3];
   G4ThreeVector momentumBeam(-pbm[0],-pbm[1],-pbm[2]);
-  //  G4ThreeVector vertexPos(vtx[0]*CLHEP::mm,vtx[1]*CLHEP::mm, vtx[2]*CLHEP::mm);
-  G4ThreeVector vertexPos(0.*CLHEP::mm,0.*CLHEP::mm, vtx[2]*CLHEP::mm);
+  //  G4ThreeVector vertexPos(vtx[0]*mm,vtx[1]*mm, vtx[2]*mm);
+  G4ThreeVector vertexPos(0.*mm,0.*mm, vtx[2]*mm);
 
   Energy_ka = pka[3]; //total energy sqrt(pp^2+rmk^2)??
   Energy_L1 = pL1[3]; //lambda momenta ?? --> 4 momomenta sqrt(p^2+m^2)
@@ -814,7 +819,7 @@ PrimaryGeneratorAction::GenerateHanul(G4Event* anEvent)
   G4ThreeVector momentumKaonPlus(pka[0], pka[1], pka[2]);
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(momentumKaonPlus);
-  m_particle_gun->SetParticleEnergy((Energy_ka - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ka - m_KaonPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(vertexPos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
@@ -822,7 +827,7 @@ PrimaryGeneratorAction::GenerateHanul(G4Event* anEvent)
   G4ThreeVector momentumLambda1(pL1[0], pL1[1], pL1[2]);
   m_particle_gun->SetParticleDefinition(m_Lambda);
   m_particle_gun->SetParticleMomentumDirection(momentumLambda1);
-  m_particle_gun->SetParticleEnergy((Energy_L1 - m_Lambda->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L1 - m_Lambda->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(vertexPos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
@@ -830,13 +835,13 @@ PrimaryGeneratorAction::GenerateHanul(G4Event* anEvent)
   G4ThreeVector momentumLambda2(pL2[0], pL2[1], pL2[2]);
   m_particle_gun->SetParticleDefinition(m_Lambda);
   m_particle_gun->SetParticleMomentumDirection(momentumLambda2);
-  m_particle_gun->SetParticleEnergy((Energy_L2 - m_Lambda->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L2 - m_Lambda->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(vertexPos);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,pL1[0],pL1[1],pL1[2],m_Lambda->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,pL2[0],pL2[1],pL2[2],m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,pka[0],pka[1],pka[2],m_KaonPlus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,pL1[0],pL1[1],pL1[2],m_Lambda->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,pL2[0],pL2[1],pL2[2],m_Lambda->GetPDGMass()/GeV);
 
   // gAnaMan.SetPrimaryVertex(0,0.,0.,vtx[2]);
   // gAnaMan.SetPrimaryVertex(1,0.,0.,vtx[2]);
@@ -850,26 +855,26 @@ PrimaryGeneratorAction::GeneratePhaseSpace(G4Event* anEvent)
 {
   // G4double pg_x,pg_y,pg_z;
   G4double pbeam = G4RandGauss::shoot(m_beam_p0,
-				      m_beam_p0*3.3*0.0001/2.3548)*CLHEP::GeV;
+				      m_beam_p0*3.3*0.0001/2.3548)*GeV;
   // pg_x = 0.0;
   // pg_y = 0.0;
   // pg_z = pbeam;
   // gAnaMan.SetPrimaryBeam(pg_x, pg_y, pg_z);
 
-  // G4double Ebeam = sqrt(pow(pbeam/CLHEP::GeV,2)+pow(m_KaonMinus->GetPDGMass()/CLHEP::GeV,2));
-  // G4double rmC12=Carbon12->GetPDGMass()/CLHEP::GeV;
-  // G4double rmkp=m_KaonPlus->GetPDGMass()/CLHEP::GeV;
-  // G4double rmBe10=Beryllium10->GetPDGMass()/CLHEP::GeV;
-  // G4double rmL=m_Lambda->GetPDGMass()/CLHEP::GeV;
+  // G4double Ebeam = sqrt(pow(pbeam/GeV,2)+pow(m_KaonMinus->GetPDGMass()/GeV,2));
+  // G4double rmC12=Carbon12->GetPDGMass()/GeV;
+  // G4double rmkp=m_KaonPlus->GetPDGMass()/GeV;
+  // G4double rmBe10=Beryllium10->GetPDGMass()/GeV;
+  // G4double rmL=m_Lambda->GetPDGMass()/GeV;
 
-  // G4double W=sqrt(pow(Ebeam+rmC12,2)-pow(pbeam/CLHEP::GeV,2));
-  //  G4cout<<"C mass------->"<<Carbon12->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"Be mass------->"<<Beryllium10->GetPDGMass()/CLHEP::GeV<<G4endl;
+  // G4double W=sqrt(pow(Ebeam+rmC12,2)-pow(pbeam/GeV,2));
+  //  G4cout<<"C mass------->"<<Carbon12->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"Be mass------->"<<Beryllium10->GetPDGMass()/GeV<<G4endl;
   //  G4cout<<"W------->"<<W<<G4endl;
   //  G4cout<<"Ebeam------->"<<Ebeam<<G4endl;
   //  G4cout<<"pbeam------->"<<pbeam<<G4endl;
-  G4double Energy_LLphase = std::sqrt(std::pow(m_LLphase->GetPDGMass()/CLHEP::GeV, 2) +
-                                      std::pow(pbeam/CLHEP::GeV, 2));
+  G4double Energy_LLphase = std::sqrt(std::pow(m_LLphase->GetPDGMass()/GeV, 2) +
+                                      std::pow(pbeam/GeV, 2));
   G4double vtx,vty,vtz;
   G4double rn_vtx,rn_vtz;
   while(true){
@@ -884,18 +889,18 @@ PrimaryGeneratorAction::GeneratePhaseSpace(G4Event* anEvent)
 
   m_particle_gun->SetParticleDefinition(m_LLphase);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  m_particle_gun->SetParticleEnergy((Energy_LLphase - m_LLphase->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_LLphase - m_LLphase->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-  // gAnaMan.SetPrimaryParticle(0,pg_x,pg_y,pg_z, m_LLphase->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,pg_x,pg_y,pg_z, m_LLphase->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
 
   /*
     Kinema4Body PhaseLL(W,0.,
-    Beryllium10->GetPDGMass()/CLHEP::GeV,
-    m_Lambda->GetPDGMass()/CLHEP::GeV,
-    m_Lambda->GetPDGMass()/CLHEP::GeV,
-    m_KaonPlus->GetPDGMass()/CLHEP::GeV,
+    Beryllium10->GetPDGMass()/GeV,
+    m_Lambda->GetPDGMass()/GeV,
+    m_Lambda->GetPDGMass()/GeV,
+    m_KaonPlus->GetPDGMass()/GeV,
     pbeam, 0.0);
   */
   /*
@@ -953,25 +958,25 @@ PrimaryGeneratorAction::GeneratePhaseSpace(G4Event* anEvent)
   ///////Neutron PG
   m_particle_gun->SetParticleDefinition(m_Neutron);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z, m_Neutron->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z, m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z, m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z, m_Neutron->GetPDGMass()/GeV);
+  gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z, m_PionMinus->GetPDGMass()/GeV);
+  gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z, m_PionPlus->GetPDGMass()/GeV);
   gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -984,20 +989,20 @@ PrimaryGeneratorAction::GeneratePhaseSpace(G4Event* anEvent)
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   pbeam=1.8;
   gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
+  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/GeV*m_KaonMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
   up:
-  KinemaHweak Hkinema(m_KaonMinus->GetPDGMass()/CLHEP::GeV,
-  (m_Proton->GetPDGMass()/CLHEP::GeV)*2,
-  m_Hdibaryon->GetPDGMass()/CLHEP::GeV,
-  m_KaonPlus->GetPDGMass()/CLHEP::GeV,
+  KinemaHweak Hkinema(m_KaonMinus->GetPDGMass()/GeV,
+  (m_Proton->GetPDGMass()/GeV)*2,
+  m_Hdibaryon->GetPDGMass()/GeV,
+  m_KaonPlus->GetPDGMass()/GeV,
   pbm[2], 0.0);
 
   Energy_kp=Hkinema.GetEnergy(4);
@@ -1050,31 +1055,31 @@ PrimaryGeneratorAction::GeneratePhaseSpace(G4Event* anEvent)
   coscmk->Fill(momcmk[2]/momcmkpp);
 
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
 
 
   //  G4cout<<"env_target_width :"<<atof(env_env_target_width.c_str())<<G4endl;
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-env_target_width/2,m_target_pos.z()+env_target_width/2)*CLHEP::mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-env_target_width/2,m_target_pos.z()+env_target_width/2)*mm;
   //  G4double vtz= G4RandFlat::shoot(-150.-env_target_width/2,-150.+env_target_width/2);
 
   //Kaon +
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
-  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //hdibaryon
   m_particle_gun->SetParticleDefinition(m_Hdibaryon);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_h_x,mom_h_y,mom_h_z));
-  m_particle_gun->SetParticleEnergy((Energy_h - m_Hdibaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_h - m_Hdibaryon->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
 
-  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/CLHEP::GeV);
+  gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/GeV);
+  gAnaMan.SetPrimaryParticle(1,mom_h_x,mom_h_y,mom_h_z,m_Hdibaryon->GetPDGMass()/GeV);
   gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   */
@@ -1094,21 +1099,21 @@ PrimaryGeneratorAction::GenerateKpKn(G4Event* anEvent)
   mom_kn_x=0;
   mom_kn_y=0;
   mom_kn_z=pbeam;
-  Energy_kn=sqrt(m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV+pbeam*pbeam);
+  Energy_kn=sqrt(m_KaonMinus->GetPDGMass()/GeV*m_KaonMinus->GetPDGMass()/GeV+pbeam*pbeam);
 
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/CLHEP::GeV*m_KaonMinus->GetPDGMass()/CLHEP::GeV);
+  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_KaonMinus->GetPDGMass()/GeV*m_KaonMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
  up:
-  KinemaHweak Hkinema(m_KaonMinus->GetPDGMass()/CLHEP::GeV,
-                      (m_Proton->GetPDGMass()/CLHEP::GeV)*2,
-                      m_HdibaryonLL->GetPDGMass()/CLHEP::GeV,
-                      m_KaonPlus->GetPDGMass()/CLHEP::GeV,
+  KinemaHweak Hkinema(m_KaonMinus->GetPDGMass()/GeV,
+                      (m_Proton->GetPDGMass()/GeV)*2,
+                      m_HdibaryonLL->GetPDGMass()/GeV,
+                      m_KaonPlus->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
 
@@ -1151,29 +1156,29 @@ PrimaryGeneratorAction::GenerateKpKn(G4Event* anEvent)
   //  G4double cmphik=atan2(momk[1],momk[0])*180/3.141592654;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  //  G4double vtx = 0.*CLHEP::mm;
-  //  G4double vty = 0.*CLHEP::mm;
-  G4double vtx = G4RandFlat::shoot(-15.,15.)*CLHEP::mm;
-  G4double vty = G4RandFlat::shoot(-5.,5.)*CLHEP::mm;
+  //  G4double vtx = 0.*mm;
+  //  G4double vty = 0.*mm;
+  G4double vtx = G4RandFlat::shoot(-15.,15.)*mm;
+  G4double vty = G4RandFlat::shoot(-5.,5.)*mm;
   G4double vtz = G4RandFlat::shoot(m_target_pos.z() - m_target_size.z()/2,
-                                   m_target_pos.z() + m_target_size.z()/2)*CLHEP::mm;
+                                   m_target_pos.z() + m_target_size.z()/2)*mm;
 
   //Kaon -
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
-  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //beam K+
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kn_x,mom_kn_y,mom_kn_z));
-  m_particle_gun->SetParticleEnergy((Energy_kn - m_KaonMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz-150.*CLHEP::mm));
+  m_particle_gun->SetParticleEnergy((Energy_kn - m_KaonMinus->GetPDGMass()/GeV)*GeV);
+  m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz-150.*mm));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_kn_x,mom_kn_y,mom_kn_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_kn_x,mom_kn_y,mom_kn_z,m_KaonMinus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -1183,11 +1188,11 @@ void
 PrimaryGeneratorAction::GenerateBeamVI(G4Event* /* anEvent */)
 {
 #if 0
-  static const G4double mass = m_KaonMinus->GetPDGMass()/CLHEP::GeV;
+  static const G4double mass = m_KaonMinus->GetPDGMass()/GeV;
   static const G4int pid = m_KaonMinus->GetPDGEncoding();
-  static const G4double D4BendAngle = gSize.Get("D4BendAngle")*CLHEP::deg;
+  static const G4double D4BendAngle = gSize.Get("D4BendAngle")*deg;
   m_beam->mom.rotateY(- D4BendAngle);
-  G4double energy = (std::sqrt(mass*mass + m_beam->mom.mag2()) - mass)*CLHEP::GeV;
+  G4double energy = (std::sqrt(mass*mass + m_beam->mom.mag2()) - mass)*GeV;
   // gAnaMan.SetPrimaryBeam(m_beam->mom);
   G4ThreeVector gen_pos(m_beam->x, m_beam->y, m_beam->z);
   gen_pos.rotateY(- D4BendAngle);
@@ -1206,9 +1211,9 @@ PrimaryGeneratorAction::GenerateBeamVI(G4Event* /* anEvent */)
 void
 PrimaryGeneratorAction::GenerateBeamVO(G4Event* anEvent)
 {
-  static const G4double mass = m_KaonMinus->GetPDGMass()/CLHEP::GeV;
+  static const G4double mass = m_KaonMinus->GetPDGMass()/GeV;
   // static const G4int pid = m_KaonMinus->GetPDGEncoding();
-  G4double energy = (std::sqrt(mass*mass + m_beam->mom.mag2()) - mass)*CLHEP::GeV;
+  G4double energy = (std::sqrt(mass*mass + m_beam->mom.mag2()) - mass)*GeV;
   // gAnaMan.SetPrimaryBeam(m_beam->mom);
   //std::cout<<"beam mom="<<m_beam->mom.mag()<<std::endl;
   G4ThreeVector gen_pos(m_beam->x, m_beam->y, m_target_pos.z() + m_beam->z);
@@ -1234,8 +1239,8 @@ PrimaryGeneratorAction::GenerateJamInput(G4Event* anEvent)
     //G4ThreeVector x(0., 0., gGeom.GetGlobalPosition("Target").z());
     G4ThreeVector x(0, //m_beam->GetX(-m_beam->z),
                     0, //m_beam->GetY(-m_beam->z),
-                    G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2, m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm);
-    G4ThreeVector p(m_jam->px[i]*CLHEP::GeV, m_jam->py[i]*CLHEP::GeV, m_jam->pz[i]*CLHEP::GeV);
+                    G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2, m_target_pos.z()+m_target_size.z()/2)*mm);
+    G4ThreeVector p(m_jam->px[i]*GeV, m_jam->py[i]*GeV, m_jam->pz[i]*GeV);
     double p_u = p.x()/p.z();
     double p_v = p.y()/p.z();
     double beam_u = m_beam->mom.x()/m_beam->mom.z();
@@ -1254,7 +1259,7 @@ PrimaryGeneratorAction::GenerateJamInput(G4Event* anEvent)
     m_particle_gun->SetParticleDefinition(particle);
     //    m_particle_gun->SetParticleMomentumDirection(p);
     m_particle_gun->SetParticleMomentumDirection(p_cor);
-    G4double m = particle->GetPDGMass()/CLHEP::GeV;
+    G4double m = particle->GetPDGMass()/GeV;
     //    G4double ke = std::sqrt(m*m + p.mag2()) - m;
     G4double ke = std::sqrt(m*m + p_cor.mag2()) - m;
     m_particle_gun->SetParticleEnergy(ke);
@@ -1277,8 +1282,8 @@ PrimaryGeneratorAction::GenerateJamInput_Randphi(G4Event* anEvent)
     //G4ThreeVector x(0., 0., gGeom.GetGlobalPosition("Target").z());
     G4ThreeVector x(0, //m_beam->GetX(-m_beam->z),
                     0, //m_beam->GetY(-m_beam->z),
-                    G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2, m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm);
-    G4ThreeVector p(m_jam->px[i]*CLHEP::GeV, m_jam->py[i]*CLHEP::GeV, m_jam->pz[i]*CLHEP::GeV);
+                    G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2, m_target_pos.z()+m_target_size.z()/2)*mm);
+    G4ThreeVector p(m_jam->px[i]*GeV, m_jam->py[i]*GeV, m_jam->pz[i]*GeV);
     double theta = p.theta()*180./acos(-1.);
     if(theta>30.)
       continue;
@@ -1304,7 +1309,7 @@ PrimaryGeneratorAction::GenerateJamInput_Randphi(G4Event* anEvent)
     m_particle_gun->SetParticleDefinition(particle);
     //    m_particle_gun->SetParticleMomentumDirection(p);
     m_particle_gun->SetParticleMomentumDirection(p_cor);
-    G4double m = particle->GetPDGMass()/CLHEP::GeV;
+    G4double m = particle->GetPDGMass()/GeV;
     //    G4double ke = std::sqrt(m*m + p.mag2()) - m;
     G4double ke = std::sqrt(m*m + p_cor.mag2()) - m;
     m_particle_gun->SetParticleEnergy(ke);
@@ -1328,10 +1333,10 @@ PrimaryGeneratorAction::GenerateIncInput(G4Event* anEvent)
   for(G4int i=0; i<m_inc->np; ++i){
     auto particle = particleTable->FindParticle(m_inc->pid[i]);
     G4ThreeVector x(m_target_pos.x(), m_target_pos.y(), m_target_pos.z());
-    G4ThreeVector p(m_inc->px[i]*CLHEP::GeV, m_inc->py[i]*CLHEP::GeV, m_inc->pz[i]*CLHEP::GeV);
+    G4ThreeVector p(m_inc->px[i]*GeV, m_inc->py[i]*GeV, m_inc->pz[i]*GeV);
     m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p);
-    G4double m = particle->GetPDGMass()/CLHEP::GeV;
+    G4double m = particle->GetPDGMass()/GeV;
     G4double ke = std::sqrt(m*m + p.mag2()) - m;
     m_particle_gun->SetParticleEnergy(ke);
     m_particle_gun->SetParticlePosition(x);
@@ -1361,17 +1366,17 @@ PrimaryGeneratorAction::GenerateHybrid(G4Event* anEvent)
   // pg_y = 0.0;
   G4double pg_z = pbeam;
 
-  // G4double Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  // G4double Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   mass_hybrid = 1.22;    // Mass for H
   width_hybrid = 0.000;  // Width for H
 
-  KinemaHybrid Hybrid(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-		      m_Proton->GetPDGMass()/CLHEP::GeV,
-		      m_Proton->GetPDGMass()/CLHEP::GeV,
-		      m_PionMinus->GetPDGMass()/CLHEP::GeV,//pi1
-		      m_PionPlus->GetPDGMass()/CLHEP::GeV, //pi2
+  KinemaHybrid Hybrid(m_PionMinus->GetPDGMass()/GeV,
+		      m_Proton->GetPDGMass()/GeV,
+		      m_Proton->GetPDGMass()/GeV,
+		      m_PionMinus->GetPDGMass()/GeV,//pi1
+		      m_PionPlus->GetPDGMass()/GeV, //pi2
 		      mass_hybrid, width_hybrid, pg_z, 0.0);
 
   //  Hkinema.Dump();
@@ -1448,8 +1453,8 @@ PrimaryGeneratorAction::GenerateHybrid(G4Event* anEvent)
   G4cout<<"invm:"<<invm<<G4endl;
   /////shhwang hybrid1
 
-  double vtx = 0.*CLHEP::mm;
-  double vty = 0.*CLHEP::mm;
+  double vtx = 0.*mm;
+  double vty = 0.*mm;
   double vtz = -155.0+10.0*((double) G4RandFlat::shoot()); //--> 10 mm
   //  double vtz = -157.5+15.0*((double) G4RandFlat::shoot()); //--> 15 mm
   //  double vtz = -160.0+20.0*((double) G4RandFlat::shoot()); //--> 20 mm
@@ -1460,25 +1465,25 @@ PrimaryGeneratorAction::GenerateHybrid(G4Event* anEvent)
   ///////proton PG
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -1504,7 +1509,7 @@ PrimaryGeneratorAction::GenerateHybrid3body(G4Event* anEvent)
   // pg_y = 0.0;
   // pg_z = pbeam;
 
-  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   //  mass_hybrid = 1.22;    // Mass for H
@@ -1515,9 +1520,9 @@ PrimaryGeneratorAction::GenerateHybrid3body(G4Event* anEvent)
   //  Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
   G4double W=sqrt(pow(Ebeam+rmpro,2)-pow(pbeam,2));
   Kinema3Body Hybrid(W,0,
-                     m_Proton->GetPDGMass()/CLHEP::GeV,
-                     m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                     m_PionPlus->GetPDGMass()/CLHEP::GeV,
+                     m_Proton->GetPDGMass()/GeV,
+                     m_PionMinus->GetPDGMass()/GeV,
+                     m_PionPlus->GetPDGMass()/GeV,
                      pbeam, 0.0);
   //  Hkinema.Dump();
   /* pro */
@@ -1593,8 +1598,8 @@ PrimaryGeneratorAction::GenerateHybrid3body(G4Event* anEvent)
   //  G4cout<<"invm:"<<invm<<G4endl;
   /////shhwang hybrid1
 
-  double vtx = 0.*CLHEP::mm;
-  double vty = 0.*CLHEP::mm;
+  double vtx = 0.*mm;
+  double vty = 0.*mm;
   double vtz = -155.0+10.0*((double) G4RandFlat::shoot()); //--> 10 mm
   //  double vtz = -157.5+15.0*((double) G4RandFlat::shoot()); //--> 15 mm
   //  double vtz = -160.0+20.0*((double) G4RandFlat::shoot()); //--> 20 mm
@@ -1605,25 +1610,25 @@ PrimaryGeneratorAction::GenerateHybrid3body(G4Event* anEvent)
   ///////Proton PG
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -1652,14 +1657,14 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode1(G4Event* anEvent)
   // pg_y = 0.0;
   // pg_z = pbeam;
 
-  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   G4double W=sqrt(pow(Ebeam+rmpro,2)-pow(pbeam,2));
   Kinema3Body Hybrid(W,0,
-                     m_Neutron->GetPDGMass()/CLHEP::GeV,
-                     m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                     m_PionPlus->GetPDGMass()/CLHEP::GeV,
+                     m_Neutron->GetPDGMass()/GeV,
+                     m_PionMinus->GetPDGMass()/GeV,
+                     m_PionPlus->GetPDGMass()/GeV,
                      pbeam, 0.0);
   //  Hkinema.Dump();
   /* pro */
@@ -1727,25 +1732,25 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode1(G4Event* anEvent)
   ///////Neutron PG
   m_particle_gun->SetParticleDefinition(m_Neutron);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z, m_Neutron->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z, m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z, m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z, m_Neutron->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z, m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z, m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -1774,7 +1779,7 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode2(G4Event* anEvent)
   // pg_y = 0.0;
   // pg_z = pbeam;
 
-  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   //  mass_hybrid = 1.22;    // Mass for H
@@ -1785,9 +1790,9 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode2(G4Event* anEvent)
   //  Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
   G4double W=sqrt(pow(Ebeam+rmpro,2)-pow(pbeam,2));
   Kinema3Body Hybrid(W,0,
-                     m_Proton->GetPDGMass()/CLHEP::GeV,
-                     m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                     m_PionPlus->GetPDGMass()/CLHEP::GeV,
+                     m_Proton->GetPDGMass()/GeV,
+                     m_PionMinus->GetPDGMass()/GeV,
+                     m_PionPlus->GetPDGMass()/GeV,
                      pbeam, 0.0);
   //  Hkinema.Dump();
   /* pro */
@@ -1882,25 +1887,25 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode2(G4Event* anEvent)
   ///////proton PG
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -1929,7 +1934,7 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode3(G4Event* anEvent)
   // pg_y = 0.0;
   // pg_z = pbeam;
 
-  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   //  mass_hybrid = 1.22;    // Mass for H
@@ -1940,9 +1945,9 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode3(G4Event* anEvent)
   //  Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
   G4double W=sqrt(pow(Ebeam+rmpro,2)-pow(pbeam,2));
   Kinema3Body Hybrid(W,0,
-                     m_Neutron->GetPDGMass()/CLHEP::GeV,
-                     m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                     m_PionPlus->GetPDGMass()/CLHEP::GeV,
+                     m_Neutron->GetPDGMass()/GeV,
+                     m_PionMinus->GetPDGMass()/GeV,
+                     m_PionPlus->GetPDGMass()/GeV,
                      pbeam, 0.0);
   //  Hkinema.Dump();
   /* pro */
@@ -2035,25 +2040,25 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode3(G4Event* anEvent)
   ///////Neutron PG
   m_particle_gun->SetParticleDefinition(m_Neutron);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Neutron->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Neutron->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Neutron->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -2082,7 +2087,7 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode4(G4Event* anEvent)
   // pg_y = 0.0;
   // pg_z = pbeam;
 
-  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
 
   //  mass_hybrid = 1.22;    // Mass for H
@@ -2093,9 +2098,9 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode4(G4Event* anEvent)
   //  Kinema3Body kin2(kin3.M_res, 0.0, m3, m4, m5, temp, 0.0);
   G4double W=sqrt(pow(Ebeam+rmpro,2)-pow(pbeam,2));
   Kinema3Body Hybrid(W,0,
-                     m_Proton->GetPDGMass()/CLHEP::GeV,
-                     m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                     m_PionPlus->GetPDGMass()/CLHEP::GeV,
+                     m_Proton->GetPDGMass()/GeV,
+                     m_PionMinus->GetPDGMass()/GeV,
+                     m_PionPlus->GetPDGMass()/GeV,
                      pbeam, 0.0);
   //  Hkinema.Dump();
   /* pro */
@@ -2190,25 +2195,25 @@ PrimaryGeneratorAction::GenerateHybrid3bodyMode4(G4Event* anEvent)
   ///////Proton PG
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pro_x,mom_pro_y,mom_pro_z));
-  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pro - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi1 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi1_x,mom_pi1_y,mom_pi1_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi1 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////pi2 PG
   m_particle_gun->SetParticleDefinition(m_PionPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_pi2_x,mom_pi2_y,mom_pi2_z));
-  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_pi2 - m_PionPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_pro_x,mom_pro_y,mom_pro_z,m_Proton->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_pi1_x,mom_pi1_y,mom_pi1_z,m_PionMinus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_pi2_x,mom_pi2_y,mom_pi2_z,m_PionPlus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -2225,7 +2230,7 @@ PrimaryGeneratorAction::GenerateHybridPHSG(G4Event* anEvent)
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   G4double pimom=1.;
   // gAnaMan.SetPrimaryBeam(0,0,pimom);
-  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
   Ebeam = sqrt(pimom*pimom+0.13957018*0.13957018);
 
   // G4double pbm[4];
@@ -2240,7 +2245,7 @@ PrimaryGeneratorAction::GenerateHybridPHSG(G4Event* anEvent)
   G4double rmpi=0.13957018;
   G4double W=sqrt(pow(Ebeam+rmp,2)-pow(pimom,2));
   G4double W2=sqrt(pow(rmp,2)+pow(rmpi,2)+2*Ebeam*rmp);
-  // momhycm[3]=HybridBaryon->GetPDGMass()/CLHEP::GeV;
+  // momhycm[3]=HybridBaryon->GetPDGMass()/GeV;
   // momhycm[3]=W2;
   G4double momhylab[4]={0};
   G4cout<<"momhylab x: "<<momhylab[0]<<G4endl;
@@ -2253,27 +2258,27 @@ PrimaryGeneratorAction::GenerateHybridPHSG(G4Event* anEvent)
   G4cout<<"w2"<<W2<<G4endl;
   m_particle_gun->SetParticleDefinition(m_HybridBaryon);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  //  m_particle_gun->SetParticleEnergy((Ebeam+m_Proton->GetPDGMass()/CLHEP::GeV - HybridBaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  // m_particle_gun->SetParticleEnergy((momhylab[3] - HybridBaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  // m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  // m_particle_gun->SetParticleEnergy((momhylab[3])*CLHEP::GeV);
-  // m_particle_gun->SetParticleEnergy(0.5*CLHEP::GeV);
-  //  m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  m_particle_gun->SetParticleMomentum(1.*CLHEP::GeV); //KE ~ 0.35746632293688GeV
+  //  m_particle_gun->SetParticleEnergy((Ebeam+m_Proton->GetPDGMass()/GeV - HybridBaryon->GetPDGMass()/GeV)*GeV);
+  // m_particle_gun->SetParticleEnergy((momhylab[3] - HybridBaryon->GetPDGMass()/GeV)*GeV);
+  // m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/GeV)*GeV);
+  // m_particle_gun->SetParticleEnergy((momhylab[3])*GeV);
+  // m_particle_gun->SetParticleEnergy(0.5*GeV);
+  //  m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/GeV)*GeV);
+  m_particle_gun->SetParticleMomentum(1.*GeV); //KE ~ 0.35746632293688GeV
 
-  //  G4cout<<"sh test energy:"<<(Ebeam+m_Proton->GetPDGMass()/CLHEP::GeV - HybridBaryon->GetPDGMass()/CLHEP::GeV)<<G4endl;
-  //  G4cout<<"sh test energy:"<<momhylab[3]- HybridBaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
+  //  G4cout<<"sh test energy:"<<(Ebeam+m_Proton->GetPDGMass()/GeV - HybridBaryon->GetPDGMass()/GeV)<<G4endl;
+  //  G4cout<<"sh test energy:"<<momhylab[3]- HybridBaryon->GetPDGMass()/GeV<<G4endl;
 
-  //  m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  //  m_particle_gun->SetParticleEnergy((W - HybridBaryon->GetPDGMass()/GeV)*GeV);
 
-  m_particle_gun->SetParticlePosition(G4ThreeVector(0.,0.,-150.*CLHEP::mm));
+  m_particle_gun->SetParticlePosition(G4ThreeVector(0.,0.,-150.*mm));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
-  //  G4cout<<HybridBaryon->GetPDGMass()/CLHEP::GeV  <<G4endl;
+  //  G4cout<<HybridBaryon->GetPDGMass()/GeV  <<G4endl;
 
   /*
-    gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-    gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
-    gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
+    gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonPlus->GetPDGMass()/GeV);
+    gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_Lambda->GetPDGMass()/GeV);
+    gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_Lambda->GetPDGMass()/GeV);
     gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
     gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
     gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -2298,8 +2303,8 @@ PrimaryGeneratorAction::GenerateTest(G4Event* anEvent)
   mom_p_y = 0.;
   mom_p_z = sin(rand)*mompx+cos(rand)*mompz;
   G4double mom_p=sqrt(pow(mom_p_x,2)+pow(mom_p_y,2)+pow(mom_p_z,2));
-  //  Energy_p=pow(mom_p,2)+m_Proton->GetPDGMass()/CLHEP::GeV;
-  Energy_p=pow(mom_p,2)+m_PionMinus->GetPDGMass()/CLHEP::GeV;
+  //  Energy_p=pow(mom_p,2)+m_Proton->GetPDGMass()/GeV;
+  Energy_p=pow(mom_p,2)+m_PionMinus->GetPDGMass()/GeV;
 
 
   double vtz = -150+0.0*((double) G4RandFlat::shoot()); //--> 0 mm
@@ -2309,8 +2314,8 @@ PrimaryGeneratorAction::GenerateTest(G4Event* anEvent)
   ///////kp PG
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
@@ -2347,29 +2352,29 @@ PrimaryGeneratorAction::GenerateDedxSingle(G4Event* anEvent)
     vtx=rn_vtx;
     vtz=rn_vtz+m_target_pos.z();
   }else if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-15.,15.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-5.,5.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-15.,15.)*mm;
+    vty = G4RandFlat::shoot(-5.,5.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
   ///////kp PG
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   /*
-    Energy_p=sqrt(pow(mom_p,2)+pow(piplus->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(piplus->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(piplus);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - piplus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - piplus->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
   */
-  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
-  //  gAnaMan.SetPrimaryParticle(1,mom_p_x,mom_p_y,mom_p_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  //  gAnaMan.SetPrimaryParticle(1,mom_p_x,mom_p_y,mom_p_z,m_PionMinus->GetPDGMass()/GeV);
   //  gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
 
@@ -2392,7 +2397,7 @@ PrimaryGeneratorAction::GenerateAll(G4Event* anEvent)
   mom_p_x = mom_p*sin(theta)*cos(phi);
   mom_p_y = mom_p*sin(theta)*sin(phi);
   mom_p_z = mom_p*cos(theta);
-  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2))*CLHEP::GeV;
+  Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2))*GeV;
 
   G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
@@ -2406,9 +2411,9 @@ PrimaryGeneratorAction::GenerateAll(G4Event* anEvent)
     vtx=rn_vtx;
     vtz=rn_vtz+m_target_pos.z();
   }else if(gConf.Get<G4int>("Experiment") == 42.){
-    vtx = G4RandFlat::shoot(-15.,15.)*CLHEP::mm;
-    vty = G4RandFlat::shoot(-5.,5.)*CLHEP::mm;
-    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+    vtx = G4RandFlat::shoot(-15.,15.)*mm;
+    vty = G4RandFlat::shoot(-5.,5.)*mm;
+    vtz = G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   }
 
 
@@ -2416,7 +2421,7 @@ PrimaryGeneratorAction::GenerateAll(G4Event* anEvent)
 ///////kp PG
 m_particle_gun->SetParticleDefinition(m_Proton);
 m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
 m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
 m_particle_gun->GeneratePrimaryVertex(anEvent);
   */
@@ -2426,57 +2431,57 @@ m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   if(ratio >= 0.0 && ratio < 0.2){
     // proton//
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_Proton->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_Proton);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(1);
-    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/CLHEP::GeV);
+    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_Proton->GetPDGMass()/GeV);
     // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   } else  if(ratio >= 0.2 && ratio < 0.4){
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_KaonPlus->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_KaonPlus->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_KaonPlus);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_KaonPlus->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(2);
-    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
+    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_KaonPlus->GetPDGMass()/GeV);
     // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   } else  if(ratio >= 0.4 && ratio< 0.6){
     // pi+ //
-    Energy_p=sqrt(pow(mom_p,2)+ pow(m_PionPlus->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+ pow(m_PionPlus->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_PionPlus);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_PionPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_PionPlus->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(3);
-    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_PionPlus->GetPDGMass()/CLHEP::GeV);
+    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_PionPlus->GetPDGMass()/GeV);
     // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   } else  if(ratio >= 0.6 && ratio< 0.8){
     // pi- //
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_PionMinus);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(4);
-    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
+    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_PionMinus->GetPDGMass()/GeV);
     // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   } else  if(ratio >= 0.8 && ratio <= 1.0){
     // k- //
-    Energy_p=sqrt(pow(mom_p,2)+pow(m_KaonMinus->GetPDGMass()/CLHEP::GeV,2));
+    Energy_p=sqrt(pow(mom_p,2)+pow(m_KaonMinus->GetPDGMass()/GeV,2));
     m_particle_gun->SetParticleDefinition(m_KaonMinus);
     m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-    m_particle_gun->SetParticleEnergy((Energy_p - m_KaonMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+    m_particle_gun->SetParticleEnergy((Energy_p - m_KaonMinus->GetPDGMass()/GeV)*GeV);
     m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetModeID(5);
-    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_KaonMinus->GetPDGMass()/CLHEP::GeV);
+    // gAnaMan.SetPrimaryParticle(0,mom_p_x,mom_p_y,mom_p_z,m_KaonMinus->GetPDGMass()/GeV);
     // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   }
 
@@ -2498,17 +2503,17 @@ PrimaryGeneratorAction::GenerateLambda1405Rad1(G4Event* anEvent)
   //  pbeam=1.65;
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
 
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_Lambda1405->GetPDGMass()/CLHEP::GeV,
-                      m_KaonZeroS->GetPDGMass()/CLHEP::GeV,
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_Lambda1405->GetPDGMass()/GeV,
+                      m_KaonZeroS->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -2542,7 +2547,7 @@ PrimaryGeneratorAction::GenerateLambda1405Rad1(G4Event* anEvent)
   // momks[0]=mom_ksp_x;
   // momks[1]=mom_ksp_y;
   // momks[2]=mom_ksp_z;
-  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/CLHEP::GeV,2));
+  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/GeV,2));
 
   //  G4cout<<"momks:"<<momks[0]<<":"<<momks[1]<<":"<<momks[2]<<":"<<momks[3]<<G4endl;
   //  G4cout<<"Energy_ksp:  "<<Energy_ksp<<G4endl;
@@ -2560,9 +2565,9 @@ PrimaryGeneratorAction::GenerateLambda1405Rad1(G4Event* anEvent)
   //  G4cout<<"comp phi:"<<cmphik<<":"<<Phi_L<<G4endl;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz = 0*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz = 0*mm;
   G4double rn_vtx,rn_vtz;
 
   while(1){
@@ -2583,19 +2588,19 @@ PrimaryGeneratorAction::GenerateLambda1405Rad1(G4Event* anEvent)
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonZeroS);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //L
   m_particle_gun->SetParticleDefinition(m_Lambda1405);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L_x,mom_L_y,mom_L_z));
-  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda1405->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda1405->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda1405->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda1405->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -2614,17 +2619,17 @@ PrimaryGeneratorAction::GenerateLambda1405Rad2(G4Event* anEvent)
   //  pbeam=1.65;
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
 
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_Lambda1405R->GetPDGMass()/CLHEP::GeV,
-                      m_KaonZeroS->GetPDGMass()/CLHEP::GeV,
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_Lambda1405R->GetPDGMass()/GeV,
+                      m_KaonZeroS->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -2658,7 +2663,7 @@ PrimaryGeneratorAction::GenerateLambda1405Rad2(G4Event* anEvent)
   // momks[0]=mom_ksp_x;
   // momks[1]=mom_ksp_y;
   // momks[2]=mom_ksp_z;
-  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/CLHEP::GeV,2));
+  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/GeV,2));
 
   //  G4cout<<"momks:"<<momks[0]<<":"<<momks[1]<<":"<<momks[2]<<":"<<momks[3]<<G4endl;
   //  G4cout<<"Energy_ksp:  "<<Energy_ksp<<G4endl;
@@ -2676,9 +2681,9 @@ PrimaryGeneratorAction::GenerateLambda1405Rad2(G4Event* anEvent)
   //  G4cout<<"comp phi:"<<cmphik<<":"<<Phi_L<<G4endl;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz = 0*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz = 0*mm;
   G4double rn_vtx,rn_vtz;
 
   while(1){
@@ -2699,19 +2704,19 @@ PrimaryGeneratorAction::GenerateLambda1405Rad2(G4Event* anEvent)
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonZeroS);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //L
   m_particle_gun->SetParticleDefinition(m_Lambda1405R);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L_x,mom_L_y,mom_L_z));
-  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda1405R->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda1405R->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda1405R->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda1405R->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -2764,24 +2769,24 @@ PrimaryGeneratorAction::GenerateLambda1405Reso(G4Event* anEvent)
   //  G4cout<<"check 2"<<G4endl;
   gAnaMan.SetModeID(mode);
 
-  //  Ebeam = 1.9;       // Incident gamma energy (CLHEP::GeV)
+  //  Ebeam = 1.9;       // Incident gamma energy (GeV)
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
-  // G4double Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  // G4double Ebeam = sqrt(pow(pbeam,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);// how about add mass information?
 
-  //  G4cout<< m_PionMinus->GetPDGMass()/CLHEP::GeV <<G4endl;
-  //  G4cout<< m_Proton->GetPDGMass()/CLHEP::GeV <<G4endl;
-  //  G4cout<< pion->GetPDGMass()/CLHEP::GeV <<G4endl;
-  //  G4cout<< sigma->GetPDGMass()/CLHEP::GeV <<G4endl;
-  //  G4cout<< m_KaonZeroS->GetPDGMass()/CLHEP::GeV <<G4endl;
+  //  G4cout<< m_PionMinus->GetPDGMass()/GeV <<G4endl;
+  //  G4cout<< m_Proton->GetPDGMass()/GeV <<G4endl;
+  //  G4cout<< pion->GetPDGMass()/GeV <<G4endl;
+  //  G4cout<< sigma->GetPDGMass()/GeV <<G4endl;
+  //  G4cout<< m_KaonZeroS->GetPDGMass()/GeV <<G4endl;
   //  G4cout<< mass_hdibaryon <<G4endl;
   //  G4cout<< width_hdibaryon <<G4endl;
   //  G4cout<< pbeam <<G4endl;
-  Kinema3Resonance  Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                            m_Proton->GetPDGMass()/CLHEP::GeV,
-                            pion->GetPDGMass()/CLHEP::GeV,
-                            sigma->GetPDGMass()/CLHEP::GeV,
-                            m_KaonZeroS->GetPDGMass()/CLHEP::GeV,
+  Kinema3Resonance  Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                            m_Proton->GetPDGMass()/GeV,
+                            pion->GetPDGMass()/GeV,
+                            sigma->GetPDGMass()/GeV,
+                            m_KaonZeroS->GetPDGMass()/GeV,
                             mass_hdibaryon, width_hdibaryon, pbeam, 0.0);
 
   //  G4cout<<"check 3"<<G4endl;
@@ -2836,9 +2841,9 @@ PrimaryGeneratorAction::GenerateLambda1405Reso(G4Event* anEvent)
   // Vertex (Reaction) point
   //  G4cout<<Energy_kp<<G4endl;
   //  //  G4double beta= sqrt(1.8*1.8-0.493677*0.493677)/(2*0.93827203+Energy_kp);
-  //  G4cout<<(m_Proton->GetPDGMass()/CLHEP::GeV)<<G4endl;
+  //  G4cout<<(m_Proton->GetPDGMass()/GeV)<<G4endl;
 
-  // G4double beta= pbeam/(m_Proton->GetPDGMass()/CLHEP::GeV+Ebeam);
+  // G4double beta= pbeam/(m_Proton->GetPDGMass()/GeV+Ebeam);
   //  G4cout<<"Pri:"<<beta<<G4endl;
   //  G4double beta= sqrt(pow(mom_kp_x,2)+pow(mom_kp_y,2)+pow(mom_kp_z,2))/(2*0.93827203+1.8);
 
@@ -2847,7 +2852,7 @@ PrimaryGeneratorAction::GenerateLambda1405Reso(G4Event* anEvent)
   // momk[0]=mom_kp_x;
   // momk[1]=mom_kp_y;
   // momk[2]=mom_kp_z;
-  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+pow(m_PionMinus->GetPDGMass()/CLHEP::GeV,2));
+  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+pow(m_PionMinus->GetPDGMass()/GeV,2));
   // G4double momkpp=sqrt(pow(mom_kp_x,2)+pow(mom_kp_y,2)+pow(mom_kp_z,2));
   // G4double momcmkpp=sqrt(pow(momcmk[0],2)+pow(momcmk[1],2)+pow(momcmk[2],2));
   //cmk->Fill(acos(momcmk[2]/momcmkpp)/3.141592654*180.);
@@ -2911,32 +2916,32 @@ PrimaryGeneratorAction::GenerateLambda1405Reso(G4Event* anEvent)
   //  G4double vtx = vtr*cos(vtphi);
   //  G4double vty = vtr*sin(vtphi);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
 
   ///////kp PG
   m_particle_gun->SetParticleDefinition(m_KaonZeroS);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
-  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonZeroS->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_kp - m_KaonZeroS->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L1 PG
   m_particle_gun->SetParticleDefinition(pion);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L1_x,mom_L1_y,mom_L1_z));
-  m_particle_gun->SetParticleEnergy((Energy_L1 - pion->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L1 - pion->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L2 PG
   m_particle_gun->SetParticleDefinition(sigma);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L2_x,mom_L2_y,mom_L2_z));
-  m_particle_gun->SetParticleEnergy((Energy_L2 - sigma->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L2 - sigma->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonZeroS->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,sigma->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,pion->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_KaonZeroS->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,sigma->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,pion->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -2957,7 +2962,7 @@ PrimaryGeneratorAction::GenerateSigma1385Rad(G4Event* anEvent)
   //  pbeam=1.65;
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
@@ -2965,10 +2970,10 @@ PrimaryGeneratorAction::GenerateSigma1385Rad(G4Event* anEvent)
   pbm[3]=Ebeam;
 
   // up:
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_Sigma1385R->GetPDGMass()/CLHEP::GeV,
-                      m_KaonZeroS->GetPDGMass()/CLHEP::GeV,
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_Sigma1385R->GetPDGMass()/GeV,
+                      m_KaonZeroS->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -3002,7 +3007,7 @@ PrimaryGeneratorAction::GenerateSigma1385Rad(G4Event* anEvent)
   // momks[0]=mom_ksp_x;
   // momks[1]=mom_ksp_y;
   // momks[2]=mom_ksp_z;
-  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/CLHEP::GeV,2));
+  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/GeV,2));
 
   //  G4cout<<"momks:"<<momks[0]<<":"<<momks[1]<<":"<<momks[2]<<":"<<momks[3]<<G4endl;
   //  G4cout<<"Energy_ksp:  "<<Energy_ksp<<G4endl;
@@ -3020,9 +3025,9 @@ PrimaryGeneratorAction::GenerateSigma1385Rad(G4Event* anEvent)
   //  G4cout<<"comp phi:"<<cmphik<<":"<<Phi_L<<G4endl;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz = 0*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz = 0*mm;
   G4double rn_vtx,rn_vtz;
 
   while(1){
@@ -3043,19 +3048,19 @@ PrimaryGeneratorAction::GenerateSigma1385Rad(G4Event* anEvent)
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonZeroS);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //L
   m_particle_gun->SetParticleDefinition(m_Sigma1385R);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L_x,mom_L_y,mom_L_z));
-  m_particle_gun->SetParticleEnergy((Energy_L - m_Sigma1385R->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L - m_Sigma1385R->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Sigma1385R->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Sigma1385R->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -3075,17 +3080,17 @@ PrimaryGeneratorAction::GenerateSigma1385(G4Event* anEvent)
   //  pbeam=1.65;
   pbeam=G4RandGauss::shoot(m_beam_p0,m_beam_p0*3.3*0.0001/2.3548);
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
   //  G4cout<<"check11"<<G4endl;
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_Sigma1385Zero->GetPDGMass()/CLHEP::GeV,
-                      m_KaonZeroS->GetPDGMass()/CLHEP::GeV,
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_Sigma1385Zero->GetPDGMass()/GeV,
+                      m_KaonZeroS->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -3119,7 +3124,7 @@ PrimaryGeneratorAction::GenerateSigma1385(G4Event* anEvent)
   // momks[0]=mom_ksp_x;
   // momks[1]=mom_ksp_y;
   // momks[2]=mom_ksp_z;
-  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/CLHEP::GeV,2));
+  // momks[3]=sqrt(mom_ksp_x*mom_ksp_x+mom_ksp_y*mom_ksp_y+mom_ksp_z*mom_ksp_z+pow(m_KaonZeroS->GetPDGMass()/GeV,2));
 
   //  G4cout<<"momks:"<<momks[0]<<":"<<momks[1]<<":"<<momks[2]<<":"<<momks[3]<<G4endl;
   //  G4cout<<"Energy_ksp:  "<<Energy_ksp<<G4endl;
@@ -3137,9 +3142,9 @@ PrimaryGeneratorAction::GenerateSigma1385(G4Event* anEvent)
   //  G4cout<<"comp phi:"<<cmphik<<":"<<Phi_L<<G4endl;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz = 0*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz = 0*mm;
   G4double rn_vtx,rn_vtz;
 
   while(1){
@@ -3160,19 +3165,19 @@ PrimaryGeneratorAction::GenerateSigma1385(G4Event* anEvent)
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonZeroS);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonZeroS->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //L
   m_particle_gun->SetParticleDefinition(m_Sigma1385Zero);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L_x,mom_L_y,mom_L_z));
-  m_particle_gun->SetParticleEnergy((Energy_L - m_Sigma1385Zero->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L - m_Sigma1385Zero->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Sigma1385Zero->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonZeroS->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Sigma1385Zero->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -3192,22 +3197,22 @@ PrimaryGeneratorAction::GeneratePionPlusKsL(G4Event* anEvent)
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   pbeam=1.8;
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"m_PionMinus mass:"<<m_PionMinus->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"KstarMinus mass:"<<m_KaonStarZero->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"Lambda mass:"<<m_Lambda->GetPDGMass()/CLHEP::GeV<<G4endl;
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_Lambda->GetPDGMass()/CLHEP::GeV,
-                      m_KaonStarZero->GetPDGMass()/CLHEP::GeV,
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"m_PionMinus mass:"<<m_PionMinus->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"KstarMinus mass:"<<m_KaonStarZero->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"Lambda mass:"<<m_Lambda->GetPDGMass()/GeV<<G4endl;
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_Lambda->GetPDGMass()/GeV,
+                      m_KaonStarZero->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -3259,26 +3264,26 @@ PrimaryGeneratorAction::GeneratePionPlusKsL(G4Event* anEvent)
   //  G4cout<<"comp phi:"<<cmphik<<":"<<Phi_L<<G4endl;
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
 
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonStarZero);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonStarZero->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonStarZero->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //L
   m_particle_gun->SetParticleDefinition(m_Lambda);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L_x,mom_L_y,mom_L_z));
-  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L - m_Lambda->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonStarZero->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonStarZero->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L_x,mom_L_y,mom_L_z,m_Lambda->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -3299,19 +3304,19 @@ PrimaryGeneratorAction::GeneratePionPlusKsS(G4Event* anEvent)
   //  G4double pimom=0.635+G4RandFlat::shoot()*(2.000-0.635);
   pbeam=1.9;
   // gAnaMan.SetPrimaryBeam(0,0,pbeam);
-  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
-  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  //  Ebeam = sqrt(pimom*pimom+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
+  Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);
 
   pbm[0]=0;
   pbm[1]=0;
   pbm[2]=pbeam;
   pbm[3]=Ebeam;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
-  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/CLHEP::GeV<<G4endl;
-  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                      m_Proton->GetPDGMass()/CLHEP::GeV,
-                      m_SigmaZero->GetPDGMass()/CLHEP::GeV,
-                      m_KaonStarZero->GetPDGMass()/CLHEP::GeV,
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
+  //  G4cout<<"hdibaryon mass"<<hdibaryon->GetPDGMass()/GeV<<G4endl;
+  KinemaKstar Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                      m_Proton->GetPDGMass()/GeV,
+                      m_SigmaZero->GetPDGMass()/GeV,
+                      m_KaonStarZero->GetPDGMass()/GeV,
                       pbm[2], 0.0);
 
   Energy_ksp=Hkinema.GetEnergy(4);
@@ -3362,28 +3367,28 @@ PrimaryGeneratorAction::GeneratePionPlusKsS(G4Event* anEvent)
 
   //coscmk->Fill(momcmk[2]/momcmkpp);
 
-  G4double vtx = 0.*CLHEP::mm;
-  G4double vty = 0.*CLHEP::mm;
+  G4double vtx = 0.*mm;
+  G4double vty = 0.*mm;
   //  G4cout<<"m_target_size.z() :"<<atof(env_m_target_size.z().c_str())<<G4endl;
   //  G4double vtz= G4RandFlat::shoot(-150.-m_target_size.z()/2,-150.+m_target_size.z()/2);
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
 
   //KaonStarZero
   m_particle_gun->SetParticleDefinition(m_KaonStarZero);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_ksp_x,mom_ksp_y,mom_ksp_z));
-  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonStarZero->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_ksp - m_KaonStarZero->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
   //S
   m_particle_gun->SetParticleDefinition(m_SigmaZero);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_S_x,mom_S_y,mom_S_z));
-  m_particle_gun->SetParticleEnergy((Energy_S - m_SigmaZero->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_S - m_SigmaZero->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonStarZero->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_S_x,mom_S_y,mom_S_z,m_SigmaZero->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_ksp_x,mom_ksp_y,mom_ksp_z,m_KaonStarZero->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_S_x,mom_S_y,mom_S_z,m_SigmaZero->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
 }
@@ -3404,16 +3409,16 @@ PrimaryGeneratorAction::GeneratePionPlusKstarL(G4Event* anEvent)
   // pg_y = 0.0;
   G4double pg_z = 1.8;
   // G4double pbeam = 1.8;
-  // G4double Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);       // Incident gamma energy (CLHEP::GeV)
+  // G4double Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);       // Incident gamma energy (GeV)
 
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
   mass_hdibaryon = gConf.Get<G4double>("HdibaryonMass"); // 0.89594;
   width_hdibaryon = gConf.Get<G4double>("HdibaryonWidth"); // 0.0487;
-  Kinema3Resonance Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                           m_Proton->GetPDGMass()/CLHEP::GeV,
-                           m_KaonPlus->GetPDGMass()/CLHEP::GeV,
-                           m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                           m_Lambda->GetPDGMass()/CLHEP::GeV,
+  Kinema3Resonance Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                           m_Proton->GetPDGMass()/GeV,
+                           m_KaonPlus->GetPDGMass()/GeV,
+                           m_PionMinus->GetPDGMass()/GeV,
+                           m_Lambda->GetPDGMass()/GeV,
                            mass_hdibaryon, width_hdibaryon, pg_z, 0.0);
   //  Hkinema.Dump();
   Energy_kp = Hkinema.GetEnergy(5);
@@ -3459,7 +3464,7 @@ PrimaryGeneratorAction::GeneratePionPlusKstarL(G4Event* anEvent)
   // momk[0]=mom_kp_x;
   // momk[1]=mom_kp_y;
   // momk[2]=mom_kp_z;
-  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+m_Lambda->GetPDGMass()/CLHEP::GeV*m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+m_Lambda->GetPDGMass()/GeV*m_Lambda->GetPDGMass()/GeV);
   // G4double momkpp=sqrt(pow(mom_kp_x,2)+pow(mom_kp_y,2)+pow(mom_kp_z,2));
   // G4double momcmkpp=sqrt(pow(momcmk[0],2)+pow(momcmk[1],2)+pow(momcmk[2],2));
   // cmk->Fill(acos(momcmk[2]/momcmkpp)/3.141592654*180);
@@ -3478,8 +3483,8 @@ PrimaryGeneratorAction::GeneratePionPlusKstarL(G4Event* anEvent)
   // G4double invm2=etot-ptot;
   // if(invm2 > 0) invm=sqrt(invm2);
   //gen_im->Fill(invm);
-  double vtx = 0.*CLHEP::mm;
-  double vty = 0.*CLHEP::mm;
+  double vtx = 0.*mm;
+  double vty = 0.*mm;
   /////shhwang hdibaryon1
 
   //  G4cout<<"m_target_size.z() :"<<atof(env_m_target_size.z().c_str())<<G4endl;
@@ -3488,25 +3493,25 @@ PrimaryGeneratorAction::GeneratePionPlusKstarL(G4Event* anEvent)
   ///////kp PG
   m_particle_gun->SetParticleDefinition(m_Lambda);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
-  m_particle_gun->SetParticleEnergy((Energy_kp - m_Lambda->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_kp - m_Lambda->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L1 PG
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L1_x,mom_L1_y,mom_L1_z));
-  m_particle_gun->SetParticleEnergy((Energy_L1 - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L1 - m_KaonPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L2 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L2_x,mom_L2_y,mom_L2_z));
-  m_particle_gun->SetParticleEnergy((Energy_L2 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L2 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_Lambda->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_KaonPlus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_PionMinus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -3530,17 +3535,17 @@ PrimaryGeneratorAction::GeneratePionPlusKstarS(G4Event* anEvent)
   G4double pg_z = 1.8;
   // G4double pbeam=1.8;
 
-  // G4double Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/CLHEP::GeV*m_PionMinus->GetPDGMass()/CLHEP::GeV);       // Incident gamma energy (CLHEP::GeV)
+  // G4double Ebeam = sqrt(pbeam*pbeam+m_PionMinus->GetPDGMass()/GeV*m_PionMinus->GetPDGMass()/GeV);       // Incident gamma energy (GeV)
 
   // gAnaMan.SetPrimaryBeam(pg_x,pg_y,pg_z);
   mass_hdibaryon = gConf.Get<G4double>("HdibaryonMass"); // 0.89594;
   width_hdibaryon = gConf.Get<G4double>("HdibaryonWidth"); // 0.0487;
 
-  Kinema3Resonance Hkinema(m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                           m_Proton->GetPDGMass()/CLHEP::GeV,
-                           m_KaonPlus->GetPDGMass()/CLHEP::GeV,
-                           m_PionMinus->GetPDGMass()/CLHEP::GeV,
-                           m_Lambda->GetPDGMass()/CLHEP::GeV,
+  Kinema3Resonance Hkinema(m_PionMinus->GetPDGMass()/GeV,
+                           m_Proton->GetPDGMass()/GeV,
+                           m_KaonPlus->GetPDGMass()/GeV,
+                           m_PionMinus->GetPDGMass()/GeV,
+                           m_Lambda->GetPDGMass()/GeV,
                            mass_hdibaryon, width_hdibaryon, pg_z, 0.0);
 
   //  Hkinema.Dump();
@@ -3591,7 +3596,7 @@ PrimaryGeneratorAction::GeneratePionPlusKstarS(G4Event* anEvent)
   // momk[0]=mom_kp_x;
   // momk[1]=mom_kp_y;
   // momk[2]=mom_kp_z;
-  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+m_Lambda->GetPDGMass()/CLHEP::GeV*m_Lambda->GetPDGMass()/CLHEP::GeV);
+  // momk[3]=sqrt(mom_kp_x*mom_kp_x+mom_kp_y*mom_kp_y+mom_kp_z*mom_kp_z+m_Lambda->GetPDGMass()/GeV*m_Lambda->GetPDGMass()/GeV);
   // G4double momkpp=sqrt(pow(mom_kp_x,2)+pow(mom_kp_y,2)+pow(mom_kp_z,2));
   // G4double momcmkpp=sqrt(pow(momcmk[0],2)+pow(momcmk[1],2)+pow(momcmk[2],2));
   // cmk->Fill(acos(momcmk[2]/momcmkpp)/3.141592654*180);
@@ -3610,35 +3615,35 @@ PrimaryGeneratorAction::GeneratePionPlusKstarS(G4Event* anEvent)
   // if(invm2 > 0) invm=sqrt(invm2);
   //gen_im->Fill(invm);
 
-  double vtx = 0.*CLHEP::mm;
-  double vty = 0.*CLHEP::mm;
+  double vtx = 0.*mm;
+  double vty = 0.*mm;
   /////shhwang hdibaryon1
   //  G4cout<<"m_target_size.z() :"<<atof(env_m_target_size.z().c_str())<<G4endl;
   //  G4double vtz= G4RandFlat::shoot(-150.-m_target_size.z()/2,-150.+m_target_size.z()/2);
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
 
   ///////kp PG
   m_particle_gun->SetParticleDefinition(m_Lambda);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
-  m_particle_gun->SetParticleEnergy((Energy_kp - m_Lambda->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_kp - m_Lambda->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L1 PG
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L1_x,mom_L1_y,mom_L1_z));
-  m_particle_gun->SetParticleEnergy((Energy_L1 - m_KaonPlus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L1 - m_KaonPlus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   ///////L2 PG
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_L2_x,mom_L2_y,mom_L2_z));
-  m_particle_gun->SetParticleEnergy((Energy_L2 - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  m_particle_gun->SetParticleEnergy((Energy_L2 - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
-  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_Lambda->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_KaonPlus->GetPDGMass()/CLHEP::GeV);
-  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_PionMinus->GetPDGMass()/CLHEP::GeV);
+  // gAnaMan.SetPrimaryParticle(0,mom_kp_x,mom_kp_y,mom_kp_z,m_Lambda->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(1,mom_L1_x,mom_L1_y,mom_L1_z,m_KaonPlus->GetPDGMass()/GeV);
+  // gAnaMan.SetPrimaryParticle(2,mom_L2_x,mom_L2_y,mom_L2_z,m_PionMinus->GetPDGMass()/GeV);
   // gAnaMan.SetPrimaryVertex(0,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(1,vtx,vty,vtz);
   // gAnaMan.SetPrimaryVertex(2,vtx,vty,vtz);
@@ -3664,10 +3669,10 @@ PrimaryGeneratorAction::GenerateTest2(G4Event* anEvent)
   mom_p_y = 0.;
   mom_p_z = sin(rand)*mompx+cos(rand)*mompz;
   G4double mom_p=sqrt(pow(mom_p_x,2)+pow(mom_p_y,2)+pow(mom_p_z,2));
-  //  Energy_p=pow(mom_p,2)+m_Proton->GetPDGMass()/CLHEP::GeV;
-  Energy_p=pow(mom_p,2)+m_PionMinus->GetPDGMass()/CLHEP::GeV;
+  //  Energy_p=pow(mom_p,2)+m_Proton->GetPDGMass()/GeV;
+  Energy_p=pow(mom_p,2)+m_PionMinus->GetPDGMass()/GeV;
 
-  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*CLHEP::mm;
+  G4double vtz= G4RandFlat::shoot(m_target_pos.z()-m_target_size.z()/2,m_target_pos.z()+m_target_size.z()/2)*mm;
   //  G4double vtz= G4RandFlat::shoot(-150.-m_target_size.z()/2,-150.+m_target_size.z()/2);
 
   //  double vtz = -150+0.0*((double) G4RandFlat::shoot()); //--> 0 mm
@@ -3678,8 +3683,8 @@ PrimaryGeneratorAction::GenerateTest2(G4Event* anEvent)
   //  m_particle_gun->SetParticleDefinition(m_Proton);
   m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_p_x,mom_p_y,mom_p_z));
-  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
-  m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/CLHEP::GeV)*CLHEP::GeV);
+  //  m_particle_gun->SetParticleEnergy((Energy_p - m_Proton->GetPDGMass()/GeV)*GeV);
+  m_particle_gun->SetParticleEnergy((Energy_p - m_PionMinus->GetPDGMass()/GeV)*GeV);
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex(anEvent);
 
@@ -3709,7 +3714,6 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
 {
-  using CLHEP::GeV;
   static const auto KaonMinus = particleTable->FindParticle("kaon-");
   static const auto Proton = particleTable->FindParticle("proton");
   static const auto Lambda = particleTable->FindParticle("lambda");
@@ -3736,6 +3740,40 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
 		      d->Pz()*GeV, d->E()*GeV);
     auto particle = (i==0 ? Lambda : Eta);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
+}
+
+//_____________________________________________________________________________
+//case 7203
+void
+PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpaceWithBeam(G4Event* anEvent)
+{
+  static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
+  static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
+  static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV,
+		  m_beam->mom.y()/GeV,
+		  m_beam->mom.z()/GeV);
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { LambdaMass, EtaMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  event.Generate();
+  G4LorentzVector v(m_target_pos); // tentative
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV, d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? m_Lambda : m_Eta);
     m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p.v());
     m_particle_gun->SetParticleEnergy(p.e() - p.m());

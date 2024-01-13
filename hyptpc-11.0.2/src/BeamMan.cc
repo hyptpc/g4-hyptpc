@@ -26,7 +26,7 @@ void
 BeamInfo::Print() const
 {
   PrintHelper helper(4, std::ios::fixed, G4cout);
-  G4cout << "   "
+  G4cout << "   BeamInfo : "
          << "pos=" << pos << ",  "
          << "mom=" << mom << G4endl;
 }

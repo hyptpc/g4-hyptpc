@@ -13,6 +13,7 @@
 #include <G4VPhysicalVolume.hh>
 
 #include "ConfMan.hh"
+#include "PrintHelper.hh"
 
 namespace
 {
@@ -44,7 +45,6 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto prePVName = prePV->GetName();
   auto postPoint = theStep->GetPostStepPoint();
   auto theProcess = postPoint->GetProcessDefinedStep()->GetProcessName();
-
   // check if it is alive
   //  if(theTrack->GetTrackStatus() != fAlive) { return; }
 
@@ -60,33 +60,30 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   //  G4cout<<"start stepping action:"<<prePVName<<G4endl;
 
 #ifdef DEBUG
+  PrintHelper helper(3, std::ios::fixed, G4cout);
+  auto time = prePoint->GetGlobalTime();
+  auto track_id = theTrack->GetTrackID();
+  std::stringstream particle_ss;
+  particle_ss << particleName << "(" << track_id << ") ";
   if(theProcess != "eIoni" &&
      theProcess != "hIoni" &&
      theProcess != "msc" &&
      theProcess != "eBeam" &&
      theProcess != "Transportation"){
-    G4cout << particleName << " " << theProcess << G4endl;
+    G4cout << "   " << time/CLHEP::ns << " ns : "
+	   << particle_ss.str() << theProcess << G4endl;
   }
-#endif
 
-#ifdef DEBUG
   auto secondary = theStep->GetSecondaryInCurrentStep();
   for(const auto& s : *secondary){
     auto particle = s->GetDefinition();
     auto name = particle->GetParticleName();
-    auto type = particle->GetParticleType();
-    auto charge = particle->GetPDGCharge();
-    auto energy = s->GetKineticEnergy();
-    if(particleName == "lambda" && name == "proton"){
-      {
-	auto p = prePoint->GetMomentum();
-	auto x = prePoint->GetPosition();
-	std::cout << particleName << " p" << p << " x" << x << std::endl;
-      }
-      {
-	auto p = s->GetMomentum();
-	std::cout << "   -> " << name << " p" << p <<  std::endl;
-      }
+    // auto type = particle->GetParticleType();
+    if(true
+       || (particleName == "lambda" && name == "proton")){
+      G4cout << "   " << particle_ss.str() << "\tP" << prePoint->GetMomentum()
+	     << " X" << prePoint->GetPosition()
+	     << "\t-> " << name << " P" << s->GetMomentum() << G4endl;
     }
   }
 
@@ -94,7 +91,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
      && particleName == "proton"){
     auto preMaterial = prePoint->GetMaterial();
     G4double edep = theStep->GetTotalEnergyDeposit();
-    G4cout << particleName << " " << theProcess
+    G4cout << "   " << particleName << " " << theProcess
 	   << " " << theTrack->GetTrackStatus()
 	   << " " << preMaterial->GetName()
 	   << " x=" << prePoint->GetPosition()
@@ -111,6 +108,11 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
       return;
     }
   }
+
+  // if(particleName == "e-" || particleName == "e+"){
+  //   theTrack->SetTrackStatus(fStopAndKill);
+  //   return;
+  // }
 
   // if(prePVName.contains("Coil") || prePVName.contains("Guard")){
   //   theTrack->SetTrackStatus(fStopAndKill);
