@@ -20,20 +20,9 @@ public:
   virtual ~TPCSD();
 
 private:
-  G4THitsCollection<TPCHit>* hitsCollection;
-  G4double select_plane;
-  G4int num_plane;
-  G4int num_deadarea;
-  G4int select_dead;
-
-  G4int m_gem_discharge;
-  G4int m_gem_fix_dead;
-  G4int m_gem_dead_plane;
-  G4int m_gem_dead_plane_division;
-  G4double m_dead_area;
+  G4THitsCollection<TPCHit>* m_hits_collection;
 
 public:
-  G4int ntrk;
   virtual G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist);
   virtual void   Initialize(G4HCofThisEvent* HCTE);
   virtual void   EndOfEvent(G4HCofThisEvent* HCTE);
