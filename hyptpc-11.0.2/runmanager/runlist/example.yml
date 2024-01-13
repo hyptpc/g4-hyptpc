@@ -16,18 +16,17 @@
 DEFAULT:
   queue: s
   qmerge: s
-  nevent: 1000000
+  nruns: 100
   unit:  10000
   nproc: 18
   buff:  root/buf
-  bin:   obj/g4hyptpc
-  conf:  param/conf/e42_beam_QGSP.conf
+  bin:   bin/g4hyptpc
+  conf:  param/conf/e72_beam.conf
   root:  root/e72
 
 #______________________________________________________________________________
 RUN:
-  QGSP:
-    conf: ./param/conf/e42_beam_QGSP.conf
+  beam:
 
-  EM:
-    conf: ./param/conf/e42_beam_EM.conf
+  # lambdaeta:
+  #   conf: param/conf/e72_lambdaeta.conf
