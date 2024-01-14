@@ -205,7 +205,10 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 4502: GenerateE45ElasticPionMinus(anEvent); break;
   case 7201: GenerateE72OldBeamData(anEvent); break; // old kaon beam data by Hashimoto-san
   case 7202: GenerateE72LambdaEtaPhaseSpace(anEvent); break;
-  case 7203: GenerateE72LambdaEtaPhaseSpaceWithBeam(anEvent); break;
+  case 7203: GenerateE72LambdaPiZeroPhaseSpace(anEvent); break;
+  case 7204: GenerateE72SigmaMinusPiPlusPhaseSpace(anEvent); break;
+  case 7205: GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent); break;
+  case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
   default:
     G4cerr << " * Generator number error : " << m_generator << G4endl;
     break;
@@ -3722,9 +3725,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = Lambda->GetPDGMass()/GeV;
   static const auto EtaMass = Eta->GetPDGMass()/GeV;
-  TVector3 p_beam(m_beam->mom.x()/GeV,
-		  m_beam->mom.y()/GeV,
-		  m_beam->mom.z()/GeV);
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3752,28 +3753,153 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7203
 void
-PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpaceWithBeam(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
 {
-  static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
-  static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
-  static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
-  static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
-  TVector3 p_beam(m_beam->mom.x()/GeV,
-		  m_beam->mom.y()/GeV,
-		  m_beam->mom.z()/GeV);
+  using CLHEP::GeV;
+  static const auto KaonMinus = particleTable->FindParticle("kaon-");
+  static const auto Proton = particleTable->FindParticle("proton");
+  static const auto Lambda = particleTable->FindParticle("lambda");
+  static const auto PiZero = particleTable->FindParticle("pi0");
+  static const auto KaonMass = KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = Proton->GetPDGMass()/GeV;
+  static const auto LambdaMass = Lambda->GetPDGMass()/GeV;
+  static const auto PiMass = PiZero->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
+
   static const Int_t n_daughters = 2;
-  static const Double_t masses[n_daughters] = { LambdaMass, EtaMass };
+  static const Double_t masses[n_daughters] = { LambdaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
   G4LorentzVector v(m_target_pos); // tentative
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
-    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV, d->Pz()*GeV, d->E()*GeV);
-    auto particle = (i==0 ? m_Lambda : m_Eta);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? Lambda : PiZero);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
+}
+
+
+//_____________________________________________________________________________
+//case 7204
+void
+PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
+{
+  using CLHEP::GeV;
+  static const auto KaonMinus = particleTable->FindParticle("kaon-");
+  static const auto Proton = particleTable->FindParticle("proton");
+  static const auto SigmaMinus = particleTable->FindParticle("sigma-");
+  static const auto PiPlus = particleTable->FindParticle("pi+");
+  static const auto KaonMass = KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = Proton->GetPDGMass()/GeV;
+  static const auto SigmaMass = SigmaMinus->GetPDGMass()/GeV;
+  static const auto PiMass = PiPlus->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  event.Generate();
+  G4LorentzVector v(m_target_pos); // tentative
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? SigmaMinus : PiPlus);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
+}
+
+//_____________________________________________________________________________
+//case 7205
+void
+PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
+{
+  using CLHEP::GeV;
+  static const auto KaonMinus = particleTable->FindParticle("kaon-");
+  static const auto Proton = particleTable->FindParticle("proton");
+  static const auto SigmaZero = particleTable->FindParticle("sigma0");
+  static const auto PiZero = particleTable->FindParticle("pi0");
+  static const auto KaonMass = KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = Proton->GetPDGMass()/GeV;
+  static const auto SigmaMass = SigmaZero->GetPDGMass()/GeV;
+  static const auto PiMass = PiZero->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  event.Generate();
+  G4LorentzVector v(m_target_pos); // tentative
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? SigmaZero : PiZero);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
+}
+
+//_____________________________________________________________________________
+//case 7206
+void
+PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
+{
+  using CLHEP::GeV;
+  static const auto KaonMinus = particleTable->FindParticle("kaon-");
+  static const auto Proton = particleTable->FindParticle("proton");
+  static const auto SigmaPlus = particleTable->FindParticle("sigma+");
+  static const auto PiMinus = particleTable->FindParticle("pi-");
+  static const auto KaonMass = KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = Proton->GetPDGMass()/GeV;
+  static const auto SigmaMass = SigmaPlus->GetPDGMass()/GeV;
+  static const auto PiMass = PiMinus->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV,
+		  m_beam->mom.y()/GeV,
+		  m_beam->mom.z()/GeV);
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  event.Generate();
+  G4LorentzVector v(m_target_pos); // tentative
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? SigmaPlus : PiMinus);
     m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p.v());
     m_particle_gun->SetParticleEnergy(p.e() - p.m());

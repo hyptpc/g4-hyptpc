@@ -139,7 +139,10 @@ public:
   // E72
   void     GenerateE72OldBeamData(G4Event* anEvent);
   void     GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent);
-  void     GenerateE72LambdaEtaPhaseSpaceWithBeam(G4Event* anEvent);
+  void     GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent);
+  void     GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent);
+  void     GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent);
+  void     GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent);
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002
