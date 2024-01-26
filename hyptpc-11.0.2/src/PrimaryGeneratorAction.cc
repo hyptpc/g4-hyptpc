@@ -209,6 +209,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7204: GenerateE72SigmaMinusPiPlusPhaseSpace(anEvent); break;
   case 7205: GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent); break;
   case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
+  case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
   default:
     G4cerr << " * Generator number error : " << m_generator << G4endl;
     break;
@@ -3884,6 +3885,42 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
   }
 }
+
+//_____________________________________________________________________________
+//case 7207
+void
+PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anEvent)
+{
+  static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV,
+		  m_beam->mom.y()/GeV,
+		  m_beam->mom.z()/GeV);
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { KaonMass, ProtonMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  event.Generate();
+  G4LorentzVector v(m_target_pos); // tentative
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? m_KaonMinus : m_Proton);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
+}
+
+
 
 //_____________________________________________________________________________
 G4double
