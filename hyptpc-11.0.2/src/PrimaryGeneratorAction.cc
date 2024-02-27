@@ -3779,8 +3779,12 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3790,7 +3794,6 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
@@ -3845,7 +3848,12 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3857,7 +3865,6 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   event.Generate();
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
@@ -3893,7 +3900,12 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaMinus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionPlus->GetPDGMass()/GeV;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3905,7 +3917,6 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   event.Generate();
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
@@ -3940,7 +3951,12 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaZero->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3952,7 +3968,6 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   event.Generate();
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
@@ -3987,9 +4002,12 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaPlus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionMinus->GetPDGMass()/GeV;
-  TVector3 p_beam(m_beam->mom.x()/GeV,
-		  m_beam->mom.y()/GeV,
-		  m_beam->mom.z()/GeV);
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4001,7 +4019,6 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   event.Generate();
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
@@ -4034,9 +4051,12 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
-  TVector3 p_beam(m_beam->mom.x()/GeV,
-		  m_beam->mom.y()/GeV,
-		  m_beam->mom.z()/GeV);
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (is_combination) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4048,7 +4068,6 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
   event.Generate();
 
   G4ThreeVector vertex_pos = m_target_pos;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
   if (is_combination) {
     const auto target_size = gSize.GetSize("Target")*mm;
     const G4ThreeVector next_pos = gAnaMan.GetNextPos();
