@@ -37,7 +37,16 @@ std::map<TString, TH1*> hmap;
 //_____________________________________________________________________________
 AnaManager::AnaManager()
   : m_file(),
-    m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC"))
+    m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
+    m_effective_thickness(-1),
+    m_eta_angle(-9999.),
+    m_do_hit_tgt(false),
+    m_do_generate_beam(true),
+    m_is_combination(false),
+    m_effective_evnum(0),
+    m_next_generator(-1),
+    m_beam_generator(7201),
+    m_event_generator(-1)
 {
 }
 
@@ -92,7 +101,11 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   git->Write();
   m_tree->Reset();
   m_tree->Branch("evnum", &event.evnum, "evnum/I");
+  m_tree->Branch("effective_evnum", &m_effective_evnum, "effective_evnum/I");
   m_tree->Branch("generator", &event.generator, "generator/I");
+  m_tree->Branch("effective_generator", &m_next_generator, "effective_generator/I");
+  m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
+  m_tree->Branch("eta_angle", &m_eta_angle, "eta_angle/D");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
   MakeBranch("PRM");
@@ -107,6 +120,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   }
 
   event.evnum = 0;
+  m_next_generator = m_beam_generator;
 
 #if 0
   G4double target_pos_z=-143.;
@@ -264,8 +278,7 @@ AnaManager::BeginOfEventAction()
 {
   HitNum=0;
   tpctrNum=0;
-
-
+  
   //for K+
   HitNum_K=0;
   //  tpctrNum_K=0;
@@ -281,6 +294,8 @@ AnaManager::BeginOfEventAction()
 
   event.HitNum_p=-1;
 
+  // initialize (for combine generators)
+  if (m_next_generator == m_beam_generator) m_do_hit_tgt = false;
 
   /* ntrtpc initialization */
 
@@ -783,149 +798,9 @@ AnaManager::EndOfEventAction()
 	      //	    G4cout<<"env_helm_field:"<<env_helm_field<<G4endl;
 	    }
 	  }
-	  /////vertex reconstruction with beam
-	  /*	  else if(sh_paID[i]==0. && sh_paID[i] != sh_paID[j]){
-		  G4double rho1=rad[i];
-		  G4double cx1=cx[i];
-
-		  G4double cent_dist=sqrt(pow(cx1-cx2,2)+pow(cz1-cz2,2));
-
-		  double point1[2]={0};
-		  G4int k;
-
-		  if((cent_dist-(rho1+rho2))>0.){
-
-
-		  G4double theta12=atan2(cz2-cz1,cx2-cx1);
-		  G4double centr=rho1+(cent_dist-(rho1+rho2))/2;
-
-		  point1[0]=cos(theta12)*centr+cx1;
-		  point1[1]=sin(theta12)*centr+cz1;
-
-		  G4double theta21=atan2(cz1-cz2,cx1-cx2);
-		  G4double centr1=rho2+(cent_dist-(rho1+rho2))/2;
-		  point2[0]=cos(theta21)*centr1+cx2;
-		  point2[1]=sin(theta21)*centr1+cz2;
-
-		  vtxxfit[i]=point1[0];
-		  vtxzfit[i]=point1[1];
-		  vtxxfit[j]=point1[0];
-		  vtxzfit[j]=point1[1];
-		  }else  if((cent_dist+fmin(rho1,rho2))<fmax(rho1,rho2)){
-
-		  if(rho1>=rho2){ //rho1>rho2
-		  G4double theta12=atan2(cz2-cz1,cx2-cx1);
-		  G4double centr=rho1-(rho1-cent_dist-rho2)/2; //rho1>rho2
-		  point1[0]=cos(theta12)*centr+cx1;
-		  point1[1]=sin(theta12)*centr+cz1;
-
-		  G4double theta21=atan2(cz2-cz1,cx2-cx1);
-		  G4double centr1=rho2+(rho1-cent_dist-rho2)/2.; //rho1>rho2
-		  point2[0]=cos(theta21)*centr1+cx2;
-		  point2[1]=sin(theta21)*centr1+cz2;
-		  //		G4cout<<"test1"<<G4endl;
-
-		  }else if(rho2>rho1){ //rho1<rho2
-		  G4double theta12=atan2(cz1-cz2,cx1-cx2);
-		  G4double centr=rho2-(rho2-cent_dist-rho1)/2; //rho1<rho2
-		  point1[0]=cos(theta12)*centr+cx2;
-		  point1[1]=sin(theta12)*centr+cz2;
-
-		  G4double theta21=atan2(cz1-cz2,cx1-cx2);
-		  G4double centr1=rho1+(rho2-cent_dist-rho1)/2; //rho1<rho2
-		  point2[0]=cos(theta21)*centr1+cx1;
-		  point2[1]=sin(theta21)*centr1+cz1;
-		  }
-
-		  vtxxfit[i]=point1[0];
-		  vtxzfit[i]=point1[1];
-		  vtxxfit[j]=point1[0];
-		  vtxzfit[j]=point1[1];
-		  } else {
-
-		  k = CircleIntersect(cx1,cz1,rho1,cx2,cz2,rho2,point1,point2);
-		  if(k == 0) {
-		  G4cout << "no solution" << G4endl;
-		  }else if(k>0){
-
-		  G4double dist1=sqrt(pow(point1[0]-tpcData[i].tpcvtxx,2)+pow(point1[1]-tpcData[i].tpcvtxz,2));
-		  G4double dist2=sqrt(pow(point2[0]-tpcData[i].tpcvtxx,2)+pow(point2[1]-tpcData[i].tpcvtxz,2));
-
-		  if(dist1<=dist2){//point1 is correct
-		  vtxxfit[i]=point1[0];
-		  vtxzfit[i]=point1[1];
-
-		  vtxxfit[j]=point1[0];
-		  vtxzfit[j]=point1[1];
-		  }else if(dist1>dist2){//point1 is correct
-		  vtxxfit[i]=point2[0];
-		  vtxzfit[i]=point2[1];
-
-		  vtxxfit[j]=point2[0];
-		  vtxzfit[j]=point2[1];
-		  }
-		  }
-
-		  mom_theta[i]=atan2(vtxzfit[i]-cz[i],vtxxfit[i]-cx[i])-acos(-1.)/2;
-		  mom_theta[j]=atan2(vtxzfit[j]-cz[j],vtxxfit[j]-cx[j])-acos(-1.)/2;
-
-		  vtxpxfit[i]=cos(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-		  vtxpzfit[i]=sin(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-		  vtxpxfit[j]=cos(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-		  vtxpzfit[j]=sin(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-
-		  }
-		  }
-	  */
-
 	}
       }
     }
-
-
-    /*
-    //------------------&^-^-------------------//
-    ////rungekutta study
-    //------------------&^-^-------------------//
-    /////////////////////////////////////////////
-    /////////////////////////////////////////////
-    //////////// rungekutta tracking based on LEPS TPC analyzer
-    /////////////////////////////////////////////
-    /////////////////////////////////////////////
-    int sector, lay;
-    //    cir_r[kk]=rad[kk];
-    //    cir_x[kk]=cx[kk];
-    //    cir_z[kk]=cz[kk];
-    double rkpar[5]={0};
-    int iflag=0.;
-
-    Switch sw;
-    Track tracks[MAX_TRACK];
-    initTrack(tracks);
-    for(int kk=0; kk<tpctrNum; kk++){
-    ///rkpara: x, y, u(px),v(py), q/p
-    tracks[kk].rKInitPara[0]=x[kk][0];
-    tracks[kk].rKInitPara[1]=y[kk][0];
-    tracks[kk].rKInitPara[2]=vtxpxfit[kk]/sqrt(vtxpxfit[kk]*vtxpxfit[kk]+vtxpyfit[kk]*vtxpyfit[kk]+vtxpzfit[kk]*vtxpzfit[kk]);
-    tracks[kk].rKInitPara[3]=vtxpyfit[kk]/sqrt(vtxpxfit[kk]*vtxpxfit[kk]+vtxpyfit[kk]*vtxpyfit[kk]+vtxpzfit[kk]*vtxpzfit[kk]);
-    tracks[kk].rKInitPara[4]=tpcData[kk].tpcqq/sqrt(vtxpxfit[kk]*vtxpxfit[kk]+vtxpyfit[kk]*vtxpyfit[kk]+vtxpzfit[kk]*vtxpzfit[kk]);
-
-    for(int j = 0; j < c[kk]; j++){
-    tracks[kk].x[j][0] = x[kk][j];
-    //	std::cout<<"j:"<<j<<"::"<<tracks[kk].x[j][0]<<std::endl;
-    tracks[kk].x[j][1] = y[kk][j];
-    tracks[kk].x[j][2] = z[kk][j];
-    tracks[kk].numHits ++;
-    //	std::cout<<"num_hits:"<<c[kk]<<std::endl;
-    }
-    }
-    for(G4int kk=0; kk<tpctrNum; kk++){
-    if(c[kk]>5.){
-    RungeKuttaTracker rungekuttatrack(tracks+kk);
-    }
-    }
-
-    */
 
     ///////////////////////vertex momentum for P_t
     G4int trn[MAX_TRACK];
@@ -1049,7 +924,41 @@ AnaManager::EndOfEventAction()
     }
   }//trigger parts
 
-  m_tree->Fill();
+  // check hitting tgt and set next position
+  G4int nhit_tgt = event.hits.at("TGT").size();
+  if (nhit_tgt > 0) {
+    auto p = event.hits.at("TGT")[0];
+    if (p.GetPdgCode() == -321) {
+      m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
+      m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
+      m_do_hit_tgt = true;
+    }
+  }
+
+  // // debug
+  // G4cout << "\n-----------------------\n" << m_next_generator << "\neff_evnum = " << m_effective_evnum << G4endl;
+  // G4cout << " Vx = " << m_next_pos.x() << ",  Vy = " << m_next_pos.y() << ",  Vz = " << m_next_pos.z() << G4endl;
+  // G4cout << " Px = " << m_next_mom.x() << ",  Py = " << m_next_mom.y() << ",  Pz = " << m_next_mom.z() << G4endl;
+  // G4cout << "  x = " << m_debug_pos.x() << ",   y = " << m_debug_pos.y() << ",   z = " << m_debug_pos.z() << G4endl;
+  // G4cout << "doHitTGT = " << m_do_hit_tgt << ", doGenerateBeam = " << m_do_generate_beam << G4endl;
+  // G4cout << "r = " << TMath::Sqrt( m_debug_pos.x()*m_debug_pos.x() + TMath::Power(m_debug_pos.z()+143, 2) ) << G4endl;
+  // G4cout << "effective_thickness = " << m_effective_thickness << G4endl;
+
+  if (m_is_combination) {  // combine beam and event
+    if (m_do_hit_tgt) m_tree->Fill();
+    if (m_next_generator == m_beam_generator && m_do_hit_tgt) {
+      m_next_generator = m_event_generator;
+      m_do_generate_beam = false; 
+    } else if (m_next_generator == m_event_generator) {
+	m_next_generator = m_beam_generator;
+	m_do_generate_beam = true;
+	m_effective_evnum++;
+    }
+  } else {  //  do not combine
+    m_next_generator = event.generator;
+    m_tree->Fill();
+    m_effective_evnum++;
+  }
 
   event.hits.at("PRM").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
@@ -1434,6 +1343,144 @@ void
 AnaManager::SetIncID(G4int inc)
 {
   event.inc = inc;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetEffectiveThickness(G4double effective_thickness)
+{
+  m_effective_thickness = effective_thickness;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetEtaAngle(G4double eta_angle)
+{
+  m_eta_angle = eta_angle;
+}
+
+
+//  +----------------------------------+
+//  | conbine beam and event generator |
+//  +----------------------------------+
+//_____________________________________________________________________________
+void
+AnaManager::SetDoHitTGT(G4bool do_hit_tgt)
+{
+  m_do_hit_tgt = do_hit_tgt;
+}
+G4bool
+AnaManager::GetDoHitTGT()
+{
+  return m_do_hit_tgt;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetDoGenerateBeam(G4bool do_generate_beam)
+{
+  m_do_generate_beam = do_generate_beam;
+}
+G4bool
+AnaManager::GetDoGenerateBeam()
+{
+  return m_do_generate_beam;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetIsCombination(G4bool is_combination)
+{
+  m_is_combination = is_combination;
+}
+G4bool
+AnaManager::GetIsCombination()
+{
+  return m_is_combination;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetEffectiveEvnum(G4int effective_evnum)
+{
+  m_effective_evnum = effective_evnum;
+}
+G4int
+AnaManager::GetEffectiveEvnum()
+{
+  return m_effective_evnum;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetNextGenerator(G4int next_generator)
+{
+  m_next_generator = next_generator;
+}
+G4int
+AnaManager::GetNextGenerator()
+{
+  return m_next_generator;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetBeamGenerator(G4int beam_generator)
+{
+  m_beam_generator = beam_generator;
+}
+G4int
+AnaManager::GetBeamGenerator()
+{
+  return m_beam_generator;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetEventGenerator(G4int event_generator)
+{
+  m_event_generator = event_generator;
+}
+G4int
+AnaManager::GetEventGenerator()
+{
+  return m_event_generator;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetNextPos(G4double vx, G4double vy, G4double vz)
+{
+  m_next_pos.set(vx, vy, vz);
+}
+G4ThreeVector
+AnaManager::GetNextPos()
+{
+  return m_next_pos;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetNextMom(G4double px, G4double py, G4double pz)
+{
+  m_next_mom.set(px, py, pz);
+}
+G4ThreeVector
+AnaManager::GetNextMom()
+{
+  return m_next_mom;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetDebugPos(G4double vx, G4double vy, G4double vz)
+{
+  m_debug_pos.set(vx, vy, vz);
+}
+G4ThreeVector
+AnaManager::GetDebugPos()
+{
+  return m_debug_pos;
 }
 
 /*************************************

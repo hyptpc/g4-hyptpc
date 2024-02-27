@@ -105,7 +105,10 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void
 PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  *m_beam = gBeam.Get();
+  G4bool do_generate_beam = gAnaMan.GetDoGenerateBeam();
+  G4bool is_combination   = gAnaMan.GetIsCombination();
+  if (do_generate_beam || !is_combination) *m_beam = gBeam.Get();
+  
 #ifdef DEBUG
   m_beam->Print();
 #endif
@@ -123,7 +126,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     m_inc->Print();
 #endif
   }
-
+ 
   switch(m_generator){
   case  0: break; // no generation
   case  1: GenerateHanul(anEvent); break; // shhwang
@@ -210,6 +213,60 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7205: GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent); break;
   case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
+  case 7212: 
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7202);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7202) GenerateE72LambdaEtaPhaseSpace(anEvent);
+      break;
+    }
+  case 7213: 
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7203);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7203) GenerateE72LambdaPiZeroPhaseSpace(anEvent);
+      break;
+    }
+  case 7214: 
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7204);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7204) GenerateE72SigmaMinusPiPlusPhaseSpace(anEvent);
+      break;
+    }
+  case 7215:
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7205);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7205) GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent);
+      break;
+    }
+  case 7216: 
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7206);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7206) GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent);
+      break;
+    }
+  case 7217: 
+    {
+      gAnaMan.SetIsCombination(true);
+      gAnaMan.SetEventGenerator(7207);
+      G4int next_generator = gAnaMan.GetNextGenerator();
+      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
+      else if (next_generator == 7207) GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent);
+      break;
+    }
   default:
     G4cerr << " * Generator number error : " << m_generator << G4endl;
     break;
@@ -3723,16 +3780,48 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
+  TVector3 beta = W.Vect();
+  beta.SetMag(W.Beta());
+  TLorentzVector LVKaonMinus_CM = LVKaonMinus;
+  LVKaonMinus_CM.Boost(-1*beta);
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  G4LorentzVector v(vertex_pos);
 
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { LambdaMass, EtaMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-  event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  Int_t legendre_order = 3;
+  Double_t legendre_coeff[legendre_order] = { 0.0938097, 0.0265063, 0.105914};  // using CB data, pK = 734 MeV/c
+  Double_t maximum_value = 0.22623;  // maximum value of legendre func
+  while (true){
+    event.Generate();
+    auto LVEta_CM = event.GetDecay(1);  // select eta
+    LVEta_CM->Boost(-1*beta);
+    Double_t angle = LVKaonMinus_CM.Angle( LVEta_CM->Vect() );
+    Double_t cos_theta = TMath::Cos( angle );
+    Double_t legendre_cos_theta = 0.;
+    for (Int_t order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+    gAnaMan.SetEtaAngle(cos_theta);
+    if (G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta) break;
+  }
+
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3766,7 +3855,20 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  
+  G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3801,7 +3903,20 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  
+  G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3835,7 +3950,20 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  
+  G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3871,7 +3999,20 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  
+  G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3905,7 +4046,20 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   event.Generate();
-  G4LorentzVector v(m_target_pos); // tentative
+
+  G4ThreeVector vertex_pos = m_target_pos;
+  const G4bool is_combination = gAnaMan.GetIsCombination();
+  if (is_combination) {
+    const auto target_size = gSize.GetSize("Target")*mm;
+    const G4ThreeVector next_pos = gAnaMan.GetNextPos();
+    const G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4double effective_thickness = Kinematics::EffectiveThickness(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2);
+    gAnaMan.SetEffectiveThickness(effective_thickness);
+    vertex_pos = Kinematics::RandomVertex(next_pos, next_mom, m_target_pos.getZ(), target_size[1]/2, target_size[2]);
+  }
+  gAnaMan.SetDebugPos(vertex_pos.getX(), vertex_pos.getY(), vertex_pos.getZ());
+  
+  G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
@@ -3919,8 +4073,6 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
   }
 }
-
-
 
 //_____________________________________________________________________________
 G4double
