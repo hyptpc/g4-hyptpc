@@ -213,6 +213,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7205: GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent); break;
   case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
+  case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
   case 7212: 
     {
       gAnaMan.SetIsCombination(true);
@@ -4091,6 +4092,49 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
   }
+}
+
+//_____________________________________________________________________________
+//case 7208
+void
+PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
+{
+  static const G4String particle_name = "proton";
+  static const auto particle = particleTable->FindParticle(particle_name);
+  static const auto pdg  = particle->GetPDGEncoding();
+  static const auto mass = particle->GetPDGMass();
+  G4double P  = G4RandGauss::shoot( 409.515,  88.4257);
+  G4double px =  G4RandFlat::shoot(-100.0  , 100.0   );
+  G4double pz = G4RandGauss::shoot( 389.965,  93.7917);
+  while ( TMath::Sqrt(px*px+pz*pz) > P ) {
+    px =  G4RandFlat::shoot(-100.0  , 100.0   );
+    pz = G4RandGauss::shoot( 389.965,  93.7917);
+  }
+  G4double py = TMath::Sqrt(P*P-px*px-pz*pz);
+  G4LorentzVector p(px, py, pz, TMath::Sqrt(P*P + mass*mass));
+  gAnaMan.SetDebugPos(p.getX(), p.getY(), p.getZ());
+
+  const auto target_size = gSize.GetSize("Target")*mm;
+  G4double target_r = target_size[1]/2;
+  G4double target_h = target_size[2]/2;
+  G4double vx = G4RandFlat::shoot(-1*target_r, target_r);
+  G4double vz = G4RandFlat::shoot(-1*target_r, target_r);
+  while (TMath::Sqrt(vx*vx+vz*vz)>target_r){
+    vx = G4RandFlat::shoot(-1*target_r, target_r);
+    vz = G4RandFlat::shoot(-1*target_r, target_r);
+  }
+  G4double vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);
+  while (TMath::Abs(vy)>target_h){
+    vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);  
+  }
+  G4LorentzVector v(m_target_pos.getX()+vx, m_target_pos.getY()+vy, m_target_pos.getZ()+vz, 0.);
+
+  m_particle_gun->SetParticleDefinition(m_Proton);
+  m_particle_gun->SetParticleMomentumDirection(p.v());
+  m_particle_gun->SetParticleEnergy(p.e() - mass);
+  m_particle_gun->SetParticlePosition(v.v());
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
+  gAnaMan.SetPrimaryParticle(0, pdg, p, v);
 }
 
 //_____________________________________________________________________________
