@@ -4110,7 +4110,9 @@ PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
     px =  G4RandFlat::shoot(-100.0  , 100.0   );
     pz = G4RandGauss::shoot( 389.965,  93.7917);
   }
-  G4double py = TMath::Sqrt(P*P-px*px-pz*pz);
+  G4double sign = +1.0;
+  if (G4RandFlat::shoot(0., 1.) >= 0.5) sign = -1.0;
+  G4double py = sign*TMath::Sqrt(P*P-px*px-pz*pz);
   G4LorentzVector p(px, py, pz, TMath::Sqrt(P*P + mass*mass));
   gAnaMan.SetDebugPos(p.getX(), p.getY(), p.getZ());
 
