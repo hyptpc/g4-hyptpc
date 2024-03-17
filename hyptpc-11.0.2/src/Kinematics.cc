@@ -177,46 +177,51 @@ Legendre(G4int order, G4double x)
 //   target center:    (x0, y0, z0)
 //   beam hit pos_out: (x2, y2, z2)
 G4double
-EffectiveThickness(const G4ThreeVector pos, const G4ThreeVector mom, const G4double target_center_z, const G4double target_r)
+EffectiveThickness(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVector target_pos, const G4ThreeVector target_size)
 {
   const G4double u = mom.getX()/mom.getZ();
   const G4double v = mom.getY()/mom.getZ();
+  G4double x0 = target_pos.getX();
+  G4double z0 = target_pos.getZ();
   G4double x1 = pos.getX();
-  G4double z0 = target_center_z;
+  G4double y1 = pos.getY();
   G4double z1 = pos.getZ();
-  G4double  r = target_r; 
-  G4double  w = x1-u*z1;
-  G4double sqrt_term = std::sqrt( u*u*r*r - u*u*z0*z0 - 2*u*w*z0 - w*w + r*r );
-  G4double z2 = ( z0 - u*w + sqrt_term )/(u*u+1);
+  G4double  w = x1 - u*z1;
+  G4double  r = target_size.getY()/2; 
+  G4double sqrt_term = std::sqrt( r*r*(u*u+1) - (u*z0+w-x0)*(u*z0+w-x0) );
+  G4double z2 = ( u*(x0-w) + z0 + sqrt_term )/(u*u+1);
   G4double x2 = u*z2 + w;
+  G4double y2 = v*(z2-z1) + y1;
   return std::sqrt( (x2-x1)*(x2-x1) + (z2-z1)*(z2-z1) );
+  // return std::sqrt( (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1) );
 }
 
 //______________________________________________________________________________
 // determine vertex position randomly
 // cal. method is same as EffectiveThickness
 G4ThreeVector
-RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4double target_center_z, const G4double target_r, const G4double target_height)
+RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVector target_pos, const G4ThreeVector target_size)
 {
   const G4double u = mom.getX()/mom.getZ();
   const G4double v = mom.getY()/mom.getZ();
-  G4double x0 = 0.0;
-  G4double y0 = 0.0;
-  G4double z0 = target_center_z;
+  G4double x0 = target_pos.getX();
+  G4double y0 = target_pos.getY();
+  G4double z0 = target_pos.getZ();
   G4double x1 = pos.getX();
   G4double y1 = pos.getY();
   G4double z1 = pos.getZ();
-  G4double  r = target_r;
-  G4double  w = x1-u*z1;
-  G4double sqrt_term = std::sqrt( u*u*r*r - u*u*z0*z0 - 2*u*w*z0 - w*w + r*r );
-  G4double z2_minus = ( z0 - u*w - sqrt_term )/(u*u+1);
-  G4double z2_plus  = ( z0 - u*w + sqrt_term )/(u*u+1);
+  G4double  w = x1 - u*z1;
+  G4double  r = target_size.getY()/2; 
+  G4double  h = target_size.getZ()/2; 
+  G4double sqrt_term = std::sqrt( r*r*(u*u+1) - (u*z0+w-x0)*(u*z0+w-x0) );
+  G4double z2_minus  = ( u*(x0-w) + z0 - sqrt_term )/(u*u+1);
+  G4double z2_plus   = ( u*(x0-w) + z0 + sqrt_term )/(u*u+1);
 
   G4double rand_z = G4RandFlat::shoot(z2_minus, z2_plus);
   G4double rand_x = u*rand_z + w;
   G4double rand_y = v*(rand_z-z1)+y1;
   G4ThreeVector vertex(rand_x, rand_y, rand_z);
-  while ( std::sqrt((rand_x-x0)*(rand_x-x0) + (rand_z-z0)*(rand_z-z0)) > r || std::abs(rand_y-y0) > target_height/2 ) {
+  while ( std::sqrt((rand_x-x0)*(rand_x-x0) + (rand_z-z0)*(rand_z-z0)) > r || std::abs(rand_y-y0) > h ) {
     rand_z = G4RandFlat::shoot(z2_minus, z2_plus);
     rand_x = u*rand_z + w;
     rand_y = v*(rand_z-z1)+y1;

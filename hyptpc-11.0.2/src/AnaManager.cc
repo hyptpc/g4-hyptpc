@@ -25,11 +25,16 @@
 #include "track.hh"
 #include "VHitInfo.hh"
 #include "padHelper.hh"
+#include "Kinematics.hh"
+#include "DCGeomMan.hh"
+#include "DetSizeMan.hh"
 
 namespace
 {
 const auto& gConf = ConfMan::GetInstance();
 const auto& gHist = HistMan::GetInstance();
+const auto& gGeom = DCGeomMan::GetInstance();
+const auto& gSize = DetSizeMan::GetInstance();
 Event event;
 std::map<TString, TH1*> hmap;
 }
@@ -296,6 +301,7 @@ AnaManager::BeginOfEventAction()
 
   // initialize (for combine generators)
   if (m_next_generator == m_beam_generator) m_do_hit_tgt = false;
+  m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
   /* ntrtpc initialization */
 
@@ -945,14 +951,22 @@ AnaManager::EndOfEventAction()
   // G4cout << "effective_thickness = " << m_effective_thickness << G4endl;
 
   if (m_is_combination) {  // combine beam and event
-    if (m_do_hit_tgt) m_tree->Fill();
     if (m_next_generator == m_beam_generator && m_do_hit_tgt) {
-      m_next_generator = m_event_generator;
-      m_do_generate_beam = false; 
+      const auto target_pos  = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
+      const auto target_size = gSize.GetSize("Target")*CLHEP::mm;
+      m_effective_thickness = Kinematics::EffectiveThickness(m_next_pos, m_next_mom, target_pos, target_size);
+      G4double rand_thickness = G4RandFlat::shoot(0*CLHEP::mm, 80*CLHEP::mm);
+      if (rand_thickness <= m_effective_thickness) {
+	m_tree->Fill();
+	m_vertex_pos = Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
+        m_next_generator   = m_event_generator;
+	m_do_generate_beam = false;
+      }
     } else if (m_next_generator == m_event_generator) {
-	m_next_generator = m_beam_generator;
-	m_do_generate_beam = true;
-	m_effective_evnum++;
+      m_tree->Fill();
+      m_next_generator = m_beam_generator;
+      m_do_generate_beam = true;
+      m_effective_evnum++;
     }
   } else {  //  do not combine
     m_next_generator = event.generator;
@@ -1469,6 +1483,18 @@ G4ThreeVector
 AnaManager::GetNextMom()
 {
   return m_next_mom;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetVertexPos(G4double vx, G4double vy, G4double vz)
+{
+  m_vertex_pos.set(vx, vy, vz);
+}
+G4ThreeVector
+AnaManager::GetVertexPos()
+{
+  return m_vertex_pos;
 }
 
 //_____________________________________________________________________________

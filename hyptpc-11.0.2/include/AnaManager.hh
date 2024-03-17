@@ -280,6 +280,7 @@ private:
   G4int m_event_generator;
   G4ThreeVector m_next_pos;
   G4ThreeVector m_next_mom;
+  G4ThreeVector m_vertex_pos;
   G4ThreeVector m_debug_pos;
   // --------------------------------
   
@@ -335,6 +336,8 @@ public:
   G4ThreeVector GetNextPos();
   void          SetNextMom(G4double px, G4double py, G4double pz);
   G4ThreeVector GetNextMom();
+  void          SetVertexPos(G4double vx, G4double vy, G4double vz);
+  G4ThreeVector GetVertexPos();
   void          SetDebugPos(G4double vx, G4double vy, G4double vz);
   G4ThreeVector GetDebugPos();
   // --------------------------------
