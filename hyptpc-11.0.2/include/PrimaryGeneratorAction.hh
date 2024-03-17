@@ -145,6 +145,7 @@ public:
   void     GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent);
   void     GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anEvent);
   void     GenerateE72ProtonForMachineLearning(G4Event* anEvent);
+  void     GenerateE72PionMinus(G4Event* anEvent);
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002

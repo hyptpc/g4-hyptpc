@@ -214,6 +214,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
   case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
+  case 7209: GenerateE72PionMinus(anEvent); break;
   case 7212: 
     {
       gAnaMan.SetIsCombination(true);
@@ -4068,6 +4069,25 @@ PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
   G4LorentzVector v(m_target_pos.getX()+vx, m_target_pos.getY()+vy, m_target_pos.getZ()+vz, 0.);
 
   m_particle_gun->SetParticleDefinition(m_Proton);
+  m_particle_gun->SetParticleMomentumDirection(p.v());
+  m_particle_gun->SetParticleEnergy(p.e() - mass);
+  m_particle_gun->SetParticlePosition(v.v());
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
+  gAnaMan.SetPrimaryParticle(0, pdg, p, v);
+}
+
+//_____________________________________________________________________________
+//case 7209
+void
+PrimaryGeneratorAction::GenerateE72PionMinus(G4Event* anEvent)
+{
+  static const G4String particle_name = "pi-";
+  static const auto PionMinus = particleTable->FindParticle("pi-");
+  static const auto pdg = PionMinus->GetPDGEncoding();
+  static const auto mass = PionMinus->GetPDGMass();
+  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
+  G4LorentzVector v(m_beam->pos, 0.);
+  m_particle_gun->SetParticleDefinition(m_PionMinus);
   m_particle_gun->SetParticleMomentumDirection(p.v());
   m_particle_gun->SetParticleEnergy(p.e() - mass);
   m_particle_gun->SetParticlePosition(v.v());
