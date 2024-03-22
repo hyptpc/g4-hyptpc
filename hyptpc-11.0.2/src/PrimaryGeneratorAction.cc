@@ -3794,6 +3794,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
   LVKaonMinus_CM.Boost(-1*beta);
+  TVector3 KaonDirec_CM = LVKaonMinus_CM.Vect();
 
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { LambdaMass, EtaMass };
@@ -3801,14 +3802,18 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   event.SetDecay(W, n_daughters, masses);
 
   Int_t legendre_order = 3;
-  Double_t legendre_coeff[legendre_order] = {0.0938097, 0.0265063, 0.105914};  // using CB data, pK = 734 MeV/c
-  Double_t maximum_value = 0.22623;  // maximum value of legendre func
+  // // with x err
+  // Double_t legendre_coeff[legendre_order] = {0.0938097, 0.0265063, 0.105914};  // using CB data, pK = 734 MeV/c
+  // Double_t maximum_value = 0.22623;  // maximum value of legendre func
+  // without x err
+  Double_t legendre_coeff[legendre_order] = {0.0902174, 0.0288096, 0.104857};  // using CB data, pK = 734 MeV/c
+  Double_t maximum_value = 0.223884;  // maximum value of legendre func
   while (true){
     event.Generate();
     auto LVEta_CM = event.GetDecay(1);  // select eta
     LVEta_CM->Boost(-1*beta);
-    Double_t angle = LVKaonMinus_CM.Angle( LVEta_CM->Vect() );
-    Double_t cos_theta = TMath::Cos( angle );
+    TVector3 EtaDirec_CM = LVEta_CM->Vect();
+    Double_t cos_theta = KaonDirec_CM.Dot(EtaDirec_CM)/(KaonDirec_CM.Mag()*EtaDirec_CM.Mag());
     Double_t legendre_cos_theta = 0.;
     for (Int_t order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
     gAnaMan.SetEtaAngle(cos_theta);
