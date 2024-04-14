@@ -44,7 +44,8 @@ AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1),
-    m_eta_angle(-9999.),
+    m_cos_theta(-9999.),
+    m_diff_cross_mom(-9999.),
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
     m_is_combination(false),
@@ -110,7 +111,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("generator", &event.generator, "generator/I");
   m_tree->Branch("effective_generator", &m_next_generator, "effective_generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
-  m_tree->Branch("eta_angle", &m_eta_angle, "eta_angle/D");
+  m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
+  m_tree->Branch("diff_cross_mom", &m_diff_cross_mom, "diff_cross_mom/D");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
   MakeBranch("PRM");
@@ -126,6 +128,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
 
   event.evnum = 0;
   m_next_generator = m_beam_generator;
+  m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
 #if 0
   G4double target_pos_z=-143.;
@@ -301,7 +304,6 @@ AnaManager::BeginOfEventAction()
 
   // initialize (for combine generators)
   if (m_next_generator == m_beam_generator) m_do_hit_tgt = false;
-  m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
   /* ntrtpc initialization */
 
@@ -968,7 +970,7 @@ AnaManager::EndOfEventAction()
       m_do_generate_beam = true;
       m_effective_evnum++;
     }
-  } else {  //  do not combine
+  } else {  //  NOT combine
     m_next_generator = event.generator;
     m_tree->Fill();
     m_effective_evnum++;
@@ -1368,9 +1370,16 @@ AnaManager::SetEffectiveThickness(G4double effective_thickness)
 
 //_____________________________________________________________________________
 void
-AnaManager::SetEtaAngle(G4double eta_angle)
+AnaManager::SetCosTheta(G4double cos_theta)
 {
-  m_eta_angle = eta_angle;
+  m_cos_theta = cos_theta;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetDiffCrossMom(G4double diff_cross_mom)
+{
+  m_diff_cross_mom = diff_cross_mom;
 }
 
 

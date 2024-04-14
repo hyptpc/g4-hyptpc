@@ -3784,7 +3784,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   const G4bool is_combination = gAnaMan.GetIsCombination();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (is_combination) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
@@ -3801,24 +3801,16 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
-  Int_t legendre_order = 3;
-  // // with x err
-  // Double_t legendre_coeff[legendre_order] = {0.0938097, 0.0265063, 0.105914};  // using CB data, pK = 734 MeV/c
-  // Double_t maximum_value = 0.22623;  // maximum value of legendre func
-  // without x err
-  Double_t legendre_coeff[legendre_order] = {0.0902174, 0.0288096, 0.104857};  // using CB data, pK = 734 MeV/c
-  Double_t maximum_value = 0.223884;  // maximum value of legendre func
   while (true){
     event.Generate();
     auto LVEta_CM = event.GetDecay(1);  // select eta
     LVEta_CM->Boost(-1*beta);
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
     Double_t cos_theta = KaonDirec_CM.Dot(EtaDirec_CM)/(KaonDirec_CM.Mag()*EtaDirec_CM.Mag());
-    Double_t legendre_cos_theta = 0.;
-    for (Int_t order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
-    gAnaMan.SetEtaAngle(cos_theta);
-    if (G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta) break;
+    gAnaMan.SetCosTheta(cos_theta);
+    if ( Kinematics::CrystalBallLegendre(cos_theta, p_beam.Mag()*GeV) ) break;
   }
+  gAnaMan.SetDebugPos(p_beam.Mag()*GeV, 0, 0);
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
   G4LorentzVector v(vertex_pos);
