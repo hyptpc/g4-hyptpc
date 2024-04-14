@@ -2,6 +2,7 @@
 
 #include "Kinematics.hh"
 
+#include <G4ParticleTable.hh>
 #include <Randomize.hh>
 
 #include "AnaManager.hh"
@@ -238,14 +239,15 @@ RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVect
 }
 
 //______________________________________________________________________________
-// calculate diff. cross sec. using CB data
+// calculate diff. cross sec. using CB data, cross section  = 0 before eta, lambda threshold
 G4bool
 CrystalBallLegendre(const G4double cos_theta, const G4double pk)
 {
-  G4int pk_list[15] = {724, 726, 728, 730, 732, 734, 738, 742, 746, 750, 754, 758, 762, 766, 770};
+
+  G4int pk_list[16] = {723, 724, 726, 728, 730, 732, 734, 738, 742, 746, 750, 754, 758, 762, 766, 770};
   G4int pk_min_diff = pk_list[0];
   G4double min_diff = 1000;
-  for (G4int i = 0; i < 15; i++) {
+  for (G4int i = 0; i < 16; i++) {
     G4double diff = std::abs( pk-pk_list[i] );
     if (diff < min_diff) {
       min_diff    = diff;
@@ -256,6 +258,12 @@ CrystalBallLegendre(const G4double cos_theta, const G4double pk)
 
   G4int legendre_order = 3;
   switch(pk_min_diff){
+  case 723: //diff cross section = 0 below etaLambda threshold (exact value = 723.293)
+    {
+      G4double maximum_value = 0.;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
   case 724:
     {
       G4double legendre_coeff[legendre_order] = {0.0162793, 0.00440176, 0.00677799};
