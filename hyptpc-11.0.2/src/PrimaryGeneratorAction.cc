@@ -33,6 +33,7 @@
 #include "KinemaKstar.hh"
 #include "Kinematics.hh"
 #include "PrintHelper.hh"
+#include "DiffCrossSection.hh"
 
 namespace
 {
@@ -3808,7 +3809,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
     Double_t cos_theta = KaonDirec_CM.Dot(EtaDirec_CM)/(KaonDirec_CM.Mag()*EtaDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( Kinematics::CrystalBallLegendre(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
   }
   gAnaMan.SetDebugPos(p_beam.Mag()*GeV, 0, 0);
 
