@@ -3763,7 +3763,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   static const auto KaonMinus = particleTable->FindParticle("kaon-");
   static const auto pdg = KaonMinus->GetPDGEncoding();
   static const auto mass = KaonMinus->GetPDGMass();
-  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
+  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam->mom.mag()*m_beam->mom.mag() + mass*mass)); 
   G4LorentzVector v(m_beam->pos, 0.);
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(p.v());
