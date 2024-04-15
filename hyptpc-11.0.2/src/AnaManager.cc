@@ -936,7 +936,7 @@ AnaManager::EndOfEventAction()
   G4int nhit_tgt = event.hits.at("TGT").size();
   if (nhit_tgt > 0) {
     auto p = event.hits.at("TGT")[0];
-    if (p.GetPdgCode() == -321) {
+    if (p.GetPdgCode() == -321 && p.P() >= 723.293) { //diff cross section = 0 below etaLambda threshold (exact value = 723.293)
       m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
       m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
       m_do_hit_tgt = true;

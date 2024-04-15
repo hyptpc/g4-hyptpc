@@ -239,15 +239,16 @@ RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVect
 }
 
 //______________________________________________________________________________
-// calculate diff. cross sec. using CB data, cross section  = 0 before eta, lambda threshold
+// calculate diff. cross sec. using CB data (DOI: 10.1103/PhysRevC.64.055205) 
+// cross section  = 0 before eta, lambda threshold
 G4bool
 CrystalBallLegendre(const G4double cos_theta, const G4double pk)
 {
-
-  G4int pk_list[16] = {723, 724, 726, 728, 730, 732, 734, 738, 742, 746, 750, 754, 758, 762, 766, 770};
+  G4int num_of_pk = 16;
+  G4int pk_list[num_of_pk] = {723, 724, 726, 728, 730, 732, 734, 738, 742, 746, 750, 754, 758, 762, 766, 770};
   G4int pk_min_diff = pk_list[0];
-  G4double min_diff = 1000;
-  for (G4int i = 0; i < 16; i++) {
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0; i < num_of_pk; i++) {
     G4double diff = std::abs( pk-pk_list[i] );
     if (diff < min_diff) {
       min_diff    = diff;
