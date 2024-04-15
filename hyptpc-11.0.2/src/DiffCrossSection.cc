@@ -167,4 +167,109 @@ LambdaEta(const G4double cos_theta, const G4double pk)
   }
 }
 
+//______________________________________________________________________________
+// calculate diff. cross sec. using of Lambda pi^0 (https://doi.org/10.1016/0550-3213(70)90461-X) 
+G4bool
+LambdaPiZero(const G4double cos_theta, const G4double pk)
+{
+  std::vector<G4int> pk_list{617, 637, 658, 677, 699, 719, 740, 761, 773, 793};
+  G4int pk_min_diff = pk_list[0];
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0, n = pk_list.size(); i < n; i++) {
+    G4double diff = std::abs( pk-pk_list[i] );
+    if (diff < min_diff) {
+      min_diff    = diff;
+      pk_min_diff = pk_list[i];
+    }
+  }
+  gAnaMan.SetDiffCrossSecMom(pk_min_diff);
+
+  G4int legendre_order = 5;  // 5 means using up to 4th order
+  switch(pk_min_diff){
+  case 617:
+    {
+      G4double legendre_coeff[legendre_order] = {0.184747, 0.123287, 0.136187, -0.0287959, -0.0302612};
+      G4double maximum_value = 0.385164;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 637:
+    {
+      G4double legendre_coeff[legendre_order] = {0.211184, 0.132109, 0.198364, 0.10548, -0.0599012};
+      G4double maximum_value = 0.587236;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 658:
+    {
+      G4double legendre_coeff[legendre_order] = {0.201419, 0.0922841, 0.198598, 0.0938456, -0.00274454};
+      G4double maximum_value = 0.583402;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 677:
+    {
+      G4double legendre_coeff[legendre_order] = {0.211806, 0.0539344, 0.195027, 0.171799, -0.0236871};
+      G4double maximum_value = 0.608879;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 699:
+    {
+	G4double legendre_coeff[legendre_order] = {0.176029, 0.0870065, 0.203049, 0.0983589, -0.0472533};
+      G4double maximum_value = 0.517189;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 719:
+    {
+      G4double legendre_coeff[legendre_order] = {0.236829, 0.11063, 0.378043, 0.132433, 0.0181166};
+      G4double maximum_value = 0.876051;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 740:
+    {
+      G4double legendre_coeff[legendre_order] = {0.229397, 0.12905, 0.342048, 0.151436, 0.101681};
+      G4double maximum_value = 0.953612;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 761:
+    {
+      G4double legendre_coeff[legendre_order] = {0.211328, 0.0863754, 0.422316, 0.0292175, 0.0726246};
+      G4double maximum_value = 0.821861;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 773:
+    {
+      G4double legendre_coeff[legendre_order] = {0.236279, 0.0850016, 0.461273, 0.113247, 0.105835};
+      G4double maximum_value = 1.00163;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  case 793:
+    {
+      G4double legendre_coeff[legendre_order] = {0.238692, 0.119329, 0.511488, 0.164256, 0.119778};
+      G4double maximum_value = 1.15354;  // maximum value of legendre func
+      G4double legendre_cos_theta = 0.;
+      for (G4int order = 0; order < legendre_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+      return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+    }
+  default:
+    G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
+    return false;
+  }
+}
+
 }
