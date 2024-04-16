@@ -11,7 +11,8 @@
 namespace DiffCrossSection
 {
 G4bool LambdaEta(const G4double cos_theta, const G4double pk);
-G4bool LambdaPiZero(const G4double cos_theta, const G4double pk);
+G4bool LambdaPiZeroBC(const G4double cos_theta, const G4double pk);
+G4bool LambdaPiZeroCB(const G4double cos_theta, const G4double pk);
 
 inline G4String ClassName()
 {

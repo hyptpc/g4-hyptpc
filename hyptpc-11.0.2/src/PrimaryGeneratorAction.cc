@@ -3864,7 +3864,7 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonDirec_CM.Dot(PiZeroDirec_CM)/(KaonDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::LambdaPiZero(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
