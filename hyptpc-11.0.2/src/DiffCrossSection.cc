@@ -135,7 +135,6 @@ LambdaPiZeroBC(const G4double cos_theta, const G4double pk)
   G4double maximum_value = 0.;  // maximum value of legendre func
   std::vector<G4double> legendre_coeff;
   legendre_coeff.clear();
-
   switch(pk_min_diff){
   case 617:
     maximum_value = 0.385164;
@@ -180,7 +179,6 @@ LambdaPiZeroBC(const G4double cos_theta, const G4double pk)
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
   }
-
   G4double legendre_cos_theta = 0.;
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
@@ -208,7 +206,6 @@ LambdaPiZeroCB(const G4double cos_theta, const G4double pk)
   G4double maximum_value = 0.;  // maximum value of legendre func
   std::vector<G4double> legendre_coeff;
   legendre_coeff.clear();
-
   switch(pk_min_diff){
   case 514:
     maximum_value = 0.749;
@@ -246,11 +243,73 @@ LambdaPiZeroCB(const G4double cos_theta, const G4double pk)
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
   }
-
   G4double legendre_cos_theta = 0.;
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
 
+}
+
+//______________________________________________________________________________
+// calculate diff. cross sec. using of Crystal Ball data (DOI: 10.1103/PhysRevC.80.025204)
+// coefficients are used their results
+G4bool
+SigmaZeroPiZero(const G4double cos_theta, const G4double pk)
+{
+  std::vector<G4int> pk_list{514, 560, 581, 629, 659, 687, 714, 750};
+  G4int pk_min_diff = pk_list[0];
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0, n = pk_list.size(); i < n; i++) {
+    G4double diff = std::abs( pk-pk_list[i] );
+    if (diff < min_diff) {
+      min_diff    = diff;
+      pk_min_diff = pk_list[i];
+    }
+  }
+  gAnaMan.SetDiffCrossSecMom(pk_min_diff);
+
+  G4double maximum_value = 0.;  // maximum value of legendre func
+  std::vector<G4double> legendre_coeff;
+  legendre_coeff.clear();
+  switch(pk_min_diff){
+  case 514:
+    maximum_value = 0.3883;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1603, -0.0790, 0.0950, -0.0580, 0.0020, 0.0060});
+    break;
+  case 560:
+    maximum_value = 0.3762;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1598, -0.0874, 0.1120, -0.0350, -0.0020, 0.0160});
+    break;
+  case 581:
+    maximum_value = 0.3958;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1582, -0.1026, 0.1010, -0.0490, 0.0090, 0.0240});
+    break;
+  case 629:
+    maximum_value = 0.4114;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1387, -0.1009, 0.1141, -0.0571, 0.0089, 0.0083});
+    break;
+  case 659:
+    maximum_value = 0.3696;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1397, -0.0897, 0.1202, -0.0410, 0.0076, 0.0286});
+    break;
+  case 687:
+    maximum_value = 0.4025;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1426, -0.0939, 0.1280, -0.0610, -0.0090, 0.0140});
+    break;
+  case 714:
+    maximum_value = 0.366;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1437, -0.0547, 0.1530, -0.0460, -0.0044, 0.0270});
+    break;
+  case 750:
+    maximum_value = 0.3409;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.1439, 0.0185, 0.1693, -0.0690, 0.0085, 0.0313});
+    break;
+  default:
+    G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
+    return false;
+  }
+  G4double legendre_cos_theta = 0.;
+  for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+  return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
 }
 
 }
