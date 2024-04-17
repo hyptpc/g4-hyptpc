@@ -112,7 +112,7 @@ LambdaEta(const G4double cos_theta, const G4double pk)
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
 
-}
+} //LambdaEta
 
 //______________________________________________________________________________
 // calculate diff. cross sec. using of Bubble Chamber data (https://doi.org/10.1016/0550-3213(70)90461-X)
@@ -183,7 +183,7 @@ LambdaPiZeroBC(const G4double cos_theta, const G4double pk)
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
 
-}
+} //LambdaPiZeroBC
 
 //______________________________________________________________________________
 // calculate diff. cross sec. using of Crystal Ball data (DOI: 10.1103/PhysRevC.80.025204)
@@ -247,13 +247,84 @@ LambdaPiZeroCB(const G4double cos_theta, const G4double pk)
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
 
-}
+} //LambdaPiZeroCB
+
+//______________________________________________________________________________
+// calculate diff. cross sec. using of Bubble Chamber data (https://doi.org/10.1016/0550-3213(70)90461-X)
+// coefficients are determined by fitting ourselvs
+G4bool
+SigmaZeroPiZeroBC(const G4double cos_theta, const G4double pk)
+{
+  std::vector<G4int> pk_list{617, 637, 658, 677, 699, 719, 740, 761, 773, 793};
+  G4int pk_min_diff = pk_list[0];
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0, n = pk_list.size(); i < n; i++) {
+    G4double diff = std::abs( pk-pk_list[i] );
+    if (diff < min_diff) {
+      min_diff    = diff;
+      pk_min_diff = pk_list[i];
+    }
+  }
+  gAnaMan.SetDiffCrossSecMom(pk_min_diff);
+
+  G4double maximum_value = 0.;  // maximum value of legendre func
+  std::vector<G4double> legendre_coeff;
+  legendre_coeff.clear();
+  switch(pk_min_diff){
+  case 617:
+    maximum_value = 0.357797;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.157887, -0.087196, 0.0797751, 0.0332213, 0.06616});
+    break;
+  case 637:
+    maximum_value = 0.263738;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.111551, -0.0426781, 0.0689817, -0.0168688, 0.0236574});
+    break;
+  case 658:
+    maximum_value = 0.380357;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.138992, -0.0583661, 0.125422, -0.0534204, 0.00415687});
+    break;
+  case 677:
+    maximum_value = 0.372365;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.14989, -0.0701137, 0.0929754, -0.102943, -0.0435574});
+    break;
+  case 699:
+    maximum_value = 0.3718;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.175131, -0.0356463, 0.133603, -0.0673572, -0.0399371});
+    break;
+  case 719:
+    maximum_value = 0.549651;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.178271, -0.0203391, 0.245218, -0.0383859, 0.0674362});
+    break;
+  case 740:
+    maximum_value = 0.537489;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.181462, 0.00330738, 0.195896, -0.0548873, 0.108551});
+    break;
+  case 761:
+    maximum_value = 0.373342;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.155269, 0.0176217, 0.152512, -0.0781048, 0.00507746});
+    break;
+  case 773:
+    maximum_value = 0.301145;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.145995, 0.0694747, 0.158823, -0.0379772, -0.0356031});
+    break;
+  case 793:
+    maximum_value = 0.222234;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.116701, 0.0550122, 0.0675169, -0.00402638, -0.012969});
+  default:
+    G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
+    return false;
+  }
+  G4double legendre_cos_theta = 0.;
+  for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+  return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+
+} //SigmaZeroPiZeroBC
 
 //______________________________________________________________________________
 // calculate diff. cross sec. using of Crystal Ball data (DOI: 10.1103/PhysRevC.80.025204)
 // coefficients are used their results
 G4bool
-SigmaZeroPiZero(const G4double cos_theta, const G4double pk)
+SigmaZeroPiZeroCB(const G4double cos_theta, const G4double pk)
 {
   std::vector<G4int> pk_list{514, 560, 581, 629, 659, 687, 714, 750};
   G4int pk_min_diff = pk_list[0];
@@ -310,6 +381,149 @@ SigmaZeroPiZero(const G4double cos_theta, const G4double pk)
   G4double legendre_cos_theta = 0.;
   for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
   return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
-}
+} //SigmaZeroPiZeroCB
 
-}
+//______________________________________________________________________________
+// calculate diff. cross sec. using of Bubble Chamber data (https://doi.org/10.1016/0550-3213(70)90461-X)
+// coefficients are determined by fitting ourselvs
+G4bool
+SigmaMinusPiPlus(const G4double cos_theta, const G4double pk)
+{
+  std::vector<G4int> pk_list{617, 637, 658, 677, 699, 719, 740, 761, 773, 793};
+  G4int pk_min_diff = pk_list[0];
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0, n = pk_list.size(); i < n; i++) {
+    G4double diff = std::abs( pk-pk_list[i] );
+    if (diff < min_diff) {
+      min_diff    = diff;
+      pk_min_diff = pk_list[i];
+    }
+  }
+  gAnaMan.SetDiffCrossSecMom(pk_min_diff);
+
+  G4double maximum_value = 0.;  // maximum value of legendre func
+  std::vector<G4double> legendre_coeff;
+  legendre_coeff.clear();
+  switch(pk_min_diff){
+  case 617:
+    maximum_value = 0.621633;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.192099, -0.0252072, 0.33481, -0.00507246, 0.0644446});
+    break;
+  case 637:
+    maximum_value = 0.699038;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.182557, -0.0364784, 0.358166, -0.0623308, 0.0595056});
+    break;
+  case 658:
+    maximum_value = 0.879609;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.200185, -0.0349592, 0.429592, -0.0907064, 0.124166});
+    break;
+  case 677:
+    maximum_value = 0.882071;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.234284, -0.0409681, 0.480279, -0.0783708, 0.0481694});
+    break;
+  case 699:
+    maximum_value = 0.944477;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.240956, -0.0595369, 0.485049, -0.107962, 0.0509729});
+    break;
+  case 719:
+    maximum_value = 1.17816;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.300246, 0.0059601, 0.664913, -0.0754831, 0.14348});
+    break;
+  case 740:
+    maximum_value = 1.00704;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.279039, 0.000700548, 0.560804, -0.112095, 0.0557994});
+    break;
+  case 761:
+    maximum_value = 0.992162;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.278788, 0.0115243, 0.550769, -0.113415, 0.0607135});
+    break;
+  case 773:
+    maximum_value = 0.907868;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.247512, 0.0260744, 0.487977, -0.137496, 0.0609578});
+    break;
+  case 793:
+    maximum_value = 0.60697;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.176799, -0.0219359, 0.30909, -0.107588, -0.00844439});
+  default:
+    G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
+    return false;
+  }
+  G4double legendre_cos_theta = 0.;
+  for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+  return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+
+} //SigmaMinusPiPlus
+
+//______________________________________________________________________________
+// calculate diff. cross sec. using of Bubble Chamber data (https://doi.org/10.1016/0550-3213(70)90461-X)
+// coefficients are determined by fitting ourselvs
+G4bool
+SigmaPlusPiMinus(const G4double cos_theta, const G4double pk)
+{
+  std::vector<G4int> pk_list{617, 637, 658, 677, 699, 719, 740, 761, 773, 793};
+  G4int pk_min_diff = pk_list[0];
+  G4double min_diff = 1000;  // initialize
+  for (G4int i = 0, n = pk_list.size(); i < n; i++) {
+    G4double diff = std::abs( pk-pk_list[i] );
+    if (diff < min_diff) {
+      min_diff    = diff;
+      pk_min_diff = pk_list[i];
+    }
+  }
+  gAnaMan.SetDiffCrossSecMom(pk_min_diff);
+
+  G4double maximum_value = 0.;  // maximum value of legendre func
+  std::vector<G4double> legendre_coeff;
+  legendre_coeff.clear();
+  switch(pk_min_diff){
+  case 617:
+    maximum_value = 0.57046;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.297643, -0.231051, 0.0657447, -0.0551197, -0.079333});
+    break;
+  case 637:
+    maximum_value = 0.510569;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.268198, -0.187816, 0.032623, -0.0412552, -0.0193236});
+    break;
+  case 658:
+    maximum_value = 0.536133;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.28283, -0.21724, 0.0506597, -0.0519926, -0.0665898});
+    break;
+  case 677:
+    maximum_value = 0.377612;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.231024, -0.147261, 0.0430769, 0.0216758, -0.0368722});
+    break;
+  case 699:
+    maximum_value = 0.772245;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.237773, -0.256457, 0.174323, -0.0805352, 0.023156});
+    break;
+  case 719:
+    maximum_value = 0.54994;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.205324, -0.226257, 0.118012, -0.04796, -0.0476128});
+    break;
+  case 740:
+    maximum_value = 0.548285;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.185234, -0.122724, 0.153056, -0.139147, -0.0518759});
+    break;
+  case 761:
+    maximum_value = 0.254787;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.170264, -0.000936783, 0.0831127, -0.0751872, -0.121173});
+    break;
+  case 773:
+    maximum_value = 0.338741;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.194971, 0.0734801, 0.0559123, -0.15383, -0.101156});
+    break;
+  case 793:
+    maximum_value = 0.262141;
+    legendre_coeff.insert(std::cbegin(legendre_coeff), {0.151723, 0.0707109, 0.0441094, -0.102726, -0.067457});
+  default:
+    G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
+    return false;
+  }
+  G4double legendre_cos_theta = 0.;
+  for (G4int order = 0, n_order = legendre_coeff.size(); order < n_order; order++) legendre_cos_theta += legendre_coeff[order]*Kinematics::Legendre(order, cos_theta);
+  return G4RandFlat::shoot(0.0, maximum_value) <= legendre_cos_theta;
+
+} //SigmaPlusPiMinus
+
+
+} //namespace DiffCrossSection

@@ -3902,12 +3902,26 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
+  TVector3 beta = W.Vect();
+  beta.SetMag(W.Beta());
+  TLorentzVector LVKaonMinus_CM = LVKaonMinus;
+  LVKaonMinus_CM.Boost(-1*beta);
+  TVector3 KaonDirec_CM = LVKaonMinus_CM.Vect();
 
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-  event.Generate();
+
+  while (true){
+    event.Generate();
+    auto LVPiPlus_CM = event.GetDecay(1);  // select pi^+
+    LVPiPlus_CM->Boost(-1*beta);
+    TVector3 PiPlusDirec_CM = LVPiPlus_CM->Vect();
+    Double_t cos_theta = KaonDirec_CM.Dot(PiPlusDirec_CM)/(KaonDirec_CM.Mag()*PiPlusDirec_CM.Mag());
+    gAnaMan.SetCosTheta(cos_theta);
+    if ( DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
+  }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
   G4LorentzVector v(vertex_pos);  
@@ -3961,7 +3975,7 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonDirec_CM.Dot(PiZeroDirec_CM)/(KaonDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::SigmaZeroPiZero(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
@@ -3998,12 +4012,26 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
+  TVector3 beta = W.Vect();
+  beta.SetMag(W.Beta());
+  TLorentzVector LVKaonMinus_CM = LVKaonMinus;
+  LVKaonMinus_CM.Boost(-1*beta);
+  TVector3 KaonDirec_CM = LVKaonMinus_CM.Vect();
 
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-  event.Generate();
+
+  while (true){
+    event.Generate();
+    auto LVPiMinus_CM = event.GetDecay(1);  // select pi^-
+    LVPiMinus_CM->Boost(-1*beta);
+    TVector3 PiMinusDirec_CM = LVPiMinus_CM->Vect();
+    Double_t cos_theta = KaonDirec_CM.Dot(PiMinusDirec_CM)/(KaonDirec_CM.Mag()*PiMinusDirec_CM.Mag());
+    gAnaMan.SetCosTheta(cos_theta);
+    if ( DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
+  }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
   G4LorentzVector v(vertex_pos);
