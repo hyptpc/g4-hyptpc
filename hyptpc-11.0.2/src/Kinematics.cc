@@ -237,4 +237,17 @@ RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVect
   return vertex;
 }
 
+G4bool
+WThreshold(const G4double m1, const G4double p1,  const G4double m2, const G4double p2, const G4double Dm1, const G4double Dm2)
+{ //m1+m2 -> Dm1 + Dm2 
+  G4double E1 = TMath::Sqrt(m1*m1 + p1*p1);
+  G4double E2 = TMath::Sqrt(m2*m2 + p2*p2);
+  G4double totalE = E1+E2;
+  G4double totalp = p1 + p2;
+
+  G4double totalW = TMath::Sqrt(totalE*totalE-totalp*totalp);
+
+  return totalW >= (Dm1 + Dm2);
+}
+
 }

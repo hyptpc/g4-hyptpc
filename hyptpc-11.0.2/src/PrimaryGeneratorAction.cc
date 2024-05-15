@@ -285,9 +285,12 @@ PrimaryGeneratorAction::GenerateMonochromaticKaonMinus(G4Event* anEvent)
   static const auto KaonMinus = particleTable->FindParticle("kaon-");
   static const auto pdg = KaonMinus->GetPDGEncoding();
   static const auto mass = KaonMinus->GetPDGMass();
+  const G4double x0 = gGeom.GetGlobalPosition("BH2").x()*CLHEP::mm;
+  const G4double z0 = gGeom.GetGlobalPosition("BH2").z()*CLHEP::mm;
+  
   G4LorentzVector p(0, 0, m_beam_p0,
                     std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4LorentzVector v(m_target_pos + G4ThreeVector(0, 0, -1200*mm), 0);
+  G4LorentzVector v(G4ThreeVector(x0, 0, z0), 0);
   // p.setTheta(G4RandFlat::shoot(0., 10.)*deg);
   // p.setPhi(G4RandFlat::shoot(0., 360.)*deg);
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
@@ -3802,6 +3805,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVEta_CM = event.GetDecay(1);  // select eta
@@ -3809,7 +3813,10 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
@@ -3857,6 +3864,7 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVPiZero_CM = event.GetDecay(1);  // select pi^0
@@ -3864,7 +3872,10 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
@@ -3913,6 +3924,7 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVPiPlus_CM = event.GetDecay(1);  // select pi^+
@@ -3920,7 +3932,10 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
     TVector3 PiPlusDirec_CM = LVPiPlus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiPlusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiPlusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
@@ -3968,6 +3983,7 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVPiZero_CM = event.GetDecay(1);  // select pi^0
@@ -3975,7 +3991,10 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
@@ -4023,6 +4042,7 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVPiMinus_CM = event.GetDecay(1);  // select pi^-
@@ -4030,7 +4050,11 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
     TVector3 PiMinusDirec_CM = LVPiMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
+
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
@@ -4076,6 +4100,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
 
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
     auto LVScatKaonMinus_CM = event.GetDecay(1);  // select K^-
@@ -4083,7 +4108,10 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     TVector3 ScatKaonMinusDirec_CM = LVScatKaonMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;
+    if(flat)break;
+    else if(!flat){
+      if ( DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;
+    }
   }
 
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  

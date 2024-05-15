@@ -103,6 +103,7 @@ LambdaEta(const G4double cos_theta, const G4double pk)
   case 770:
     maximum_value = 0.0853524;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {0.0584505, 0.00726072, 0.0196413});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
@@ -175,6 +176,7 @@ LambdaPiZeroBC(const G4double cos_theta, const G4double pk)
   case 793:
     maximum_value = 1.15354;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {0.238692, 0.119329, 0.511488, 0.164256, 0.119778});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
@@ -310,6 +312,7 @@ SigmaZeroPiZeroBC(const G4double cos_theta, const G4double pk)
   case 793:
     maximum_value = 0.222234;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {0.116701, 0.0550122, 0.0675169, -0.00402638, -0.012969});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
@@ -444,6 +447,7 @@ SigmaMinusPiPlus(const G4double cos_theta, const G4double pk)
   case 793:
     maximum_value = 0.60697;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {0.176799, -0.0219359, 0.30909, -0.107588, -0.00844439});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
@@ -515,6 +519,7 @@ SigmaPlusPiMinus(const G4double cos_theta, const G4double pk)
   case 793:
     maximum_value = 0.262141;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {0.151723, 0.0707109, 0.0441094, -0.102726, -0.067457});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
@@ -586,6 +591,7 @@ KpElastic(const G4double cos_theta, const G4double pk)
   case 793:
     maximum_value = 8.42205;
     legendre_coeff.insert(std::cbegin(legendre_coeff), {1.63587, 2.45075, 2.55254, 0.982415, 0.43456, 0.257217, 0.108693});
+    break;
   default:
     G4cout << "#E " << FUNC_NAME << " invalid pk_min_diff : " << pk_min_diff << G4endl;
     return false;
