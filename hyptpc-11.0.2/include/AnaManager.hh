@@ -275,6 +275,7 @@ private:
   G4bool m_do_hit_tgt;
   G4bool m_do_generate_beam;
   G4bool m_is_combination;
+  G4bool m_threshold_con;
   G4int m_effective_evnum;
   G4int m_next_generator;
   G4int m_beam_generator;
@@ -326,6 +327,8 @@ public:
   G4bool GetDoGenerateBeam();
   void   SetIsCombination(G4bool is_combination);
   G4bool GetIsCombination();
+  void   SetThresholdCondition(G4bool threshold_con);
+  G4bool GetThresholdCondition();
   void  SetEffectiveEvnum(G4int effective_evnum);
   G4int GetEffectiveEvnum();
   void  SetNextGenerator(G4int next_generator);

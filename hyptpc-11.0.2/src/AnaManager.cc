@@ -51,8 +51,9 @@ AnaManager::AnaManager()
     m_is_combination(false),
     m_effective_evnum(0),
     m_next_generator(-1),
-    m_beam_generator(7201),
-    m_event_generator(-1)
+    m_beam_generator(-1),
+    m_event_generator(-1),
+    m_threshold_con(false)
 {
 }
 
@@ -127,7 +128,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   }
 
   event.evnum = 0;
-  m_next_generator = m_beam_generator;
+  m_beam_generator = gConf.Get<G4int>("BeamGenerator");
+  m_next_generator = m_beam_generator; 
   m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
 #if 0
@@ -936,7 +938,7 @@ AnaManager::EndOfEventAction()
   G4int nhit_tgt = event.hits.at("TGT").size();
   if (nhit_tgt > 0) {
     auto p = event.hits.at("TGT")[0];
-    if (p.GetPdgCode() == -321 && p.P() >= 723.293) { //diff cross section = 0 below etaLambda threshold (exact value = 723.293)
+    if (p.GetPdgCode() == -321 ) {
       m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
       m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
       m_do_hit_tgt = true;
@@ -965,15 +967,23 @@ AnaManager::EndOfEventAction()
 	m_do_generate_beam = false;
       }
     } else if (m_next_generator == m_event_generator) {
-      m_tree->Fill();
+      if(GetThresholdCondition())m_tree->Fill();
       m_next_generator = m_beam_generator;
       m_do_generate_beam = true;
       m_effective_evnum++;
     }
-  } else {  //  NOT combine
-    m_next_generator = event.generator;
-    m_tree->Fill();
-    m_effective_evnum++;
+  } 
+  else {  //  NOT combine
+    if(m_beam_generator == -9999 && GetThresholdCondition()){
+      m_next_generator = event.generator;
+      m_tree->Fill();
+      m_effective_evnum++;
+    }
+    else if(m_beam_generator != -9999){
+      m_next_generator = event.generator;
+      m_tree->Fill();
+      m_effective_evnum++;
+    }
   }
 
   event.hits.at("PRM").clear();
@@ -1424,6 +1434,19 @@ AnaManager::GetIsCombination()
 
 //_____________________________________________________________________________
 void
+AnaManager::SetThresholdCondition(G4bool threshold_con)
+{
+  m_threshold_con = threshold_con;
+}
+
+G4bool
+AnaManager::GetThresholdCondition()
+{
+  return m_threshold_con;
+}
+
+//_____________________________________________________________________________
+void
 AnaManager::SetEffectiveEvnum(G4int effective_evnum)
 {
   m_effective_evnum = effective_evnum;
@@ -1517,6 +1540,8 @@ AnaManager::GetDebugPos()
 {
   return m_debug_pos;
 }
+
+
 
 /*************************************
  *************************************/

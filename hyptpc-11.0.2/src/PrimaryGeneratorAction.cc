@@ -53,7 +53,8 @@ const auto particleTable = G4ParticleTable::GetParticleTable();
 //_____________________________________________________________________________
 PrimaryGeneratorAction::PrimaryGeneratorAction()
   : G4VUserPrimaryGeneratorAction(),
-    m_generator(gConf.Get<G4int>("Generator")),
+    m_beamgenerator(gConf.Get<G4int>("BeamGenerator")),
+    m_decaygenerator(gConf.Get<G4int>("DecayGenerator")),
     m_particle_gun(new G4ParticleGun),
     m_target_pos(gGeom.GetGlobalPosition("SHSTarget")*mm),
     m_target_size(gSize.GetSize("Target")*mm),
@@ -89,8 +90,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_HybridBaryon(particleTable->FindParticle("hybridb"))
 {
   G4cout << FUNC_NAME << G4endl
-	 << "   Generator# = " << m_generator << G4endl;
-  gAnaMan.SetGeneratorID(m_generator);
+	 << "   Beam Generator# = " << m_beamgenerator <<"   Decay Generator# = "<< m_decaygenerator << G4endl;
+  if(m_beamgenerator!=-9999)gAnaMan.SetGeneratorID(m_beamgenerator);
+  else if(m_beamgenerator==-9999)gAnaMan.SetGeneratorID(m_decaygenerator);
+
 #ifdef DEBUG
   particleTable->DumpTable();
 #endif
@@ -127,8 +130,25 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     m_inc->Print();
 #endif
   }
+
+  G4int next_generator;
+  if(m_beamgenerator!= -9999 && m_decaygenerator!= -9999){
+    gAnaMan.SetIsCombination(true);
+    gAnaMan.SetBeamGenerator(m_beamgenerator);
+    gAnaMan.SetEventGenerator(m_decaygenerator);
+    next_generator = gAnaMan.GetNextGenerator();
+  }
+  else if(m_beamgenerator== -9999 && m_decaygenerator != -9999){
+    gAnaMan.SetEventGenerator(m_decaygenerator);
+    next_generator = m_decaygenerator;
+  }
+  else if (m_beamgenerator != -9999 && m_decaygenerator == -9999){
+    gAnaMan.SetBeamGenerator(m_beamgenerator);
+    gAnaMan.SetEventGenerator(m_beamgenerator);
+    next_generator = m_beamgenerator;
+  }
  
-  switch(m_generator){
+  switch(next_generator){
   case  0: break; // no generation
   case  1: GenerateHanul(anEvent); break; // shhwang
   case  2: GenerateMonochromaticKaonMinus(anEvent); break;
@@ -216,6 +236,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
   case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
   case 7209: GenerateE72PionMinus(anEvent); break;
+    /*
   case 7212: 
     {
       gAnaMan.SetIsCombination(true);
@@ -270,8 +291,9 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       else if (next_generator == 7207) GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent);
       break;
     }
+    */
   default:
-    G4cerr << " * Generator number error : " << m_generator << G4endl;
+    G4cerr << " * Generator number error : " << next_generator << G4endl;
     break;
   }
 }
@@ -3791,6 +3813,13 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     G4ThreeVector next_mom = gAnaMan.GetNextMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, LambdaMass, EtaMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3850,6 +3879,13 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, LambdaMass, PiMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+  
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3910,6 +3946,13 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3969,6 +4012,13 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4028,6 +4078,13 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4086,6 +4143,13 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
+  
+  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, KaonMass, ProtonMass)){
+    gAnaMan.SetThresholdCondition(false);
+    return;
+  }
+  else{gAnaMan.SetThresholdCondition(true);}
+
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
