@@ -29,6 +29,7 @@
 #include "DCGeomMan.hh"
 #include "DetSizeMan.hh"
 
+
 namespace
 {
 const auto& gConf = ConfMan::GetInstance();
@@ -116,11 +117,54 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("diff_cross_sec_mom", &m_diff_cross_sec_mom, "diff_cross_sec_mom/D");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
+
+  
   MakeBranch("PRM");
-  for(const auto& sd_name : DetectorConstruction::GetSDList()){
-    G4cout << "   make branch : " << sd_name << G4endl;
-    MakeBranch(sd_name);
-    MakeHistogram(sd_name);
+  for(const auto& sd_name: DetectorConstruction::GetSDList()){
+    if(sd_name != "TPCPad"){
+      G4cout << "   make branch : " << sd_name << G4endl;
+      MakeBranch(sd_name);
+      MakeHistogram(sd_name);
+    }
+  }
+
+  //for TPC tracking
+  if(gConf.Get<G4bool>("TPCPadOn")){
+    m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
+    m_tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
+    m_tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
+    m_tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
+    m_tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
+    m_tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
+    m_tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
+    m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
+    m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
+    m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
+    //m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
+    //m_tree->Branch("resxtpc",event.resxtpc,"resxtpc[nhittpc]/D");
+    //m_tree->Branch("resytpc",event.resytpc,"resytpc[nhittpc]/D");
+    //m_tree->Branch("resztpc",event.resztpc,"resztpc[nhittpc]/D");
+    m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
+    m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
+    m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
+    m_tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum 
+    //m_tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
+    m_tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
+    m_tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
+    m_tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
+    m_tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
+    m_tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
+    m_tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
+    m_tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
+    m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
+    m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
+    m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
+    m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
+    m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
+    m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
+    m_tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
+    m_tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
+    m_tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
   }
 
   for(auto& h: hmap){
@@ -140,7 +184,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   pad_length_in = gConf.Get<G4double>("PadLengthIn");
   pad_length_out = gConf.Get<G4double>("PadLengthOut");
   pad_gap = gConf.Get<G4double>("PadGap");
-
+  
   ////pad configure
   m_pad_config = gConf.Get<G4int>("PadConfigure");
   pad_in_num = gConf.Get<G4int>("PadNumIn");
@@ -161,7 +205,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   }
   tpc_rad=250;
   G4double cen_diff=fabs(target_pos_z);
-
+  
+  
   if(m_pad_config ==1){
     for(G4int i=0;i<pad_in_num+pad_out_num;i++){
       if(i<pad_in_num){
@@ -243,7 +288,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     G4int all_channels2=0;
     G4int num_pad_check=0;
 
-
+    
+    
     for(G4int i=0;i<pad_in_num+pad_out_num;i++){
       if(i<pad_in_num){
 	seg_angle[i]=360./double(numpads[i]);
@@ -308,6 +354,7 @@ AnaManager::BeginOfEventAction()
   if (m_next_generator == m_beam_generator) m_do_hit_tgt = false;
 
   /* ntrtpc initialization */
+
 
   for(G4int i=0; i<MaxHitsTPC;++i){
     event.trpidtpc[i]  = -1;
@@ -425,11 +472,11 @@ AnaManager::EndOfEventAction()
     G4double vtxxfit[MAX_TRACK];//read fit parameters
     G4double vtxyfit[MAX_TRACK];//read fit parameters
     G4double vtxzfit[MAX_TRACK];//read fit parameters
-
+    
     G4double vtxpxfit[MAX_TRACK];//read fit parameters
     // G4double vtxpyfit[MAX_TRACK];//read fit parameters
     G4double vtxpzfit[MAX_TRACK];//read fit parameters
-
+    
     for(G4int i=0;i<MAX_TRACK;i++){
       vtxxfit[i]=-9999.9999;
       vtxyfit[i]=-9999.9999;
@@ -447,8 +494,7 @@ AnaManager::EndOfEventAction()
 
     ////// shhwang position read
     ///shhwang code
-
-
+    
     if(tpctrNum>9){
       G4cout<<"Error--> over the number of tracks in the TPC:"<<tpctrNum<<G4endl;
     }
@@ -481,7 +527,6 @@ AnaManager::EndOfEventAction()
       cir_z[i]=-9999.9999;
       mean[i]=-9999.9999;
     }
-
 
 
     for(G4int kk=0; kk<tpctrNum; kk++){
@@ -529,7 +574,7 @@ AnaManager::EndOfEventAction()
     ////think about parent ID
     ////--> find the track with same parent ID
     //// sh_
-
+    
     for(G4int i=0;i<MAX_TRACK;i++){
       for(G4int j=i;j<MAX_TRACK;j++){
 	if(i!=j && (test[i]>0 && test[j]>0)){
@@ -811,6 +856,7 @@ AnaManager::EndOfEventAction()
 	}
       }
     }
+    
 
     ///////////////////////vertex momentum for P_t
     G4int trn[MAX_TRACK];
@@ -856,16 +902,22 @@ AnaManager::EndOfEventAction()
       }
       //      }
     }
+
     if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
     }else{
       for(G4int i=0; i<HitNum; i++){
+
 	event.ntrk[event.nhittpc] = counterData[i].ntrk;
+	
+	/*
 	hmap["Time"]->Fill(counterData[i].time);
 	for(G4int j=0; j<G4ThreeVector::SIZE; ++j){
 	  hmap[Form("Pos%d", j)]->Fill(counterData[i].pos[j]/CLHEP::mm);
 	  hmap[Form("Mom%d", j)]->Fill(counterData[i].mom[j]/CLHEP::GeV);
 	}
+	*/
+	
 	event.xtpc[event.nhittpc] = counterData[i].pos[0]/CLHEP::mm;
 	event.ytpc[event.nhittpc] = counterData[i].pos[1]/CLHEP::mm;
 	event.ztpc[event.nhittpc] = counterData[i].pos[2]/CLHEP::mm;
@@ -908,8 +960,10 @@ AnaManager::EndOfEventAction()
 	event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]
 	  = event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]+1.;
 	event.nhittpc += 1;
+
       }
     }
+
     //
     // TPC
     //
@@ -933,9 +987,10 @@ AnaManager::EndOfEventAction()
       // 			 );
     }
   }//trigger parts
-
   // check hitting tgt and set next position
+
   G4int nhit_tgt = event.hits.at("TGT").size();
+
   if (nhit_tgt > 0) {
     auto p = event.hits.at("TGT")[0];
     if (p.GetPdgCode() == -321 ) {
@@ -985,10 +1040,12 @@ AnaManager::EndOfEventAction()
       m_effective_evnum++;
     }
   }
-
+  
   event.hits.at("PRM").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
-    event.hits.at(sd_name).clear();
+    if(sd_name != "TPCPad"){
+      event.hits.at(sd_name).clear();
+    }
   }
 
   return 0;

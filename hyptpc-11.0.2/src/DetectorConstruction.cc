@@ -39,6 +39,7 @@
 #include "KVCSD.hh"
 #include "MagneticField.hh"
 #include "TPCSD.hh"
+#include "TPCPadSD.hh"
 #include "TargetSD.hh"
 #include "VPSD.hh"
 #include "padHelper.hh"
@@ -823,8 +824,7 @@ DetectorConstruction::ConstructHypTPC()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  auto tpc_sd = new TPCSD("TPC");
-  AddNewDetector(tpc_sd);
+  
   const auto tpc_pos = gGeom.GetGlobalPosition("HypTPC")*mm;
   const auto target_pos = gGeom.GetGlobalPosition("SHSTarget")*mm;
   const auto& gas_vessel_size = gSize.GetSize("TpcGasVessel")*mm*0.5;
@@ -959,7 +959,17 @@ DetectorConstruction::ConstructHypTPC()
                     gv_lv, false, 0, m_check_overlaps);
   p10_lv->SetVisAttributes(G4Colour::Yellow());
   // p10_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
-  p10_lv->SetSensitiveDetector(tpc_sd);
+  auto tpc_sd = new TPCSD("TPC");
+  auto tpcpad_sd = new TPCPadSD("TPCPad");
+  if(!gConf.Get<G4bool>("TPCPadOn")){
+    AddNewDetector(tpc_sd);
+    p10_lv->SetSensitiveDetector(tpc_sd);
+  }
+  else if(gConf.Get<G4bool>("TPCPadOn")){
+    AddNewDetector(tpcpad_sd);
+    p10_lv->SetSensitiveDetector(tpcpad_sd);
+  }
+
   // Field Cage
   const G4double rInnerFC[] = { field_cage_size[0], field_cage_size[0] };
   const G4double rOuterFC[] = { field_cage_size[1], field_cage_size[1] };
@@ -1109,7 +1119,10 @@ DetectorConstruction::ConstructHypTPC()
   }
   for (G4int i=0; i<NumOfPadTPC; ++i) {
     pad_lv[i]->SetVisAttributes(ORANGE);
-    pad_lv[i]->SetSensitiveDetector(tpc_sd);
+    if(!gConf.Get<G4bool>("TPCPadOn"))
+      pad_lv[i]->SetSensitiveDetector(tpc_sd);
+    else if(gConf.Get<G4bool>("TPCPadOn"))
+      pad_lv[i]->SetSensitiveDetector(tpcpad_sd);
   }
   // Dead area
   auto dead_solid = new G4Box("DeadSolid", 5*mm, 250*mm, 0.001*mm);

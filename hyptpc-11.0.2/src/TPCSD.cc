@@ -87,6 +87,9 @@ TPCSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
   //   G4cout << momentum_threshold << G4endl;
   // }
 
+  
+  
+
   m_hits_collection->insert(new TPCHit(SensitiveDetectorName, aStep));
 
   return true;

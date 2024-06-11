@@ -109,10 +109,10 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
     }
   }
 
-  // if(particleName == "e-" || particleName == "e+"){
-  //   theTrack->SetTrackStatus(fStopAndKill);
-  //   return;
-  // }
+  if(particleName == "e-" || particleName == "e+"){
+    theTrack->SetTrackStatus(fStopAndKill);
+    return;
+  }
 
   // if(prePVName.contains("Coil") || prePVName.contains("Guard")){
   //   theTrack->SetTrackStatus(fStopAndKill);

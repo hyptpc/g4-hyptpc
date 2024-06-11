@@ -1,7 +1,7 @@
 // -*- C++ -*-
 
-#ifndef TPC_PAD_SD_HH
-#define TPC_PAD_SD_HH
+#ifndef TPC_SD_HH
+#define TPC_SD_HH
 
 #include <G4VSensitiveDetector.hh>
 
