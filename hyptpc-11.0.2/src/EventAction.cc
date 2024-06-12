@@ -317,8 +317,23 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	}
 	//      if(ilay>-1){ //--> ilay 1 : target ilay 0 : TPC, layer is from 2 to 38.
 	if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
-	  gAnaMan.SetCounterData( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-				  irow, beta, edep/CLHEP::MeV, parentid, tlength,slength );
+	  int restype = gConf.Get<G4int>("ResType");
+	  switch(restype){
+	  case 0:
+	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+					  irow, beta, edep/CLHEP::MeV, parentid, tlength,slength );
+	    break;
+	  case 1:
+	    gAnaMan.SetCounterDataExp( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+				       irow, beta, edep/CLHEP::MeV, parentid, tlength,slength );
+	    break;
+	  default:
+	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+					  irow, beta, edep/CLHEP::MeV, parentid, tlength,slength );
+	    G4cout<<"TPC Resolution type is not determined, use constant resolution"<<G4endl;
+	    break;
+	  }
+	
 	}
       }
       for(G4int i=0;i<nparticle;i++){

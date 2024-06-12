@@ -36,6 +36,7 @@ const auto& gConf = ConfMan::GetInstance();
 const auto& gHist = HistMan::GetInstance();
 const auto& gGeom = DCGeomMan::GetInstance();
 const auto& gSize = DetSizeMan::GetInstance();
+
 Event event;
 std::map<TString, TH1*> hmap;
 }
@@ -140,10 +141,10 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
     m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
     m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
-    //m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
-    //m_tree->Branch("resxtpc",event.resxtpc,"resxtpc[nhittpc]/D");
-    //m_tree->Branch("resytpc",event.resytpc,"resytpc[nhittpc]/D");
-    //m_tree->Branch("resztpc",event.resztpc,"resztpc[nhittpc]/D");
+    m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
+    m_tree->Branch("resxtpc",event.resxtpc,"resxtpc[nhittpc]/D");
+    m_tree->Branch("resytpc",event.resytpc,"resytpc[nhittpc]/D");
+    m_tree->Branch("resztpc",event.resztpc,"resztpc[nhittpc]/D");
     m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
     m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
     m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
@@ -927,6 +928,10 @@ AnaManager::EndOfEventAction()
 	event.z0tpc[event.nhittpc] = counterData[i].pos0[2]/CLHEP::mm;
 
 	event.resoX[event.nhittpc] = counterData[i].resoX;
+	event.resxtpc[event.nhittpc] = counterData[i].res[0]/CLHEP::mm;
+	event.resytpc[event.nhittpc] = counterData[i].res[1]/CLHEP::mm;
+	event.resztpc[event.nhittpc] = counterData[i].res[2]/CLHEP::mm;
+
 	event.pxtpc[event.nhittpc] = counterData[i].mom[0]/CLHEP::GeV;
 	event.pytpc[event.nhittpc] = counterData[i].mom[1]/CLHEP::GeV;
 	event.pztpc[event.nhittpc] = counterData[i].mom[2]/CLHEP::GeV;
@@ -1080,8 +1085,9 @@ AnaManager::SetHitData(const VHitInfo* hit)
 }
 
 //_____________________________________________________________________________
+//Position Smearing with constant sigma_T(related to x&z) & sigma_y
 void
-AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
+AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4ThreeVector mom,
                            G4int track, G4int particle,
                            G4int iLay,  G4int iRow, G4double beta,
@@ -1096,8 +1102,6 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
     return;
   }
 
-  //  G4ThreeVector tar_pos(0.,0.*CLHEP::mm,-150.*CLHEP::mm);
-
   G4ThreeVector tar_pos(0.,0., -143);
   G4ThreeVector sh_pos(0.,0.,0.);
   sh_pos=pos-tar_pos;
@@ -1111,7 +1115,7 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
   G4double sh_z = sh_r*cos(sh_theta);
 
   counterData[hitnum].particleID = particle;
-  ////shhwang check, check a multiplicity of layers
+
   for(G4int i=0;i<hitnum;i++){
     if((counterData[i].iLay == iLay &&
         counterData[i].ntrk == ntrk)){
@@ -1128,129 +1132,26 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
     counterData[hitnum].slength = slength;
     counterData[hitnum].tlength = tlength;
 
-    //////shhwang position smearing////
 
-
-    G4double sh_alpha =  atan2(sh_x,sh_z);
+    G4double sh_alpha =  atan2(sh_x,sh_z); 
     G4double sh_rho =  sqrt(pow(sh_z,2)+pow(sh_x,2));
-    //    G4double sh_dalpha = 0.300*CLHEP::mm/sh_rho; // rho * theta = arc --> sigma=300 um
-    //    G4double sh_smear_alpha = CLHEP::RandGauss::shoot(sh_alpha, sh_dalpha);
-    G4double sh_sigmaY = 0.500*CLHEP::mm; //--> smearing : 400 um
+    G4double sh_sigmaY = 1.00*CLHEP::mm; 
 
     G4double ang_sh=atan2(sh_pos.getY(),sh_pos.getX());
-    // G4double ang_check=0;
+
     if(ang_sh>acos(-1.)){
       ang_sh=ang_sh-2*acos(-1.);
-      // ang_check=-1;
-    }else{
-      // ang_check=1.;
     }
-    // G4double arc_sh=pad_in[iLay]*ang_sh;
-    // G4int ith_pad_in=arc_sh/pad_in_width;
-    // G4int ith_pad_out=arc_sh/pad_out_width;
 
 
-    // G4double delta_x=0.;
-
-    // if(m_pad_config ==1){
-    //   if(iLay<pad_in_num){   // const G4int pad_in_num=10;
-    // 	delta_x=arc_sh-ith_pad_in*pad_in_width;
-    // 	if(delta_x<0){
-    // 	  delta_x=delta_x+pad_in_width;
-    // 	}
-    //   }else if(iLay>=pad_in_num){
-    // 	delta_x=arc_sh-ith_pad_out*pad_out_width;
-    // 	if(delta_x<0){
-    // 	  delta_x=delta_x+pad_out_width;
-    // 	}
-    //   }
-    // }else if(m_pad_config ==2){
-    //   if(iLay<pad_in_num){   //
-
-    // 	ith_pad_in=arc_sh/seg_width[iLay];
-    // 	delta_x=arc_sh-ith_pad_in*seg_width[iLay];
-    // 	if(delta_x<0){
-    // 	  delta_x=delta_x+seg_width[iLay];
-    // 	}
-
-    //   }else if(iLay>=pad_in_num){
-    // 	ith_pad_out=arc_sh/seg_width[iLay];
-    // 	delta_x=arc_sh-ith_pad_out*seg_width[iLay];
-    // 	if(delta_x<0){
-    // 	  delta_x=delta_x+seg_width[iLay];
-    // 	}
-
-    //   }
-    // }
-
-
-    ///include saho-san's code
-
-    // G4double compy=0.;
-    G4double compx=0.;
-
-    // G4int n_electron=0; //output
-    // G4int n_pad=0;//output
-    // G4double x_rms=0;//output
-    // G4double x_track = delta_x;// pad edge
-    // G4double y_track = double(250.+50.+pos.getY());// 50 is office set
-    // if(y_track<0 || y_track>600) G4cout<<"Y_track estimation is wrong(y_track:y_pos)"<<y_track<<":"<<pos.getY()<<G4endl;
-
-
-    // G4double dxdz_track=tan(acos((sh_pos.getX()*mom.getX()+sh_pos.getZ()*mom.getZ())/(sqrt(sh_pos.getX()*sh_pos.getX()+sh_pos.getZ()*sh_pos.getZ())*sqrt(mom.getX()*mom.getX()+mom.getZ()*mom.getZ()))));
-
-
-    // //pad and particle angle
-
-
-    // G4double dydz_track=0;
-
-    // if(m_pad_config ==1){
-    //   if(iLay<pad_in_num){
-    // 	ResHypTPC reshyptpc(pad_in_width, pad_length_in, 0.1,0.18, 0);
-    // 	compx = reshyptpc.getXDeviation(n_electron, n_pad, x_rms, x_track, y_track, dxdz_track, dydz_track);
-    // 	compy = reshyptpc.getYDeviation(pos.getY());
-    //   }else if(iLay>=pad_in_num){
-    // 	ResHypTPC reshyptpc(pad_out_width, pad_length_out, 0.1,0.18, 0);
-    // 	compx = reshyptpc.getXDeviation(n_electron, n_pad, x_rms, x_track, y_track, dxdz_track, dydz_track);
-    // 	compy = reshyptpc.getYDeviation(pos.getY());
-    //   }
-
-
-    // }else if(m_pad_config ==2){
-    //   if(iLay<pad_in_num){
-    // 	ResHypTPC reshyptpc(double(seg_width[iLay]-0.5), pad_length_in, 0.1,0.18, 0);
-    // 	compx = reshyptpc.getXDeviation(n_electron, n_pad, x_rms, x_track, y_track, dxdz_track, dydz_track);
-    // 	compy = reshyptpc.getYDeviation(pos.getY());
-    //   }else if(iLay>=pad_in_num){
-    //ResHypTPC reshyptpc(double(seg_width[iLay]-0.5), pad_length_out, 0.1,0.18, 0);
-    // 	compx = reshyptpc.getXDeviation(n_electron, n_pad, x_rms, x_track, y_track, dxdz_track, dydz_track);
-    // 	compy = reshyptpc.getYDeviation(pos.getY());
-    //   }
-    // }
-    compx = GetTransverseRes(sh_y);
+    G4double compx = GetTransverseRes(sh_y);
     double s_compx = CLHEP::RandGauss::shoot(0.,compx);
 
-    // std::cout<<"compx="<<compx<<", sh_sigmaY"<<sh_sigmaY<<std::endl;
-    // getchar();
-    //G4double sh_dalpha = compx/sh_rho; // rho * theta = arc --> from sako-san's code
-    //      G4double sh_dalpha = s_compx/sh_rho; // rho * theta = arc --> from sako-san's code
-    G4double sh_dalpha = atan2(s_compx, sh_rho); // rho * theta = arc --> from sako-san's code
+    G4double sh_dalpha = atan2(s_compx, sh_rho); 
     G4double sh_smear_alpha = sh_alpha+sh_dalpha;
-    //    G4cout<<compx<<":"<<sh_dalpha<<G4endl;
-    // G4double randx = sh_rho*(sin(sh_smear_alpha)-sin(sh_alpha));
-    // G4double randz = sh_rho*(cos(sh_smear_alpha)-cos(sh_alpha));
-    //G4double s0 = 0.204;// mm HIMAC result
-    // G4double s0 = 0.199;// mm HIMAC result
-    // G4double randx_com = CLHEP::RandGauss::shoot(0.,s0);
-    // G4double randz_com = CLHEP::RandGauss::shoot(0.,s0);
-    // G4double smear_x = sqrt(randx*randx + randx_com*randx_com)*(randx_com/fabs(randx_com));
-    // G4double smear_z = sqrt(randz*randz + randz_com*randz_com)*(randz_com/fabs(randz_com));
 
     counterData[hitnum].resoX = compx;
 
-    // counterData[hitnum].pos[G4ThreeVector::Z] = sh_rho*cos(sh_alpha)+smear_z+tar_pos.getZ();
-    // counterData[hitnum].pos[G4ThreeVector::X] = sh_rho*sin(sh_alpha)+smear_x;
     counterData[hitnum].pos[G4ThreeVector::Z] = sh_rho*cos(sh_smear_alpha)+tar_pos.getZ();
     counterData[hitnum].pos[G4ThreeVector::X] = sh_rho*sin(sh_smear_alpha);
     counterData[hitnum].pos[G4ThreeVector::Y] = CLHEP::RandGauss::shoot(sh_y,sh_sigmaY);
@@ -1269,29 +1170,20 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
     G4int iPad=0.;
 
     if(m_pad_config == 2){
-      //    G4bool pass_check=false;
       G4bool pass_check=true;
       G4double cur_angle= (acos(-1.)-atan2(sh_x,sh_z))*180./acos(-1.);
-      //    G4cout<<"--------------------"<<G4endl;
-      //    G4cout<<"currrent angle:"<<cur_angle<<G4endl;
-      //    G4cout<<"layer angle:"<<angle[iLay]<<G4endl;
-      //    G4cout<<"seg angle:"<<seg_angle[iLay]<<G4endl;
+
       if(iLay<pad_in_num){
         G4double check_num_pads=(cur_angle)/seg_angle[iLay];
-        //      G4cout<<check_num_pads<<G4endl;
         iPad=int(check_num_pads);
       }else if(iLay>=pad_in_num){
         G4double check_num_pads=(cur_angle-angle[iLay])/seg_angle[iLay];
-        //      G4cout<<check_num_pads<<G4endl;
         iPad=int(check_num_pads);
       }
       if(iPad>numpads[iLay]){
         G4cout<<"this code has a error(iPad:numpads)-->"<<iPad<<":"<<numpads[iLay]<<G4endl;
       }
       if(pass_check){
-        //    G4cout<<"iLay:"<<iLay<<G4endl;
-        //        G4cout<<"iLay:"<<iLay<<G4endl;
-        //        G4cout<<"iPad:"<<iPad<<G4endl;
         counterData[hitnum].iPad = iPad;
       }else{
         G4cout<<"wrong:"<<iLay<<G4endl;
@@ -1302,6 +1194,163 @@ AnaManager::SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
     counterData[hitnum].parentID = parentid;
     HitNum++;
 
+    if(particle==321)
+      HitNum_K++;
+
+    if(particle==2212)
+      HitNum_p++;
+  }
+
+  return;
+}
+
+//_____________________________________________________________________________
+//Position Smearing with sigma_T(related to x&z) & sigma_y from E42 data
+void
+AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
+                           G4ThreeVector mom,
+                           G4int track, G4int particle,
+                           G4int iLay,  G4int iRow, G4double beta,
+                           G4double edep, G4int parentid,
+                           G4double tlength, G4double slength)
+{
+  G4int hitnum = HitNum;
+  G4bool flag=true;
+  if (hitnum >= MaxTrack) {
+    fprintf(stderr, "AnaManager::SetCounterData Too Much multiplicity %d\n",
+            hitnum);
+    return;
+  }
+
+  G4ThreeVector tar_pos(0.,0., -143);
+  G4ThreeVector sh_pos(0.,0.,0.);
+  sh_pos=pos-tar_pos;
+
+  G4double sh_r = sh_pos.r();
+  G4double sh_theta = sh_pos.theta();
+  G4double sh_phi = sh_pos.phi();
+
+  G4double sh_x = sh_r*sin(sh_theta)*cos(sh_phi);
+  G4double sh_y = sh_r*sin(sh_theta)*sin(sh_phi);
+  G4double sh_z = sh_r*cos(sh_theta);
+
+  counterData[hitnum].particleID = particle;
+
+  for(G4int i=0;i<hitnum;i++){
+    if((counterData[i].iLay == iLay &&
+        counterData[i].ntrk == ntrk)){
+      flag = false;
+    }
+  }
+
+  flag=true;
+  if(flag == true){
+    counterData[hitnum].ntrk = ntrk;
+    counterData[hitnum].time = time;
+    counterData[hitnum].beta = beta;
+    counterData[hitnum].dedx = edep/slength;
+    counterData[hitnum].edep = edep;
+    counterData[hitnum].slength = slength;
+    counterData[hitnum].tlength = tlength;
+
+    
+    G4double sh_alpha =  atan2(sh_x,sh_z); 
+    G4double sh_rho =  sqrt(pow(sh_z,2)+pow(sh_x,2));
+    G4double sh_sigmaY = 1.00*CLHEP::mm; 
+
+    G4double ang_sh=atan2(sh_pos.getY(),sh_pos.getX());
+
+    if(ang_sh>acos(-1.)){
+      ang_sh=ang_sh-2*acos(-1.);
+    }
+
+
+    //res_xz^2 = p0^2 + p2^2/(exp(-p1*y)/p3*y + p4^2/12*tan(alpha)^2/p5
+    //res_y^2 = p6^2 + p7^2/(exp(-p1*y)/p8*y          
+    //std::vector<double>ResPar;
+
+    //Resolution Parameter When HS on
+    double ResPar[9];
+    
+    if(iLay < 10){
+      ResPar[0] = 0.7503;
+      ResPar[1] = 0.;
+      ResPar[2] = 0.0953;
+      ResPar[3] = 100.;
+      ResPar[4] = 9.;
+      ResPar[5] = 1.6908;
+      ResPar[6] = 1.;
+      ResPar[7] = 0.;
+      ResPar[8] = 1.;
+    }
+    else{
+      ResPar[0] = 0.3871;
+      ResPar[1] = 0.;
+      ResPar[2] = 0.0953;
+      ResPar[3] = 100.;
+      ResPar[4] = 12.5;
+      ResPar[5] = 3.6502;
+      ResPar[6] = 1.;
+      ResPar[7] = 0.;
+      ResPar[8] = 1.;
+    }
+    double par_t[6]={
+      ResPar[0],ResPar[1],ResPar[2],ResPar[3],ResPar[4],ResPar[5]};
+    double par_y[4] = {
+      ResPar[6],ResPar[1],ResPar[7],ResPar[8]};
+
+    G4double compx=0.;
+    auto SmearingVector = GetSmearingVector(sh_pos,mom,par_y,par_t);
+
+    auto ResVector = GetResVector(sh_pos,mom,par_y,par_t);
+    compx = ResVector.mag();
+    counterData[hitnum].resoX = compx;
+    counterData[hitnum].res[G4ThreeVector::X] = ResVector.x();
+    counterData[hitnum].res[G4ThreeVector::Y] = ResVector.y();
+    counterData[hitnum].res[G4ThreeVector::Z] = ResVector.z();
+
+    counterData[hitnum].pos[G4ThreeVector::X] = SmearingVector.x()+pos.x();
+    counterData[hitnum].pos[G4ThreeVector::Y] = SmearingVector.y()+pos.y();
+    counterData[hitnum].pos[G4ThreeVector::Z] = SmearingVector.z()+pos.z();
+
+    counterData[hitnum].pos0[G4ThreeVector::X] = pos.getX();
+    counterData[hitnum].pos0[G4ThreeVector::Y] = pos.getY();
+    counterData[hitnum].pos0[G4ThreeVector::Z] = pos.getZ();
+
+    counterData[hitnum].mom[G4ThreeVector::X] = mom.getX();
+    counterData[hitnum].mom[G4ThreeVector::Y] = mom.getY();
+    counterData[hitnum].mom[G4ThreeVector::Z] = mom.getZ();
+
+    counterData[hitnum].trackID = track;
+    counterData[hitnum].particleID = particle;
+    counterData[hitnum].iLay = iLay;
+
+    G4int iPad=0.;
+
+    if( m_pad_config == 2 ){
+      G4bool pass_check=true;
+      G4double cur_angle= (acos(-1.)-atan2(sh_x,sh_z))*180./acos(-1.);
+
+      if(iLay<pad_in_num){
+	G4double check_num_pads=(cur_angle)/seg_angle[iLay];
+	iPad=int(check_num_pads);
+      }else if(iLay>=pad_in_num){
+	G4double check_num_pads=(cur_angle-angle[iLay])/seg_angle[iLay];
+	iPad=int(check_num_pads);
+      }
+      if(iPad>numpads[iLay]){
+	G4cout<<"this code has a error(iPad:numpads)-->"<<iPad<<":"<<numpads[iLay]<<G4endl;
+      }
+      if(pass_check){
+	counterData[hitnum].iPad = iPad;
+      }else{
+	G4cout<<"wrong:"<<iLay<<G4endl;
+      }
+    }
+
+    counterData[hitnum].iRow = iRow;
+    counterData[hitnum].parentID = parentid;
+    HitNum++;
     if(particle==321)
       HitNum_K++;
 

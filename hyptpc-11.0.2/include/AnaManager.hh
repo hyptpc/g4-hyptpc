@@ -63,6 +63,7 @@ struct CounterData
   G4int iPad;
   G4int iRow;
   G4int parentID;
+  G4double res[3];
 };
 
 //_____________________________________________________________________________
@@ -180,7 +181,12 @@ struct Event
   Double_t x0tpc[MaxTrack];    // coordinates
   Double_t y0tpc[MaxTrack];    // coordinates
   Double_t z0tpc[MaxTrack];    // coordinates
+
   Double_t resoX[MaxTrack];    // coordinates
+  Double_t resxtpc[MaxTrack];  // coordinates 
+  Double_t resytpc[MaxTrack];  // coordinates 
+  Double_t resztpc[MaxTrack];  // coordinates 
+
 
   Double_t pxtpc[MaxTrack];    // momentum
   Double_t pytpc[MaxTrack];    // momentum
@@ -302,7 +308,11 @@ public:
                   G4double vtxpxtpc2,G4double vtxpytpc2,G4double vtxpztpc2,
                   G4double vtxxtpc2,G4double vtxytpc2,G4double vtxztpc2,
                   G4double vtxenetpc2);
-  void SetCounterData(G4int ntrk, G4double time, G4ThreeVector pos,
+  void SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
+                      G4ThreeVector mom, G4int track, G4int particle,
+                      G4int iLay, G4int iRow, G4double beta, G4double edep,
+                      G4int parentid, G4double tlength, G4double slength);
+  void SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
                       G4int parentid, G4double tlength, G4double slength);
