@@ -537,7 +537,6 @@ DetectorConstruction::ConstructHTOF()
   auto htof_scintilltor = new G4Box("HtofScint", half_size.x(),
                                     half_size.y(), half_size.z());
   // Light-guides
-  //const G4ThreeVector lg_size(35.0,100.0,4.0);
   const G4ThreeVector lg_size(17.5,50.0,2.0);
   // Upper one
   std::vector<G4TwoVector> upper_lg_vertices;
@@ -581,18 +580,22 @@ DetectorConstruction::ConstructHTOF()
                                      "HtofLV");
 
   //HTOF beam-through part
-  G4double HTOF_window=110.*mm;
-  auto window_dummy = new G4Box("window_dummy", half_size.x(), half_size.y()/2. - HTOF_window/4., half_size.z());
+  G4double HTOF_window=112.*mm;
+  G4double HTOF_upper_lower_y_diff = 12.0*mm;
+  
+  auto window_dummy_upper = new G4Box("window_dummy", half_size.x(), half_size.y()/2. - HTOF_window/4. + HTOF_upper_lower_y_diff/4., half_size.z());
+  auto window_dummy_lower = new G4Box("window_dummy", half_size.x(), half_size.y()/2. - HTOF_window/4. - HTOF_upper_lower_y_diff/4., half_size.z());
+  
 
   //Upper slats(Beam-through)
-  G4ThreeVector trans_upper_window(0.*mm , half_size.y()/2. - HTOF_window/4. + lg_size.y(),  0.*mm);
-  auto htof_solid_upper = new G4UnionSolid("HtofSolid_upper", window_dummy, htof_upper_lg,
+  G4ThreeVector trans_upper_window(0.*mm , half_size.y()/2. - HTOF_window/4. + lg_size.y() + HTOF_upper_lower_y_diff/4.,  0.*mm);
+  auto htof_solid_upper = new G4UnionSolid("HtofSolid_upper", window_dummy_upper, htof_upper_lg,
                                            rotM_upper_lg, trans_upper_window);
   auto htof_upper_lv = new G4LogicalVolume(htof_solid_upper, m_material_map["Scintillator"],
                                            "HtofUpperLV");
   //Lower slats(Beam-through)
-  G4ThreeVector trans_lower_window(0.*mm , -half_size.y()/2. + HTOF_window/4. - lg_size.y(),  0.*mm);
-  auto htof_solid_lower = new G4UnionSolid("HtofSolid_lower", window_dummy, htof_lower_lg,
+  G4ThreeVector trans_lower_window(0.*mm , -half_size.y()/2. + HTOF_window/4. - lg_size.y() + HTOF_upper_lower_y_diff/4.,  0.*mm);
+  auto htof_solid_lower = new G4UnionSolid("HtofSolid_lower", window_dummy_lower, htof_lower_lg,
                                            rotM_lower_lg, trans_lower_window);
   auto htof_lower_lv = new G4LogicalVolume(htof_solid_lower, m_material_map["Scintillator"],
                                            "HtofLowerLV");
@@ -608,6 +611,7 @@ DetectorConstruction::ConstructHTOF()
       rotMOutP->rotateY(- i * 360./NumOfPlaneHTOF*deg);
       seg_pos.rotateY(i * 360./NumOfPlaneHTOF*deg);
       seg_pos += htof_pos;
+
       G4int copy_no = seg+2;
 
       G4ThreeVector window_pos(0.*mm, half_size.y()/2. + HTOF_window/4., 0.*mm);
