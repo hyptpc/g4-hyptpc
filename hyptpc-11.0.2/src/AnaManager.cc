@@ -1021,7 +1021,8 @@ AnaManager::EndOfEventAction()
       m_effective_thickness = Kinematics::EffectiveThickness(m_next_pos, m_next_mom, target_pos, target_size);
       G4double rand_thickness = G4RandFlat::shoot(0*CLHEP::mm, 80*CLHEP::mm);
       if (rand_thickness <= m_effective_thickness) {
-	m_tree->Fill();
+	if(gConf.Get<G4bool>("BeamEventSave"))
+	  m_tree->Fill();
 	m_vertex_pos = Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
         m_next_generator   = m_event_generator;
 	m_do_generate_beam = false;
@@ -1034,12 +1035,12 @@ AnaManager::EndOfEventAction()
     }
   } 
   else {  //  NOT combine
-    if(m_beam_generator == -9999 && GetThresholdCondition()){
+    if(m_beam_generator == -1 && GetThresholdCondition()){
       m_next_generator = event.generator;
       m_tree->Fill();
       m_effective_evnum++;
     }
-    else if(m_beam_generator != -9999){
+    else if(m_beam_generator != -1 ){
       m_next_generator = event.generator;
       m_tree->Fill();
       m_effective_evnum++;

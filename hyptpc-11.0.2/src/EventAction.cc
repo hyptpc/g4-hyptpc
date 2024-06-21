@@ -16,6 +16,7 @@
 #include <G4UItcsh.hh>
 
 #include "AnaManager.hh"
+#include "TPCPadHelper.hh"
 #include "BACSD.hh"
 #include "ConfMan.hh"
 #include "DetectorConstruction.hh"
@@ -191,6 +192,11 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       // G4cout << "TPC  " << nhits << G4endl;
       for( G4int i=0; i<nhits; ++i ){
 	if(nparticle >20) continue;
+	if(TPCPadHelper::GetDeadCon((*HC)[i]->GetPadLay(), (*HC)[i]->GetPadRow())){
+	  continue;
+	  std::cout<<"dead pad!!"<<std::endl;
+	}
+
 	G4ThreeVector vtxpos = (*HC)[i]-> GetVtxPosition();
 	G4ThreeVector vtxmom = (*HC)[i]-> GetVtxMomentum();
 	G4double vtxene =(*HC)[i]-> GetVtxEnergy();
