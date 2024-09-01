@@ -3725,19 +3725,18 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, LambdaMass, EtaMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, LambdaMass, EtaMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;
 
+  // -- Lorentz transform from Lab to CM frame ---
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3747,11 +3746,11 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { LambdaMass, EtaMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -3760,12 +3759,10 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
   G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
@@ -3791,19 +3788,18 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, LambdaMass, PiMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
-  
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, LambdaMass, PiMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;
+
+  // -- Lorentz transform from Lab to CM frame --- 
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3813,11 +3809,11 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { LambdaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -3826,12 +3822,10 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
   G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
@@ -3858,19 +3852,18 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaMinus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionPlus->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;
 
+  // -- Lorentz transform from Lab to CM frame ---
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3880,11 +3873,11 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -3893,12 +3886,10 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
     TVector3 PiPlusDirec_CM = LVPiPlus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiPlusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiPlusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
   G4LorentzVector v(vertex_pos);  
   for(Int_t i=0; i<n_daughters; ++i){
@@ -3924,19 +3915,18 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaZero->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;
 
+  // -- Lorentz transform from Lab to CM frame ---
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -3946,11 +3936,11 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -3959,12 +3949,10 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;    
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();
   G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
@@ -3990,19 +3978,18 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaPlus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionMinus->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, SigmaMass, PiMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;
 
+  // -- Lorentz transform from Lab to CM frame ---
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4012,11 +3999,11 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { SigmaMass, PiMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -4025,13 +4012,10 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
     TVector3 PiMinusDirec_CM = LVPiMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
   G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
@@ -4055,19 +4039,18 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
-  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (do_combine) {
+  if (gAnaMan.GetDoCombine()) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
-  
-  if(!Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0, KaonMass, ProtonMass)){
-    gAnaMan.SetThresholdCondition(false);
-    return;
-  }
-  else{gAnaMan.SetThresholdCondition(true);}
 
+  // -- check threshold (in principle, unnecessary) ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, KaonMass, ProtonMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;  
+
+  // -- Lorentz transform from Lab to CM frame ---
   TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
   TLorentzVector LVProton(0., 0., 0., ProtonMass);
   TLorentzVector W = LVKaonMinus + LVProton;
@@ -4077,11 +4060,11 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
   LVKaonMinus_CM.Boost(-1*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
+  // -- check cos theta, and generate decay event ---
   static const Int_t n_daughters = 2;
   static const Double_t masses[n_daughters] = { ProtonMass, KaonMass };
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
-
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
   while (true){
     event.Generate();
@@ -4090,12 +4073,10 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     TVector3 ScatKaonMinusDirec_CM = LVScatKaonMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if(flat)break;
-    else if(!flat){
-      if ( DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;
-    }
+    if ( flat || DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;    
   }
 
+  // -- gun events ---
   G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
   G4LorentzVector v(vertex_pos);
   for(Int_t i=0; i<n_daughters; ++i){
@@ -4158,6 +4139,7 @@ PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
 void
 PrimaryGeneratorAction::GenerateE72PionMinus(G4Event* anEvent)
 {
+  // -- we need pion beam profile, so this is under developing -----
   static const G4String particle_name = "pi-";
   static const auto PionMinus = particleTable->FindParticle("pi-");
   static const auto pdg = PionMinus->GetPDGEncoding();
