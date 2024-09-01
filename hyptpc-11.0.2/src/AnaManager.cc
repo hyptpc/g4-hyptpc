@@ -42,20 +42,21 @@ std::map<TString, TH1*> hmap;
 }
 
 //_____________________________________________________________________________
+// maybe can not get param using gConf initialize part. (set generator in BeginOfRunAction)
 AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
-    m_effective_thickness(-1),
+    m_effective_thickness(-1.0),
     m_cos_theta(-9999.),
     m_diff_cross_sec_mom(-9999.),
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
-    m_is_combination(false),
-    m_effective_evnum(0),
+    m_do_combine(false),
+    m_effective_evnum(1),
     m_next_generator(-1),
-    m_beam_generator(-1),
-    m_event_generator(-1),
-    m_threshold_con(false)
+    m_first_generator(-1),
+    m_second_generator(-1),
+    m_threshold_con(true)
 {
 }
 
@@ -111,8 +112,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Reset();
   m_tree->Branch("evnum", &event.evnum, "evnum/I");
   m_tree->Branch("effective_evnum", &m_effective_evnum, "effective_evnum/I");
-  m_tree->Branch("generator", &event.generator, "generator/I");
-  m_tree->Branch("effective_generator", &m_next_generator, "effective_generator/I");
+  m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
   m_tree->Branch("diff_cross_sec_mom", &m_diff_cross_sec_mom, "diff_cross_sec_mom/D");
@@ -173,9 +173,13 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   }
 
   event.evnum = 0;
-  m_beam_generator = gConf.Get<G4int>("BeamGenerator");
-  m_next_generator = m_beam_generator; 
   m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
+
+  // -- initialize combination generator -----
+  m_do_combine      = gConf.Get<G4bool>("Combine");
+  m_next_generator  = gConf.Get<G4int>("FirstGenerator");
+  m_first_generator  = gConf.Get<G4int>("FirstGenerator");
+  m_second_generator = gConf.Get<G4int>("SecondGenerator");
 
 #if 0
   G4double target_pos_z=-143.;
@@ -352,11 +356,10 @@ AnaManager::BeginOfEventAction()
   event.HitNum_p=-1;
 
   // initialize (for combine generators)
-  if (m_next_generator == m_beam_generator) m_do_hit_tgt = false;
+  if (m_next_generator == m_first_generator) m_do_hit_tgt = false;
+
 
   /* ntrtpc initialization */
-
-
   for(G4int i=0; i<MaxHitsTPC;++i){
     event.trpidtpc[i]  = -1;
     event.trparentidtpc[i]  = -1;
@@ -992,20 +995,21 @@ AnaManager::EndOfEventAction()
       // 			 );
     }
   }//trigger parts
+
+
+
   // check hitting tgt and set next position
-
   G4int nhit_tgt = event.hits.at("TGT").size();
-
   if (nhit_tgt > 0) {
     auto p = event.hits.at("TGT")[0];
-    if (p.GetPdgCode() == -321 ) {
+    if (p.GetPdgCode() == -321 ) { // select K^-
       m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
       m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
       m_do_hit_tgt = true;
     }
   }
 
-  // // debug
+  // _____ debug __________
   // G4cout << "\n-----------------------\n" << m_next_generator << "\neff_evnum = " << m_effective_evnum << G4endl;
   // G4cout << " Vx = " << m_next_pos.x() << ",  Vy = " << m_next_pos.y() << ",  Vz = " << m_next_pos.z() << G4endl;
   // G4cout << " Px = " << m_next_mom.x() << ",  Py = " << m_next_mom.y() << ",  Pz = " << m_next_mom.z() << G4endl;
@@ -1014,34 +1018,30 @@ AnaManager::EndOfEventAction()
   // G4cout << "r = " << TMath::Sqrt( m_debug_pos.x()*m_debug_pos.x() + TMath::Power(m_debug_pos.z()+143, 2) ) << G4endl;
   // G4cout << "effective_thickness = " << m_effective_thickness << G4endl;
 
-  if (m_is_combination) {  // combine beam and event
-    if (m_next_generator == m_beam_generator && m_do_hit_tgt) {
+  if (m_do_combine) {  // combine beam and event
+    // -- beam ---
+    if (m_next_generator == m_first_generator && m_do_hit_tgt) {
       const auto target_pos  = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
       const auto target_size = gSize.GetSize("Target")*CLHEP::mm;
       m_effective_thickness = Kinematics::EffectiveThickness(m_next_pos, m_next_mom, target_pos, target_size);
-      G4double rand_thickness = G4RandFlat::shoot(0*CLHEP::mm, 80*CLHEP::mm);
+      G4double rand_thickness = G4RandFlat::shoot(0.0, target_size.getY());
       if (rand_thickness <= m_effective_thickness) {
-	if(gConf.Get<G4bool>("BeamEventSave"))
-	  m_tree->Fill();
+	if (gConf.Get<G4bool>("BeamEventSave")) m_tree->Fill();
 	m_vertex_pos = Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
-        m_next_generator   = m_event_generator;
+        m_next_generator   = m_second_generator;
 	m_do_generate_beam = false;
       }
-    } else if (m_next_generator == m_event_generator) {
-      if(GetThresholdCondition())m_tree->Fill();
-      m_next_generator = m_beam_generator;
+    }
+    // -- event ---
+    else if (m_next_generator == m_second_generator) {
+      if (GetThresholdCondition()) m_tree->Fill();
+      m_next_generator = m_first_generator;
       m_do_generate_beam = true;
       m_effective_evnum++;
     }
-  } 
+  }
   else {  //  NOT combine
-    if(m_beam_generator == -1 && GetThresholdCondition()){
-      m_next_generator = event.generator;
-      m_tree->Fill();
-      m_effective_evnum++;
-    }
-    else if(m_beam_generator != -1 ){
-      m_next_generator = event.generator;
+    if (GetThresholdCondition()) {
       m_tree->Fill();
       m_effective_evnum++;
     }
@@ -1529,14 +1529,14 @@ AnaManager::GetDoGenerateBeam()
 
 //_____________________________________________________________________________
 void
-AnaManager::SetIsCombination(G4bool is_combination)
+AnaManager::SetDoCombine(G4bool do_combine)
 {
-  m_is_combination = is_combination;
+  m_do_combine = do_combine;
 }
 G4bool
-AnaManager::GetIsCombination()
+AnaManager::GetDoCombine()
 {
-  return m_is_combination;
+  return m_do_combine;
 }
 
 //_____________________________________________________________________________
@@ -1578,26 +1578,26 @@ AnaManager::GetNextGenerator()
 
 //_____________________________________________________________________________
 void
-AnaManager::SetBeamGenerator(G4int beam_generator)
+AnaManager::SetFirstGenerator(G4int first_generator)
 {
-  m_beam_generator = beam_generator;
+  m_first_generator = first_generator;
 }
 G4int
-AnaManager::GetBeamGenerator()
+AnaManager::GetFirstGenerator()
 {
-  return m_beam_generator;
+  return m_first_generator;
 }
 
 //_____________________________________________________________________________
 void
-AnaManager::SetEventGenerator(G4int event_generator)
+AnaManager::SetSecondGenerator(G4int second_generator)
 {
-  m_event_generator = event_generator;
+  m_second_generator = second_generator;
 }
 G4int
-AnaManager::GetEventGenerator()
+AnaManager::GetSecondGenerator()
 {
-  return m_event_generator;
+  return m_second_generator;
 }
 
 //_____________________________________________________________________________

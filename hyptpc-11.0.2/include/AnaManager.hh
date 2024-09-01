@@ -280,12 +280,12 @@ private:
   // combine beam and event generator  
   G4bool m_do_hit_tgt;
   G4bool m_do_generate_beam;
-  G4bool m_is_combination;
+  G4bool m_do_combine;
   G4bool m_threshold_con;
   G4int m_effective_evnum;
   G4int m_next_generator;
-  G4int m_beam_generator;
-  G4int m_event_generator;
+  G4int m_first_generator;
+  G4int m_second_generator;
   G4ThreeVector m_next_pos;
   G4ThreeVector m_next_mom;
   G4ThreeVector m_vertex_pos;
@@ -329,24 +329,25 @@ public:
   void SetEffectiveThickness(G4double effective_thickness);
   void SetCosTheta(G4double cos_theta);
   void SetDiffCrossSecMom(G4double diff_cross_mom);
+
   // --------------------------------
   // combine beam and event generator
   void   SetDoHitTGT(G4bool do_hit_tgt);
   G4bool GetDoHitTGT();
   void   SetDoGenerateBeam(G4bool do_generate_beam);
   G4bool GetDoGenerateBeam();
-  void   SetIsCombination(G4bool is_combination);
-  G4bool GetIsCombination();
+  void   SetDoCombine(G4bool do_combine);
+  G4bool GetDoCombine();
   void   SetThresholdCondition(G4bool threshold_con);
   G4bool GetThresholdCondition();
   void  SetEffectiveEvnum(G4int effective_evnum);
   G4int GetEffectiveEvnum();
   void  SetNextGenerator(G4int next_generator);
   G4int GetNextGenerator();
-  void  SetBeamGenerator(G4int beam_generator);
-  G4int GetBeamGenerator();
-  void  SetEventGenerator(G4int event_generator);
-  G4int GetEventGenerator();
+  void  SetFirstGenerator(G4int first_generator);
+  G4int GetFirstGenerator();
+  void  SetSecondGenerator(G4int second_generator);
+  G4int GetSecondGenerator();
   void          SetNextPos(G4double vx, G4double vy, G4double vz);
   G4ThreeVector GetNextPos();
   void          SetNextMom(G4double px, G4double py, G4double pz);

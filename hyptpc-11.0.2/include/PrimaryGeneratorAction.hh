@@ -25,8 +25,6 @@ public:
   ~PrimaryGeneratorAction();
 
 private:
-  G4int                 m_beamgenerator;
-  G4int                 m_decaygenerator;
   G4ParticleGun*        m_particle_gun;
   G4ThreeVector         m_target_pos;
   G4ThreeVector         m_target_size;

@@ -53,8 +53,6 @@ const auto particleTable = G4ParticleTable::GetParticleTable();
 //_____________________________________________________________________________
 PrimaryGeneratorAction::PrimaryGeneratorAction()
   : G4VUserPrimaryGeneratorAction(),
-    m_beamgenerator(gConf.Get<G4int>("BeamGenerator")),
-    m_decaygenerator(gConf.Get<G4int>("DecayGenerator")),
     m_particle_gun(new G4ParticleGun),
     m_target_pos(gGeom.GetGlobalPosition("SHSTarget")*mm),
     m_target_size(gSize.GetSize("Target")*mm),
@@ -90,9 +88,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_HybridBaryon(particleTable->FindParticle("hybridb"))
 {
   G4cout << FUNC_NAME << G4endl
-	 << "   Beam Generator# = " << m_beamgenerator <<"   Decay Generator# = "<< m_decaygenerator << G4endl;
-  if(m_beamgenerator!=-9999)gAnaMan.SetGeneratorID(m_beamgenerator);
-  else if(m_beamgenerator==-9999)gAnaMan.SetGeneratorID(m_decaygenerator);
+	 << "   Beam Generator# = " << gAnaMan.GetFirstGenerator() <<"   Decay Generator# = "<< gAnaMan.GetSecondGenerator() << G4endl;
 
 #ifdef DEBUG
   particleTable->DumpTable();
@@ -110,8 +106,7 @@ void
 PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   G4bool do_generate_beam = gAnaMan.GetDoGenerateBeam();
-  G4bool is_combination   = gAnaMan.GetIsCombination();
-  if (do_generate_beam || !is_combination) *m_beam = gBeam.Get();
+  if (do_generate_beam) *m_beam = gBeam.Get();
   
 #ifdef DEBUG
   m_beam->Print();
@@ -131,23 +126,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 #endif
   }
 
-  G4int next_generator;
-  if(m_beamgenerator!= -9999 && m_decaygenerator!= -9999){
-    gAnaMan.SetIsCombination(true);
-    gAnaMan.SetBeamGenerator(m_beamgenerator);
-    gAnaMan.SetEventGenerator(m_decaygenerator);
-    next_generator = gAnaMan.GetNextGenerator();
-  }
-  else if(m_beamgenerator== -9999 && m_decaygenerator != -9999){
-    gAnaMan.SetEventGenerator(m_decaygenerator);
-    next_generator = m_decaygenerator;
-  }
-  else if (m_beamgenerator != -9999 && m_decaygenerator == -9999){
-    gAnaMan.SetBeamGenerator(m_beamgenerator);
-    gAnaMan.SetEventGenerator(m_beamgenerator);
-    next_generator = m_beamgenerator;
-  }
- 
+  G4int next_generator = gAnaMan.GetNextGenerator(); 
   switch(next_generator){
   case  0: break; // no generation
   case  1: GenerateHanul(anEvent); break; // shhwang
@@ -156,7 +135,6 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case  5: GenerateTest2(anEvent); break; // test sako-san's code
   case 10: GenerateBeamVI(anEvent); break;
   case 11: GenerateBeamVO(anEvent); break;
-    // case 11: GeneratePionPlusKsL(anEvent); break; // Study pi-p --> KsL
   case 12: GeneratePionPlusKsS(anEvent); break; // Study pi-p --> KsS
   case 13: GeneratePionPlusKstarL(anEvent); break; // Study on pi-p --> KsS by LL gen
   case 14: GeneratePionPlusKstarS(anEvent); break; // Study on pi-p --> KsS by LL gen
@@ -215,10 +193,6 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 3002: GenerateKKppLL2(anEvent); break;
   case 3003: GenerateKKppLSmPip(anEvent); break;
   case 3004: GenerateKKppLSpPim(anEvent); break;
-    // case 3101: GenerateKKppJAMInput(anEvent,t1); break;
-    // case 3102: GenerateKKppKKpp_BeamThrough1(anEvent); break;
-    // case 3103: GenerateKKppJAMInputK0(anEvent,t1); break;
-    // case 3104: GenerateKKppJAMInputK0bar(anEvent,t1); break;
   case 4202: GenerateE42Hdibaryon1(anEvent); break; // h-dibaryon --> LL
   case 4203: GenerateE42Hdibaryon2(anEvent); break; // h-dibaryon --> LL K+ 15deg
   case 4206: GenerateE42HdibaryonPHSG(anEvent); break; // h weak. H->Lppi-
@@ -236,62 +210,6 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
   case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
   case 7209: GenerateE72PionMinus(anEvent); break;
-    /*
-  case 7212: 
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7202);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7202) GenerateE72LambdaEtaPhaseSpace(anEvent);
-      break;
-    }
-  case 7213: 
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7203);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7203) GenerateE72LambdaPiZeroPhaseSpace(anEvent);
-      break;
-    }
-  case 7214: 
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7204);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7204) GenerateE72SigmaMinusPiPlusPhaseSpace(anEvent);
-      break;
-    }
-  case 7215:
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7205);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7205) GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent);
-      break;
-    }
-  case 7216: 
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7206);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7206) GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent);
-      break;
-    }
-  case 7217: 
-    {
-      gAnaMan.SetIsCombination(true);
-      gAnaMan.SetEventGenerator(7207);
-      G4int next_generator = gAnaMan.GetNextGenerator();
-      if      (next_generator == 7201) GenerateE72OldBeamData(anEvent);
-      else if (next_generator == 7207) GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent);
-      break;
-    }
-    */
   default:
     G4cerr << " * Generator number error : " << next_generator << G4endl;
     break;
@@ -3807,9 +3725,9 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
@@ -3873,9 +3791,9 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto LambdaMass = m_Lambda->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
@@ -3940,9 +3858,9 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaMinus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionPlus->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
@@ -4006,9 +3924,9 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaZero->GetPDGMass()/GeV;
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
@@ -4072,9 +3990,9 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   static const auto SigmaMass = m_SigmaPlus->GetPDGMass()/GeV;
   static const auto PiMass = m_PionMinus->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
@@ -4137,9 +4055,9 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
-  const G4bool is_combination = gAnaMan.GetIsCombination();
+  const G4bool do_combine = gAnaMan.GetDoCombine();
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
-  if (is_combination) {
+  if (do_combine) {
     G4ThreeVector next_mom = gAnaMan.GetNextMom();  
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
