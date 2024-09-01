@@ -210,6 +210,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
   case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
   case 7209: GenerateE72PionMinus(anEvent); break;
+  case 7210: GenerateE72KaonZeroShortNeutronPhaseSpace(anEvent); break;
   default:
     G4cerr << " * Generator number error : " << next_generator << G4endl;
     break;
@@ -4152,6 +4153,72 @@ PrimaryGeneratorAction::GenerateE72PionMinus(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(v.v());
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
+}
+
+
+//_____________________________________________________________________________
+//case 7210
+void
+PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEvent)
+{
+  static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
+  static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
+  static const auto KaonZeroSMass = m_KaonZeroS->GetPDGMass()/GeV;
+  static const auto NeutronMass = m_Neutron->GetPDGMass()/GeV;
+  TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
+  if (gAnaMan.GetDoCombine()) {
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
+  }
+
+  // -- check threshold ---
+  const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, KaonZeroSMass, NeutronMass);
+  gAnaMan.SetThresholdCondition(is_above_threshold);
+  if (!is_above_threshold) return;  
+
+  // -- Lorentz transform from Lab to CM frame ---
+  TLorentzVector LVKaonMinus(p_beam, TMath::Hypot(p_beam.Mag(), KaonMass));
+  TLorentzVector LVProton(0., 0., 0., ProtonMass);
+  TLorentzVector W = LVKaonMinus + LVProton;
+  TVector3 beta = W.Vect();
+  beta.SetMag(W.Beta());
+  TLorentzVector LVKaonMinus_CM = LVKaonMinus;
+  LVKaonMinus_CM.Boost(-1*beta);
+  TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
+
+  // -- check cos theta, and generate decay event ---
+  static const Int_t n_daughters = 2;
+  static const Double_t masses[n_daughters] = { NeutronMass, KaonZeroSMass };
+  TGenPhaseSpace event;
+  event.SetDecay(W, n_daughters, masses);
+  const G4bool flat = gConf.Get<G4bool>("CSFlat");
+  while (true){
+    event.Generate();
+    auto LVKaonZeroS_CM = event.GetDecay(1);  // select K^0_s
+    LVKaonZeroS_CM->Boost(-1*beta);
+    TVector3 KaonZeroSDirec_CM = LVKaonZeroS_CM->Vect();
+    Double_t cos_theta = KaonMinusDirec_CM.Dot(KaonZeroSDirec_CM)/(KaonMinusDirec_CM.Mag()*KaonZeroSDirec_CM.Mag());
+    gAnaMan.SetCosTheta(cos_theta);
+    // -- not prepare diff cross section, so just break ---
+    // if ( flat || DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;    
+    break;
+  }
+
+  // -- gun events ---
+  G4ThreeVector vertex_pos = gAnaMan.GetVertexPos();  
+  G4LorentzVector v(vertex_pos);
+  for(Int_t i=0; i<n_daughters; ++i){
+    auto d = event.GetDecay(i);
+    G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
+		      d->Pz()*GeV, d->E()*GeV);
+    auto particle = (i==0 ? m_KaonZeroS : m_Neutron);
+    m_particle_gun->SetParticleDefinition(particle);
+    m_particle_gun->SetParticleMomentumDirection(p.v());
+    m_particle_gun->SetParticleEnergy(p.e() - p.m());
+    m_particle_gun->SetParticlePosition(v.v());
+    m_particle_gun->GeneratePrimaryVertex(anEvent);
+    gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+  }
 }
 
 //_____________________________________________________________________________
