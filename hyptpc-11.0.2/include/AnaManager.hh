@@ -240,7 +240,6 @@ private:
 
   G4double m_effective_thickness;
   G4double m_cos_theta;
-  G4double m_diff_cross_sec_mom;
 
   CounterData counterData[MaxTrack];
   TPCData tpcData[MAXtpctrNum];
@@ -328,7 +327,6 @@ public:
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);
   void SetCosTheta(G4double cos_theta);
-  void SetDiffCrossSecMom(G4double diff_cross_mom);
 
   // --------------------------------
   // combine beam and event generator

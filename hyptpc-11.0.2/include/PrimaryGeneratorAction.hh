@@ -136,16 +136,15 @@ public:
   void     GenerateE42HdibaryonPHSGLL(G4Event* anEvent);
   void     GenerateE42HdibaryonNonReso(G4Event* anEvent);
   // E72
-  void     GenerateE72OldBeamData(G4Event* anEvent);
-  void     GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent);
-  void     GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent);
-  void     GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent);
-  void     GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent);
-  void     GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent);
-  void     GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anEvent);
-  void     GenerateE72ProtonForMachineLearning(G4Event* anEvent);
-  void     GenerateE72PionMinus(G4Event* anEvent);
-  void     GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEvent);
+  void     GenerateE72OldBeamData(G4Event* anEvent); // 7201
+  void     GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent); // 7202
+  void     GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent); // 7203
+  void     GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent); // 7204
+  void     GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent); // 7205
+  void     GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent); // 7206
+  void     GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent); // 7207
+  void     GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEvent); // 7208
+  void     GenerateE72ProtonForMachineLearning(G4Event* anEvent); // 7209
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002

@@ -48,7 +48,6 @@ AnaManager::AnaManager()
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1.0),
     m_cos_theta(-9999.),
-    m_diff_cross_sec_mom(-9999.),
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
     m_do_combine(false),
@@ -115,7 +114,6 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
-  m_tree->Branch("diff_cross_sec_mom", &m_diff_cross_sec_mom, "diff_cross_sec_mom/D");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
 
@@ -998,7 +996,7 @@ AnaManager::EndOfEventAction()
 
 
 
-  // check hitting tgt and set next position
+  // -- check hitting tgt and set next position -----
   G4int nhit_tgt = event.hits.at("TGT").size();
   if (nhit_tgt > 0) {
     auto p = event.hits.at("TGT")[0];
@@ -1009,7 +1007,7 @@ AnaManager::EndOfEventAction()
     }
   }
 
-  // _____ debug __________
+  // // _____ debug __________
   // G4cout << "\n-----------------------\n" << m_next_generator << "\neff_evnum = " << m_effective_evnum << G4endl;
   // G4cout << " Vx = " << m_next_pos.x() << ",  Vy = " << m_next_pos.y() << ",  Vz = " << m_next_pos.z() << G4endl;
   // G4cout << " Px = " << m_next_mom.x() << ",  Py = " << m_next_mom.y() << ",  Pz = " << m_next_mom.z() << G4endl;
@@ -1490,13 +1488,6 @@ void
 AnaManager::SetCosTheta(G4double cos_theta)
 {
   m_cos_theta = cos_theta;
-}
-
-//_____________________________________________________________________________
-void
-AnaManager::SetDiffCrossSecMom(G4double diff_cross_sec_mom)
-{
-  m_diff_cross_sec_mom = diff_cross_sec_mom;
 }
 
 

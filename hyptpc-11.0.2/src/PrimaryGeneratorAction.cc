@@ -202,15 +202,14 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 4501: GenerateE45ElasticPionPlus(anEvent); break;
   case 4502: GenerateE45ElasticPionMinus(anEvent); break;
   case 7201: GenerateE72OldBeamData(anEvent); break; // old kaon beam data by Hashimoto-san
-  case 7202: GenerateE72LambdaEtaPhaseSpace(anEvent); break;
-  case 7203: GenerateE72LambdaPiZeroPhaseSpace(anEvent); break;
-  case 7204: GenerateE72SigmaMinusPiPlusPhaseSpace(anEvent); break;
-  case 7205: GenerateE72SigmaZeroPiZeroPhaseSpace(anEvent); break;
-  case 7206: GenerateE72SigmaPlusPiMinusPhaseSpace(anEvent); break;
-  case 7207: GenerateE72KaonMinusProtonElasticPhaseSpace(anEvent); break;
-  case 7208: GenerateE72ProtonForMachineLearning(anEvent); break;
-  case 7209: GenerateE72PionMinus(anEvent); break;
-  case 7210: GenerateE72KaonZeroShortNeutronPhaseSpace(anEvent); break;
+  case 7202: GenerateE72EtaLambdaPhaseSpace(anEvent); break;
+  case 7203: GenerateE72PiZeroLambdaPhaseSpace(anEvent); break;
+  case 7204: GenerateE72PiPlusSigmaMinusPhaseSpace(anEvent); break;
+  case 7205: GenerateE72PiZeroSigmaZeroPhaseSpace(anEvent); break;
+  case 7206: GenerateE72PiMinusSigmaPlusPhaseSpace(anEvent); break;
+  case 7207: GenerateE72KaonMinusProtonPhaseSpace(anEvent); break;
+  case 7208: GenerateE72KaonZeroShortNeutronPhaseSpace(anEvent); break;
+  case 7209: GenerateE72ProtonForMachineLearning(anEvent); break;
   default:
     G4cerr << " * Generator number error : " << next_generator << G4endl;
     break;
@@ -3720,7 +3719,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7202
 void
-PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -3760,7 +3759,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::LambdaEta(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::EtaLambda(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -3783,7 +3782,7 @@ PrimaryGeneratorAction::GenerateE72LambdaEtaPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7203
 void
-PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -3823,7 +3822,7 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::LambdaPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiZeroLambda(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -3847,7 +3846,7 @@ PrimaryGeneratorAction::GenerateE72LambdaPiZeroPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7204
 void
-PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -3887,7 +3886,7 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
     TVector3 PiPlusDirec_CM = LVPiPlus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiPlusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiPlusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::SigmaMinusPiPlus(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiPlusSigmaMinus(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -3910,7 +3909,7 @@ PrimaryGeneratorAction::GenerateE72SigmaMinusPiPlusPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7205
 void
-PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -3950,7 +3949,7 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
     TVector3 PiZeroDirec_CM = LVPiZero_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::SigmaZeroPiZeroCB(cos_theta, p_beam.Mag()*GeV) ) break;    
+    if ( flat || DiffCrossSection::PiZeroSigmaZero(cos_theta, p_beam.Mag()*GeV) ) break;    
   }
 
   // -- gun events ---
@@ -3973,7 +3972,7 @@ PrimaryGeneratorAction::GenerateE72SigmaZeroPiZeroPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7206
 void
-PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -4013,7 +4012,7 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
     TVector3 PiMinusDirec_CM = LVPiMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::SigmaPlusPiMinus(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiMinusSigmaPlus(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -4036,7 +4035,7 @@ PrimaryGeneratorAction::GenerateE72SigmaPlusPiMinusPhaseSpace(G4Event* anEvent)
 //_____________________________________________________________________________
 //case 7207
 void
-PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
 {
   static const auto KaonMass = m_KaonMinus->GetPDGMass()/GeV;
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
@@ -4074,7 +4073,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
     TVector3 ScatKaonMinusDirec_CM = LVScatKaonMinus_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;    
+    if ( flat || DiffCrossSection::KaonMinusProton(cos_theta, p_beam.Mag()*GeV) ) break;    
   }
 
   // -- gun events ---
@@ -4094,70 +4093,9 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonElasticPhaseSpace(G4Event* anE
   }
 }
 
+
 //_____________________________________________________________________________
 //case 7208
-void
-PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
-{
-  static const G4String particle_name = "proton";
-  static const auto particle = particleTable->FindParticle(particle_name);
-  static const auto pdg  = particle->GetPDGEncoding();
-  static const auto mass = particle->GetPDGMass();
-  // G4double px =  G4RandFlat::shoot(-100.0  , 100.0   );
-  // G4double py =  G4RandFlat::shoot(-100.0  , 100.0   );
-  G4double px =  0.;
-  G4double py =  0.;
-  G4double pz = G4RandGauss::shoot( 500.0  , 100.0   );
-  G4double P = TMath::Sqrt(px*px + py*py + pz*pz);
-  G4LorentzVector p(px, py, pz, TMath::Sqrt(P*P + mass*mass));
-  gAnaMan.SetDebugPos(p.getX(), p.getY(), p.getZ());
-
-  const auto target_size = gSize.GetSize("Target")*mm;
-  G4double target_r = target_size[1]/2;
-  G4double target_h = target_size[2]/2;
-  G4double vx = G4RandFlat::shoot(-1*target_r, target_r);
-  G4double vz = G4RandFlat::shoot(-1*target_r, target_r);
-  while (TMath::Sqrt(vx*vx+vz*vz)>target_r){
-    vx = G4RandFlat::shoot(-1*target_r, target_r);
-    vz = G4RandFlat::shoot(-1*target_r, target_r);
-  }
-  G4double vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);
-  while (TMath::Abs(vy)>target_h){
-    vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);  
-  }
-  G4LorentzVector v(m_target_pos.getX()+vx, m_target_pos.getY()+vy, m_target_pos.getZ()+vz, 0.);
-
-  m_particle_gun->SetParticleDefinition(m_Proton);
-  m_particle_gun->SetParticleMomentumDirection(p.v());
-  m_particle_gun->SetParticleEnergy(p.e() - mass);
-  m_particle_gun->SetParticlePosition(v.v());
-  m_particle_gun->GeneratePrimaryVertex(anEvent);
-  gAnaMan.SetPrimaryParticle(0, pdg, p, v);
-}
-
-//_____________________________________________________________________________
-//case 7209
-void
-PrimaryGeneratorAction::GenerateE72PionMinus(G4Event* anEvent)
-{
-  // -- we need pion beam profile, so this is under developing -----
-  static const G4String particle_name = "pi-";
-  static const auto PionMinus = particleTable->FindParticle("pi-");
-  static const auto pdg = PionMinus->GetPDGEncoding();
-  static const auto mass = PionMinus->GetPDGMass();
-  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam_p0*m_beam_p0 + mass*mass));
-  G4LorentzVector v(m_beam->pos, 0.);
-  m_particle_gun->SetParticleDefinition(m_PionMinus);
-  m_particle_gun->SetParticleMomentumDirection(p.v());
-  m_particle_gun->SetParticleEnergy(p.e() - mass);
-  m_particle_gun->SetParticlePosition(v.v());
-  m_particle_gun->GeneratePrimaryVertex(anEvent);
-  gAnaMan.SetPrimaryParticle(0, pdg, p, v);
-}
-
-
-//_____________________________________________________________________________
-//case 7210
 void
 PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEvent)
 {
@@ -4199,9 +4137,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
     TVector3 KaonZeroSDirec_CM = LVKaonZeroS_CM->Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(KaonZeroSDirec_CM)/(KaonMinusDirec_CM.Mag()*KaonZeroSDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
-    // -- not prepare diff cross section, so just break ---
-    // if ( flat || DiffCrossSection::KpElastic(cos_theta, p_beam.Mag()*GeV) ) break;    
-    break;
+    if ( flat || DiffCrossSection::KaonZeroNeutron(cos_theta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -4219,6 +4155,47 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
   }
+}
+
+//_____________________________________________________________________________
+//case 7209
+void
+PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
+{
+  static const G4String particle_name = "proton";
+  static const auto particle = particleTable->FindParticle(particle_name);
+  static const auto pdg  = particle->GetPDGEncoding();
+  static const auto mass = particle->GetPDGMass();
+  // G4double px =  G4RandFlat::shoot(-100.0  , 100.0   );
+  // G4double py =  G4RandFlat::shoot(-100.0  , 100.0   );
+  G4double px =  0.;
+  G4double py =  0.;
+  G4double pz = G4RandGauss::shoot( 500.0  , 100.0   );
+  G4double P = TMath::Sqrt(px*px + py*py + pz*pz);
+  G4LorentzVector p(px, py, pz, TMath::Sqrt(P*P + mass*mass));
+  gAnaMan.SetDebugPos(p.getX(), p.getY(), p.getZ());
+
+  const auto target_size = gSize.GetSize("Target")*mm;
+  G4double target_r = target_size[1]/2;
+  G4double target_h = target_size[2]/2;
+  G4double vx = G4RandFlat::shoot(-1*target_r, target_r);
+  G4double vz = G4RandFlat::shoot(-1*target_r, target_r);
+  while (TMath::Sqrt(vx*vx+vz*vz)>target_r){
+    vx = G4RandFlat::shoot(-1*target_r, target_r);
+    vz = G4RandFlat::shoot(-1*target_r, target_r);
+  }
+  G4double vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);
+  while (TMath::Abs(vy)>target_h){
+    vy = G4RandGauss::shoot( -1.74918/mm, 2.02957/mm);  
+  }
+  G4LorentzVector v(m_target_pos.getX()+vx, m_target_pos.getY()+vy, m_target_pos.getZ()+vz, 0.);
+
+  m_particle_gun->SetParticleDefinition(m_Proton);
+  m_particle_gun->SetParticleMomentumDirection(p.v());
+  m_particle_gun->SetParticleEnergy(p.e() - mass);
+  m_particle_gun->SetParticlePosition(v.v());
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
+  gAnaMan.SetPrimaryParticle(0, pdg, p, v);
 }
 
 //_____________________________________________________________________________
