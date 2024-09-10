@@ -4,6 +4,7 @@
 #define ANA_MANAGER_HH
 
 #include <vector>
+#include <unordered_map>
 
 #include <G4LorentzVector.hh>
 #include <G4ThreeVector.hh>
@@ -240,7 +241,7 @@ private:
 
   G4double m_effective_thickness;
   G4double m_cos_theta;
-
+  
   CounterData counterData[MaxTrack];
   TPCData tpcData[MAXtpctrNum];
 
@@ -276,7 +277,7 @@ private:
   G4double tpc_rad;
 
   // --------------------------------
-  // combine beam and event generator  
+  // combine beam and reaction generator  
   G4bool m_do_hit_tgt;
   G4bool m_do_generate_beam;
   G4bool m_do_combine;
@@ -290,6 +291,24 @@ private:
   G4ThreeVector m_vertex_pos;
   G4ThreeVector m_debug_pos;
   // --------------------------------
+
+  // --------------------------------
+  // for checking decay particle
+  std::pair<G4String, G4String> m_previous_particle; // particle name, process name
+  std::unordered_map<G4int, G4String> m_focus_particle = {
+    // generator id, particle name
+    {7201, "kaon-"},
+    {7202, "lambda"},
+    {7203, "lambda"},
+    {7204, "sigma-"},
+    {7205, "lambda"},
+    {7206, "sigma+"},
+    {7207, "kaon-"},
+    {7208, "kaon0S"}
+  };
+  G4int m_decay_particle_code;
+  // --------------------------------
+
   
 public:
   void BeginOfRunAction(G4int runnum);
@@ -327,9 +346,10 @@ public:
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);
   void SetCosTheta(G4double cos_theta);
-
+  void SetPreviousParticle(G4String particle_name, G4String process_name);
+  
   // --------------------------------
-  // combine beam and event generator
+  // combine beam and reaction generator
   void   SetDoHitTGT(G4bool do_hit_tgt);
   G4bool GetDoHitTGT();
   void   SetDoGenerateBeam(G4bool do_generate_beam);
@@ -355,6 +375,16 @@ public:
   void          SetDebugPos(G4double vx, G4double vy, G4double vz);
   G4ThreeVector GetDebugPos();
   // --------------------------------
+
+  // --------------------------------
+  // for checking decay particle
+  std::pair<G4String, G4String> GetPreviousParticle();
+  G4String GetFocusParticle(G4int generator_id);
+  void  SetDecayParticleCode(G4int decay_particle_code);
+  G4int GetDecayParticleCode();
+  // --------------------------------
+  
+
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
 		      double ca1, double cb1, double ct01, int qq1,
 		      double ca2, double cb2, double ct02, int qq2,

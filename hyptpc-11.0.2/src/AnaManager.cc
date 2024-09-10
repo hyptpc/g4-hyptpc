@@ -55,7 +55,9 @@ AnaManager::AnaManager()
     m_next_generator(-1),
     m_first_generator(-1),
     m_second_generator(-1),
-    m_threshold_con(true)
+    m_threshold_con(true),
+    m_previous_particle("init", "init"),
+    m_decay_particle_code(0)
 {
 }
 
@@ -114,6 +116,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
+  m_tree->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
 
@@ -356,6 +359,9 @@ AnaManager::BeginOfEventAction()
   // initialize (for combine generators)
   if (m_next_generator == m_first_generator) m_do_hit_tgt = false;
 
+  // initialize (for checking decay particle)
+  m_previous_particle = std::make_pair("init", "init");
+  m_decay_particle_code = 0;
 
   /* ntrtpc initialization */
   for(G4int i=0; i<MaxHitsTPC;++i){
@@ -1639,6 +1645,44 @@ AnaManager::GetDebugPos()
   return m_debug_pos;
 }
 
+//  +-------------------------+
+//  | checking decay particle |
+//  +-------------------------+
+//_____________________________________________________________________________
+void
+AnaManager::SetPreviousParticle(G4String particle_name, G4String process_name)
+{
+  m_previous_particle = std::make_pair(particle_name, process_name);
+}
+
+//_____________________________________________________________________________
+std::pair<G4String, G4String>
+AnaManager::GetPreviousParticle()
+{
+  return m_previous_particle;
+}
+
+//_____________________________________________________________________________
+G4String
+AnaManager::GetFocusParticle(G4int generator_id)
+{
+  auto it = m_focus_particle.find(generator_id);
+  return it != m_focus_particle.end() ? it->second : "none";
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetDecayParticleCode(G4int decay_particle_code)
+{
+  m_decay_particle_code = decay_particle_code;
+}
+
+//_____________________________________________________________________________
+G4int
+AnaManager::GetDecayParticleCode()
+{
+  return m_decay_particle_code;
+}
 
 
 /*************************************

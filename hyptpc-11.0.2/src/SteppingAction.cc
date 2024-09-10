@@ -2,6 +2,8 @@
 
 #include "SteppingAction.hh"
 
+#include <unordered_map>
+
 #include <G4Material.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTypes.hh>
@@ -14,9 +16,11 @@
 
 #include "ConfMan.hh"
 #include "PrintHelper.hh"
+#include "AnaManager.hh"
 
 namespace
 {
+auto& gAnaMan = AnaManager::GetInstance();
 const auto& gConf = ConfMan::GetInstance();
 }
 
@@ -40,6 +44,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto theTrack = theStep->GetTrack();
   auto theParticle = theTrack->GetParticleDefinition();
   auto particleName = theParticle->GetParticleName();
+  auto particlePdgCode = theParticle->GetPDGEncoding();
   auto prePoint = theStep->GetPreStepPoint();
   auto prePV = prePoint->GetPhysicalVolume();
   auto prePVName = prePV->GetName();
@@ -59,6 +64,15 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 
   //  G4cout<<"start stepping action:"<<prePVName<<G4endl;
 
+  // -- check decay particle -----
+  std::pair<G4String, G4String> previous_particle = gAnaMan.GetPreviousParticle();
+  G4int generator = gAnaMan.GetNextGenerator();
+  if (previous_particle.second == "Decay" && previous_particle.first == gAnaMan.GetFocusParticle(generator) ){
+    gAnaMan.SetDecayParticleCode( particlePdgCode );
+  }
+  gAnaMan.SetPreviousParticle(particleName, theProcess);
+  
+  
 #ifdef DEBUG
   PrintHelper helper(3, std::ios::fixed, G4cout);
   auto time = prePoint->GetGlobalTime();
