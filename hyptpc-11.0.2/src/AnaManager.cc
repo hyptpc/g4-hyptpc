@@ -57,7 +57,8 @@ AnaManager::AnaManager()
     m_second_generator(-1),
     m_threshold_con(true),
     m_previous_particle("init", "init"),
-    m_decay_particle_code(0)
+    m_decay_particle_code(0),
+    m_decay_position(-9999.0, -9999.0, -9999.0)
 {
 }
 
@@ -362,6 +363,7 @@ AnaManager::BeginOfEventAction()
   // initialize (for checking decay particle)
   m_previous_particle = std::make_pair("init", "init");
   m_decay_particle_code = 0;
+  m_decay_position = G4ThreeVector(-9999.0, -9999.0, -9999.0);
 
   /* ntrtpc initialization */
   for(G4int i=0; i<MaxHitsTPC;++i){
@@ -1012,7 +1014,7 @@ AnaManager::EndOfEventAction()
       m_do_hit_tgt = true;
     }
   }
-
+  
   // // _____ debug __________
   // G4cout << "\n-----------------------\n" << m_next_generator << "\neff_evnum = " << m_effective_evnum << G4endl;
   // G4cout << " Vx = " << m_next_pos.x() << ",  Vy = " << m_next_pos.y() << ",  Vz = " << m_next_pos.z() << G4endl;
@@ -1683,6 +1685,40 @@ AnaManager::GetDecayParticleCode()
 {
   return m_decay_particle_code;
 }
+
+//_____________________________________________________________________________
+void
+AnaManager::SetDecayPosition(G4ThreeVector decay_position)
+{
+  m_decay_position = decay_position;
+}
+
+//_____________________________________________________________________________
+G4ThreeVector
+AnaManager::GetDecayPosition()
+{
+  return m_decay_position;
+}
+
+//_____________________________________________________________________________
+G4bool
+AnaManager::IsInsideHtof(G4ThreeVector position)
+{
+  G4double pos_x = std::abs(position.getX());
+  G4double pos_y = std::abs(position.getY());
+  G4double pos_z = std::abs(position.getZ());
+  
+  G4double l = 332.0;  // origin to HTOF surface distance
+  G4double h = 400.0;  // HTOF half height
+  G4double tan_pi_over_8 = std::tan(CLHEP::pi / 8.0);
+
+  if ( pos_x > l || pos_z > l || pos_y > h ) return false;
+
+  if ( pos_x < l * tan_pi_over_8) return true;
+  else if ( pos_z < -pos_x + l * (1.0 + tan_pi_over_8)) return true;
+  else return false;
+}
+
 
 
 /*************************************

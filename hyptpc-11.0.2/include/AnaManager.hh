@@ -307,6 +307,7 @@ private:
     {7208, "kaon0S"}
   };
   G4int m_decay_particle_code;
+  G4ThreeVector m_decay_position;
   // --------------------------------
 
   
@@ -382,8 +383,11 @@ public:
   G4String GetFocusParticle(G4int generator_id);
   void  SetDecayParticleCode(G4int decay_particle_code);
   G4int GetDecayParticleCode();
+  void SetDecayPosition(G4ThreeVector decay_position);
+  G4ThreeVector GetDecayPosition();
+  G4bool IsInsideHtof(G4ThreeVector position);
   // --------------------------------
-  
+
 
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
 		      double ca1, double cb1, double ct01, int qq1,

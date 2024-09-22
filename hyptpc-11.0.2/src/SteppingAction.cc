@@ -50,6 +50,8 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto prePVName = prePV->GetName();
   auto postPoint = theStep->GetPostStepPoint();
   auto theProcess = postPoint->GetProcessDefinedStep()->GetProcessName();
+  G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
+  
   // check if it is alive
   //  if(theTrack->GetTrackStatus() != fAlive) { return; }
 
@@ -64,14 +66,16 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 
   //  G4cout<<"start stepping action:"<<prePVName<<G4endl;
 
+  
   // -- check decay particle -----
   std::pair<G4String, G4String> previous_particle = gAnaMan.GetPreviousParticle();
+  G4ThreeVector previous_step_pos = gAnaMan.GetDecayPosition();
   G4int generator = gAnaMan.GetNextGenerator();
   if (previous_particle.second == "Decay" && previous_particle.first == gAnaMan.GetFocusParticle(generator) ){
-    gAnaMan.SetDecayParticleCode( particlePdgCode );
+    if ( gAnaMan.IsInsideHtof(previous_step_pos) ) gAnaMan.SetDecayParticleCode( particlePdgCode );
   }
   gAnaMan.SetPreviousParticle(particleName, theProcess);
-  
+  gAnaMan.SetDecayPosition(stepMiddlePosition);
   
 #ifdef DEBUG
   PrintHelper helper(3, std::ios::fixed, G4cout);
