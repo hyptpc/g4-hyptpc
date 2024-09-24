@@ -124,7 +124,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   
   MakeBranch("PRM");
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
-    if(sd_name != "TPCPad"){
+    if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
       G4cout << "   make branch : " << sd_name << G4endl;
       MakeBranch(sd_name);
       MakeHistogram(sd_name);
@@ -1055,7 +1055,7 @@ AnaManager::EndOfEventAction()
   
   event.hits.at("PRM").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
-    if(sd_name != "TPCPad"){
+    if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
       event.hits.at(sd_name).clear();
     }
   }

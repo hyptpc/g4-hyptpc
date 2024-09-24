@@ -19,6 +19,9 @@ public:
   virtual ~EventAction();
   virtual void BeginOfEventAction(const G4Event* anEvent);
   virtual void EndOfEventAction(const G4Event* anEvent);
+private:
+  G4double CalculateAverage(const std::vector<double>& pos);
+  G4double CalculateSum(const std::vector<double>& edep);
 };
 
 //_____________________________________________________________________________

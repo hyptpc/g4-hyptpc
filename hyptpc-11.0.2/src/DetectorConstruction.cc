@@ -40,6 +40,7 @@
 #include "MagneticField.hh"
 #include "TPCSD.hh"
 #include "TPCPadSD.hh"
+#include "TPCEdepSD.hh"
 #include "TargetSD.hh"
 #include "VPSD.hh"
 #include "padHelper.hh"
@@ -68,7 +69,7 @@ DetectorConstruction::DetectorConstruction()
     m_world_lv(),
     m_rotation_angle(gConf.Get<Double_t>("SpectrometerAngle")*CLHEP::deg),
     m_rotation_matrix(new G4RotationMatrix),
-    m_check_overlaps(false),
+    m_check_overlaps(true),
     m_field()
 {
   m_rotation_matrix->rotateY(- m_rotation_angle);
@@ -960,18 +961,20 @@ DetectorConstruction::ConstructHypTPC()
                                     m_material_map["P10"],
                                     "TpcP10LV");
   new G4PVPlacement(nullptr, tpc_pos, p10_lv, "TpcP10PV",
-                    gv_lv, false, 0, m_check_overlaps);
+                    gv_lv, false, 1000, m_check_overlaps); //haein
   p10_lv->SetVisAttributes(G4Colour::Yellow());
   // p10_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
   auto tpc_sd = new TPCSD("TPC");
   auto tpcpad_sd = new TPCPadSD("TPCPad");
+  auto tpcedep_sd = new TPCEdepSD("TPCEdep");
   if(!gConf.Get<G4bool>("TPCPadOn")){
     AddNewDetector(tpc_sd);
     p10_lv->SetSensitiveDetector(tpc_sd);
   }
   else if(gConf.Get<G4bool>("TPCPadOn")){
     AddNewDetector(tpcpad_sd);
-    p10_lv->SetSensitiveDetector(tpcpad_sd);
+    AddNewDetector(tpcedep_sd);
+    //p10_lv->SetSensitiveDetector(tpcpad_sd);
   }
 
   // Field Cage
@@ -988,10 +991,16 @@ DetectorConstruction::ConstructHypTPC()
   fc_lv->SetVisAttributes(G4Colour::Green());
   // Virtual pads
   G4LogicalVolume* pad_lv[NumOfPadTPC];
-  [[maybe_unused]] G4double angle[NumOfPadTPC] = {};
+  G4LogicalVolume* pad_edep_lv[NumOfPadTPC];
+  [[maybe_unused]] G4double angle[NumOfPadTPC+1] = {};
   const G4double pad_center_z = gSize.Get("TpcPadCenterZ")*mm;
   G4double pad_in[NumOfPadTPC] = {};
   G4double pad_out[NumOfPadTPC] = {};
+
+  G4double pad_in_edep[NumOfPadTPC] = {};
+  G4double pad_out_edep[NumOfPadTPC] = {};
+
+  
   G4double tpc_rad = 250;
   // out side less 100 mm. 10+5*x < 100 mm is pad_in_num
   const G4double pad_length_in = gSize.Get("TpcPadLengthIn");
@@ -1074,6 +1083,42 @@ DetectorConstruction::ConstructHypTPC()
       }
     }
     break;
+  case 4:
+    //for tracking analysis
+    // position -> pad center
+    // dE/dx -> energy deposition
+    for (G4int i=0; i<NumOfPadTPC; ++i) {
+      G4double pad_radius = padHelper::getRadius(i);
+      G4double pad_halflength = padHelper::getLength(i)/2;
+      pad_in[i] = pad_radius;
+      pad_out[i] = pad_radius + 0.1*mm;
+      pad_in_edep[i] = pad_radius - pad_halflength;
+      pad_out_edep[i] = pad_radius + pad_halflength;
+      
+      if (i<NumOfPadTPCIn) {
+	angle[i]   = 360.;
+      } else {
+	angle[i] = padHelper::getsTheta(i);
+      }
+    }
+
+    break;
+  case 5:
+    //for tracking alaysis
+    // to get dE/dx information -> short step
+    for (G4int i=0;i<NumOfPadTPC; ++i) {
+      G4double pad_radius = padHelper::getRadius(i);
+      G4double pad_halflength = padHelper::getLength(i)/2;
+      pad_in[i] = pad_radius - pad_halflength;
+      pad_out[i] = pad_radius + pad_halflength;
+      if (i<NumOfPadTPCIn) {
+	angle[i]   = 360.;
+      } else {
+	angle[i] = padHelper::getsTheta(i);
+      }
+    }
+    break;
+
   default:
     break;
   }
@@ -1085,13 +1130,17 @@ DetectorConstruction::ConstructHypTPC()
                                   phiStart, phiTotal, numSide, numZPlane,
                                   zPlaneEA, rInnerEA, rOuterEA);
   G4VSolid* pad_solid[NumOfPadTPC];
+  G4VSolid* pad_edep_solid[NumOfPadTPC];
   pos.set(0, pad_center_z, 0);
   for (G4int i=0; i<NumOfPadTPCIn; ++i) {
+
     pad_solid[i] = new G4Tubs("TpcPadSolid"+std::to_string(i),
                               pad_in[i]*mm,
                               pad_out[i]*mm,
                               field_cage_size[2],
                               phiStart, phiTotal);
+    
+    
     pad_solid[i] = new G4IntersectionSolid("TpcPadSolid"+std::to_string(i),
                                            pad_solid[i], p10_solid,
                                            nullptr, pos);
@@ -1100,33 +1149,110 @@ DetectorConstruction::ConstructHypTPC()
                                            nullptr, pos);
     pad_lv[i]  = new G4LogicalVolume(pad_solid[i], m_material_map["P10"],
                                      "TpcPadLV"+std::to_string(i));
-    new G4PVPlacement(nullptr, -pos, pad_lv[i], "TpcPadPV"+std::to_string(i),
-                      p10_lv, true, i, m_check_overlaps);
+
+    if(pad_configure!=4)
+      new G4PVPlacement(nullptr, -pos, pad_lv[i], "TpcPadPV"+std::to_string(i),
+			p10_lv, true, i, m_check_overlaps);
+
+    if(pad_configure==4){
+      pad_edep_solid[i] = new G4Tubs("TpcPadEdepSolid"+std::to_string(i),
+				     pad_in_edep[i]*mm,
+				     pad_out_edep[i]*mm,
+				     field_cage_size[2],
+				     phiStart, phiTotal);
+
+   
+      pad_edep_solid[i] = new G4IntersectionSolid("TpcPadEdepSolid"+std::to_string(i),
+						  pad_edep_solid[i], p10_solid,
+						  nullptr, pos);
+      pad_edep_solid[i] = new G4IntersectionSolid("TpcPadEdepSolid"+std::to_string(i),
+						  pad_edep_solid[i], eff_volume,
+						  nullptr, pos);
+
+      /*
+	pad_edep_solid[i] = new G4SubtractionSolid("TpcPadEdepSolid"+std::to_string(i),
+	pad_edep_solid[i], pad_solid[i],
+	nullptr, G4ThreeVector());
+      */
+      pad_edep_lv[i]  = new G4LogicalVolume(pad_edep_solid[i], m_material_map["P10"],
+					    "TpcPadEdepLV"+std::to_string(i));
+
+    
+    
+      new G4PVPlacement(nullptr, -pos, pad_edep_lv[i], "TpcPadEdepPV"+std::to_string(i),
+			p10_lv, true, 2000 + i, m_check_overlaps);
+      
+      new G4PVPlacement(nullptr, G4ThreeVector(), pad_lv[i], "TpcPadPV"+std::to_string(i),
+			pad_edep_lv[i], true, i, m_check_overlaps);
+
+    }
   }
   // Outer Pads
+  
   for(G4int i=NumOfPadTPCIn; i<NumOfPadTPC; ++i){
     pad_solid[i] = new G4Tubs("TpcPadSolid"+std::to_string(i),
-                              pad_in[i]*mm,
-                              pad_out[i]*mm,
-                              field_cage_size[2],
-                              phiStart, phiTotal);
+			      pad_in[i]*mm,
+			      pad_out[i]*mm,
+			      field_cage_size[2],
+			      (90.+angle[i])*deg,
+			      (360.-2.*angle[i])*deg);
+
+
     pad_solid[i] = new G4IntersectionSolid("TpcPadSolid"+std::to_string(i),
-                                           pad_solid[i], p10_solid,
-                                           nullptr, pos);
+					   pad_solid[i], p10_solid,
+					   nullptr, pos);
     pad_solid[i] = new G4IntersectionSolid("TpcPadSolid"+std::to_string(i),
-                                           pad_solid[i], eff_volume,
-                                           nullptr, pos);
+					   pad_solid[i], eff_volume,
+					   nullptr, pos);
     pad_lv[i]  = new G4LogicalVolume(pad_solid[i], m_material_map["P10"],
 				     "TpcPadLV"+std::to_string(i));
-    new G4PVPlacement(nullptr, -pos, pad_lv[i], "TpcPadPV"+std::to_string(i),
-                      p10_lv, true, i, m_check_overlaps);
+    if(pad_configure!=4)
+      new G4PVPlacement(nullptr, -pos, pad_lv[i], "TpcPadPV"+std::to_string(i),
+			p10_lv, true, i, m_check_overlaps);
+
+    if(pad_configure==4){
+      pad_edep_solid[i] = new G4Tubs("TpcPadEdepSolid"+std::to_string(i),
+                              pad_in_edep[i]*mm,
+                              pad_out_edep[i]*mm,
+                              field_cage_size[2],
+			      (90.+angle[i])*deg,
+			      (360.-2.*angle[i])*deg);
+
+    
+
+      pad_edep_solid[i] = new G4IntersectionSolid("TpcPadEdepSolid"+std::to_string(i),
+						  pad_edep_solid[i], p10_solid,
+						  nullptr, pos);
+      pad_edep_solid[i] = new G4IntersectionSolid("TpcPadEdepSolid"+std::to_string(i),
+						  pad_edep_solid[i], eff_volume,
+						  nullptr, pos);
+      /*pad_edep_solid[i] = new G4SubtractionSolid("TpcPadEdepSolid"+std::to_string(i),
+	pad_edep_solid[i], pad_solid[i],
+	nullptr, G4ThreeVector());
+      */
+      pad_edep_lv[i]  = new G4LogicalVolume(pad_edep_solid[i], m_material_map["P10"],
+					    "TpcPadEdepLV"+std::to_string(i));
+      new G4PVPlacement(nullptr, -pos, pad_edep_lv[i], "TpcPadEdepPV"+std::to_string(i),
+			p10_lv, true, 2000 + i, m_check_overlaps);
+
+      new G4PVPlacement(nullptr, G4ThreeVector(), pad_lv[i], "TpcPadPV"+std::to_string(i),
+			pad_edep_lv[i], true, i, m_check_overlaps);
+    }
+    
   }
+  
+
   for (G4int i=0; i<NumOfPadTPC; ++i) {
     pad_lv[i]->SetVisAttributes(ORANGE);
+    //pad_edep_lv[i]->SetVisAttributes(G4VisAttributes::GetInvisible());
     if(!gConf.Get<G4bool>("TPCPadOn"))
       pad_lv[i]->SetSensitiveDetector(tpc_sd);
-    else if(gConf.Get<G4bool>("TPCPadOn"))
+    else if(gConf.Get<G4bool>("TPCPadOn")){
       pad_lv[i]->SetSensitiveDetector(tpcpad_sd);
+      if(pad_configure==4)
+	pad_edep_lv[i]->SetSensitiveDetector(tpcedep_sd);
+    }
+    
   }
   // Dead area
   auto dead_solid = new G4Box("DeadSolid", 5*mm, 250*mm, 0.001*mm);

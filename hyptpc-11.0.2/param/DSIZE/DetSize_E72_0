@@ -35,7 +35,7 @@ TpcP10Volume		0.0	634.0	606.0
 TpcFieldCage		584.0	586.0	562.0
 TpcEffectiveVolume	0.0	500.0	562.0
 
-TpcPadConfigure		3
+TpcPadConfigure		4
 TpcPadLengthIn		9.0
 TpcPadLengthOut		12.5
 TpcPadGap		0.5
