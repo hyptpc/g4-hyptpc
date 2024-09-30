@@ -63,7 +63,8 @@ struct CounterData
   G4int iLay;
   G4int iPad;
   G4int iRow;
-  G4int parentID; //parent particle PID
+  G4int parentID; //parent particle track id
+  G4int parentPID;
   G4double res[3];
 };
 
@@ -210,6 +211,7 @@ struct Event
   Int_t rowtpc[MaxTrack];      // number of pad raw
   Double_t toftpc[MaxTrack];   // tof
   Int_t parentID[MaxTrack];      // parent id
+  Int_t parentPID[MaxTrack];      // parent id
   Double_t cir_r[MaxTrack];   // fit radius
   Double_t cir_x[MaxTrack];   // fit center x
   Double_t cir_z[MaxTrack];   // fit center z
@@ -331,11 +333,11 @@ public:
   void SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-                      G4int parentid, G4double tlength, G4double slength);
+			    G4int parentid, G4int parentpid, G4double tlength, G4double slength);
   void SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-                      G4int parentid, G4double tlength, G4double slength);
+			 G4int parentid, G4int parentpid, G4double tlength, G4double slength);
   void SetFermiMomentum(const G4ThreeVector& p);
   void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);

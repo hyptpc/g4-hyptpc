@@ -435,7 +435,24 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	G4int ilay = (*HC)[i]-> GetPadLay();
 	//      G4double mass = (*HC)[i]-> GetPDGMass(); //mass(GeV)
 	G4int parentid = (*HC)[i]-> GetParentID();
-	G4int parentpid = (*HC)[i]-> GetParentID_pid();
+	//G4int parentpid = (*HC)[i]-> GetParentID_pid();
+	//Get Parent pid 
+	G4int parentpid = -9999;
+	if(parentid>0){
+	  const G4Track* parentTrack = nullptr;
+
+	  for (G4int k = 0; k < anEvent->GetNumberOfPrimaryVertex(); k++) {
+	    G4PrimaryVertex* primaryVertex = anEvent->GetPrimaryVertex(k);
+	    for (G4int j = 0; j < primaryVertex->GetNumberOfParticle(); j++) {
+	      G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary(j);
+	      if (primaryParticle->GetTrackID() == parentid) {
+		parentpid = primaryParticle->GetPDGcode();
+		break;
+	      }
+	    }
+	  }
+	}
+	
 	G4double tlength = (*HC)[i]-> GettLength();
 	G4int irow=(*HC)[i]-> GetPadRow();
 	//G4double beta = (*HC)[i]-> GetBeta();
@@ -448,8 +465,8 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	//test end
 
 	if(pad_configure==3){
-	  const G4int edep_configure =  gSize.Get("TpcEdep");
-	  
+	  //const G4int edep_configure =  gSize.Get("TpcEdep");
+	  int edep_configure=0;
 	  if(edep_configure==0)
 	    edep = (*HC)[i]-> GetEdep();
 
@@ -492,6 +509,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      }
 	    }
 	  }
+
 	}
 
 	G4bool find_track = false;
@@ -658,15 +676,15 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	  switch(restype){
 	  case 0:
 	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-					  irow, beta, edep/CLHEP::MeV, parentpid, tlength,slength );
+					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
 	    break;
 	  case 1:
 	    gAnaMan.SetCounterDataExp( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-				       irow, beta, edep/CLHEP::MeV, parentpid, tlength,slength );
+				       irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
 	    break;
 	  default:
 	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-					  irow, beta, edep/CLHEP::MeV, parentpid, tlength,slength );
+					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
 	    G4cout<<"TPC Resolution type is not determined. Now using constant resolution"<<G4endl;
 	    break;
 	  }

@@ -164,6 +164,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
     m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
     m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
+    m_tree->Branch("parentPID",event.parentPID,"parentPID[nhittpc]/I");
     m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
     m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
     m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
@@ -464,6 +465,7 @@ AnaManager::BeginOfEventAction()
     event.laytpc[i] = -1;
     event.rowtpc[i] = -1;
     event.parentID[i] = -1;
+    event.parentPID[i] = -1;
   }
 }
 
@@ -975,6 +977,8 @@ AnaManager::EndOfEventAction()
 	event.nthpad[event.nhittpc] = counterData[i].iPad;
 	event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]
 	  = event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]+1.;
+	event.parentID[event.nhittpc] = counterData[i].parentID;
+	event.parentPID[event.nhittpc] = counterData[i].parentPID;
 	event.nhittpc += 1;
 
       }
@@ -1100,7 +1104,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4ThreeVector mom,
                            G4int track, G4int particle,
                            G4int iLay,  G4int iRow, G4double beta,
-                           G4double edep, G4int parentid,
+			   G4double edep, G4int parentid, G4int parentpid,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
@@ -1201,6 +1205,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
+    counterData[hitnum].parentPID = parentpid;
     HitNum++;
 
     if(particle==321)
@@ -1220,7 +1225,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4ThreeVector mom,
                            G4int track, G4int particle,
                            G4int iLay,  G4int iRow, G4double beta,
-                           G4double edep, G4int parentid,
+			   G4double edep, G4int parentid, G4int parentpid,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
@@ -1359,6 +1364,8 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
+    counterData[hitnum].parentPID = parentpid;
+
     HitNum++;
     if(particle==321)
       HitNum_K++;
