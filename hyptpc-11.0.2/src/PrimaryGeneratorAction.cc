@@ -3756,10 +3756,20 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
     event.Generate();
     auto LVEta_CM = event.GetDecay(1);  // select eta
     LVEta_CM->Boost(-1*beta);
+
+    auto LVLambda_CM = event.GetDecay(0);
+    LVLambda_CM->Boost(-1*beta);
+    
     TVector3 EtaDirec_CM = LVEta_CM->Vect();
-    Double_t cos_theta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
-    gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::EtaLambda(cos_theta, p_beam.Mag()*GeV) ) break;
+    TVector3 LambdaDirec_CM = LVLambda_CM->Vect();
+    
+    Double_t cos_theta_eta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
+    Double_t cos_theta_lambda = KaonMinusDirec_CM.Dot(LambdaDirec_CM)/(KaonMinusDirec_CM.Mag()*LambdaDirec_CM.Mag());
+    
+    gAnaMan.SetCosTheta(cos_theta_eta);
+    gAnaMan.SetCosThetaLambda(cos_theta_lambda);
+    
+    if ( flat || DiffCrossSection::EtaLambda(cos_theta_eta, p_beam.Mag()*GeV) ) break;
   }
 
   // -- gun events ---
@@ -4197,6 +4207,8 @@ PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
 }
+
+
 
 //_____________________________________________________________________________
 G4double

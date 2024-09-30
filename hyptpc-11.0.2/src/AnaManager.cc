@@ -48,6 +48,7 @@ AnaManager::AnaManager()
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1.0),
     m_cos_theta(-9999.),
+    m_cos_theta_lambda(-9999.),
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
     m_do_combine(false),
@@ -117,6 +118,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
+  m_tree->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
   m_tree->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
@@ -1496,6 +1498,13 @@ void
 AnaManager::SetCosTheta(G4double cos_theta)
 {
   m_cos_theta = cos_theta;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetCosThetaLambda(G4double cos_theta_lambda)
+{
+  m_cos_theta_lambda = cos_theta_lambda;
 }
 
 
