@@ -69,7 +69,7 @@ DetectorConstruction::DetectorConstruction()
     m_world_lv(),
     m_rotation_angle(gConf.Get<Double_t>("SpectrometerAngle")*CLHEP::deg),
     m_rotation_matrix(new G4RotationMatrix),
-    m_check_overlaps(true),
+    m_check_overlaps(false),
     m_field()
 {
   m_rotation_matrix->rotateY(- m_rotation_angle);

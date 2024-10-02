@@ -410,13 +410,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
       for( G4int i=0; i<nhits; ++i ){
 	if(nparticle >20) continue;
-	/*
-	  //Dead Channel Delete -> have to move!!
-	if(TPCPadHelper::GetDeadCon((*HC)[i]->GetPadLay(), (*HC)[i]->GetPadRow())){
-	  continue;
-	  std::cout<<"dead pad!!"<<std::endl;
-	}
-	*/
+	
 
 	G4ThreeVector vtxpos = (*HC)[i]-> GetVtxPosition();
 	G4ThreeVector vtxmom = (*HC)[i]-> GetVtxMomentum();
@@ -672,6 +666,10 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	}
 
 	if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
+	  //Dead Channel Delete
+	  if(TPCPadHelper::GetDeadCon((*HC)[i]->GetPadLay(), (*HC)[i]->GetPadRow())){
+	    continue;
+	  }
 	  int restype = gConf.Get<G4int>("ResType");
 	  switch(restype){
 	  case 0:

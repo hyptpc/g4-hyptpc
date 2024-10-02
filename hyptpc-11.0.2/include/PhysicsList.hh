@@ -21,6 +21,9 @@ protected:
   virtual void ConstructParticle();
   virtual void ConstructProcess();
   virtual void SetCuts();
+
+private:
+  void AddIonGasProcess();
 };
 
 //_____________________________________________________________________________

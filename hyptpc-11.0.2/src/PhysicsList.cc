@@ -18,7 +18,27 @@
 #include <G4HadronPhysicsQGSP_BERT.hh>
 #include <G4VPhysicsConstructor.hh>
 
+// ionization process and model of generic ions 
+#include <G4ionIonisation.hh>
+#include <G4BraggIonGasModel.hh>
+#include <G4BetheBlochIonGasModel.hh>
+#include <G4IonFluctuations.hh>
+#include <G4UniversalFluctuation.hh>
+#include <G4EmParameters.hh>
+// Multipple scattering process and model of generic ions
+#include <G4hMultipleScattering.hh>
+#include <G4UrbanMscModel.hh>
+
+// Single coulomb scattering process and model of generic ions
+#include <G4CoulombScattering.hh>
+#include <G4IonCoulombScatteringModel.hh>
+
+// Nuclear stopping process and model of generic ions
+#include <G4NuclearStopping.hh>
+#include <G4ICRU49NuclearStoppingModel.hh>
+
 #include "ConfMan.hh"
+#include "DetSizeMan.hh"
 #include "FuncName.hh"
 
 #define G4MT_physicsVector                                                    \
@@ -27,6 +47,7 @@
 namespace
 {
   const auto& confMan = ConfMan::GetInstance();
+  const auto& gSize = DetSizeMan::GetInstance();
 }
 
 //_____________________________________________________________________________
@@ -74,8 +95,16 @@ PhysicsList::ConstructParticle()
 void
 PhysicsList::ConstructProcess()
 {
+
+  const G4int pad_configure = gSize.Get("TpcPadConfigure");
+
+  
   // G4AutoLock l(&constructProcessMutex);
   AddTransportation();
+
+  if(pad_configure ==4)
+    AddIonGasProcess(); 
+
 
   for(auto itr = G4MT_physicsVector->cbegin();
       itr != G4MT_physicsVector->cend(); ++itr)
@@ -93,7 +122,56 @@ PhysicsList::ConstructProcess()
       G4cout << FUNC_NAME << " Construct " << name << G4endl;
 
     (*itr)->ConstructProcess();
+
+
+    if(pad_configure ==4){
+      G4EmParameters* emParameters = G4EmParameters::Instance();
+      emParameters->SetMinEnergy(10*CLHEP::eV);
+      emParameters->SetMaxEnergy(2.*CLHEP::GeV);
+      emParameters->SetNumberOfBinsPerDecade(100);
+    }
+
   }
+}
+
+//_____________________________________________________________________________
+void PhysicsList::AddIonGasProcess()
+{
+    auto ph = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto pIterator = GetParticleIterator();
+    pIterator->reset();
+    while((*pIterator)())
+    {
+        G4ParticleDefinition *pDefinition = pIterator->value();
+        G4String pName = pDefinition->GetParticleName();
+        if(pName == "proton" || pName == "kaon" || pName == "pion" || pName == "muon")
+        {
+            // effective charge and energy loss model of ion
+            G4ionIonisation *iIon = new G4ionIonisation();
+            G4BraggIonGasModel *bIgm = new G4BraggIonGasModel();
+            G4BetheBlochIonGasModel *bbIgm = new G4BetheBlochIonGasModel();
+	    
+	    bIgm->SetActivationHighEnergyLimit(2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
+	    bbIgm->SetActivationLowEnergyLimit(2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
+
+            iIon->AddEmModel(0, bIgm, new G4IonFluctuations);
+            iIon->AddEmModel(0, bbIgm, new G4UniversalFluctuation);
+	    
+            // no delta ray
+            iIon->ActivateSecondaryBiasing("World", 1e-10, 100*CLHEP::TeV);
+	    
+            G4hMultipleScattering *hMsc = new G4hMultipleScattering();
+            hMsc->AddEmModel(0, new G4UrbanMscModel());
+            G4CoulombScattering *csc = new G4CoulombScattering();
+            csc->AddEmModel(0, new G4IonCoulombScatteringModel());
+            G4NuclearStopping *nsp = new G4NuclearStopping();
+            nsp->AddEmModel(0, new G4ICRU49NuclearStoppingModel());
+            ph->RegisterProcess(iIon, pDefinition);
+            ph->RegisterProcess(hMsc, pDefinition);
+            ph->RegisterProcess(csc, pDefinition);
+            ph->RegisterProcess(nsp, pDefinition);
+        }
+    }
 }
 
 //_____________________________________________________________________________
