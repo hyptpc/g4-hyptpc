@@ -39,9 +39,9 @@
 
 namespace
 {
-auto& gAnaMan = AnaManager::GetInstance();
-const auto& gConf = ConfMan::GetInstance();
-const auto& gSize = DetSizeMan::GetInstance();
+  auto& gAnaMan = AnaManager::GetInstance();
+  const auto& gConf = ConfMan::GetInstance();
+  const auto& gSize = DetSizeMan::GetInstance();
 }
 
 //_____________________________________________________________________________
@@ -59,9 +59,9 @@ EventAction::~EventAction()
 void
 EventAction::BeginOfEventAction(const G4Event*)
 {
-#ifdef DEBUG
+  #ifdef DEBUG
   G4cout << FUNC_NAME << G4endl;
-#endif
+  #endif
   gAnaMan.BeginOfEventAction();
 }
 
@@ -83,7 +83,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<BH2Hit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("BH2", HC->entries());
     }
@@ -94,7 +94,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<TargetHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("TGT", HC->entries());
     }
@@ -105,7 +105,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<HTOFHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("HTOF", HC->entries());
     }
@@ -116,7 +116,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<FTOFHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("FTOF", HC->entries());
     }
@@ -127,7 +127,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<BACHit>*>(HCTE->GetHC(id));
       for(G4int i=0, n=HC->entries(); i<n; ++i){
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("BAC", HC->entries());
     }
@@ -138,7 +138,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<KVCHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("KVC", HC->entries());
     }
@@ -149,7 +149,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if (id >= 0) {
       auto HC = dynamic_cast<G4THitsCollection<VPHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("VP", HC->entries());
     }
@@ -160,7 +160,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     if(id > 0){
       auto HC = dynamic_cast<G4THitsCollection<TPCHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
-        gAnaMan.SetHitData((*HC)[i]);
+	gAnaMan.SetHitData((*HC)[i]);
       }
       gAnaMan.SetNhits("TPC", HC->entries());
     }
@@ -174,10 +174,10 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       G4int tid_check;
       auto HC = (G4THitsCollection<TPCPadHit>*)(HCTE->GetHC(id));
       auto HC_edep = (G4THitsCollection<TPCEdepHit>*)(HCTE->GetHC(id_edep));
-      
+
       G4int nhits= HC -> entries();
       G4int nhits_edep = HC_edep -> entries();
-      
+
       G4int pidtr[MaxHitsTPC]={0};
       G4int ptidtpc[MaxHitsTPC]={0};
       G4int ptidtpc_pid[MaxHitsTPC]={0};
@@ -206,12 +206,12 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       std::vector<G4ThreeVector> temp_pos;
       std::vector<double> temp_edep;
       std::vector<int> temp_ilay;
-      
+
       G4int temp_pid;
       G4int temp_tid;
       G4int temp_parentid;
       G4int temp_parentpid;
-      
+
       std::vector<std::vector<G4ThreeVector>> remain_pos;
       std::vector<std::vector<double>> remain_edep;
       std::vector<std::vector<int>> remain_ilay;
@@ -219,8 +219,8 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       std::vector<int> remain_tid;
       std::vector<int> remain_parentid;
       std::vector<int> remain_parentpid;
-      
-      
+
+
       std::vector<double> cal_posx;
       std::vector<double> cal_posy;
       std::vector<double> cal_posz;
@@ -236,7 +236,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	  G4int tid_edep = (*HC_edep)[i]-> GetTrackID();
 	  G4ThreeVector xyz_edep = (*HC_edep)[i]-> GetPosition();
 	  G4int ilay_edep = (*HC_edep)[i]-> GetPadLay();
-	  
+
 	  if(i==0){
 	    cal_posx.push_back(xyz_edep.x());
 	    cal_posy.push_back(xyz_edep.y());
@@ -247,14 +247,14 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    temp_tid = tid_edep;
 	    temp_parentid = parentid_edep;
 	    temp_parentpid = parentpid_edep;
-	    
+
 	    temp_ilay.push_back(ilay_edep);
 
 	    if(nhits_edep==1){
 	      G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
 	      temp_pos.push_back(ave_pos);
 	      temp_edep.push_back(CalculateSum(cal_edep));
-		
+
 	      //put track info into remain
 	      remain_pos.push_back(temp_pos);
 	      remain_edep.push_back(temp_edep);
@@ -264,7 +264,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      remain_parentid.push_back(temp_parentid);
 	      remain_parentpid.push_back(temp_parentpid);
 	    }
-	    
+
 	  }
 
 	  else if(i>0){
@@ -293,7 +293,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		cal_posy.push_back(xyz_edep.y());
 		cal_posz.push_back(xyz_edep.z());
 		cal_edep.push_back(edep_edep);
-		
+
 		temp_ilay.push_back(ilay_edep);
 	      }
 
@@ -304,7 +304,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
 		temp_pos.push_back(ave_pos);
 		temp_edep.push_back(CalculateSum(cal_edep));
-		
+
 		//put track info into remain
 		remain_pos.push_back(temp_pos);
 		remain_edep.push_back(temp_edep);
@@ -314,7 +314,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		remain_parentid.push_back(temp_parentid);
 		remain_parentpid.push_back(temp_parentpid);
 	      }
-	      
+
 	    }
 	    else if(tid_edep != temp_tid){
 	      //Finalize previous track!!!
@@ -322,7 +322,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
 	      temp_pos.push_back(ave_pos);
 	      temp_edep.push_back(CalculateSum(cal_edep));
-		
+
 	      //put track info into remain
 	      remain_pos.push_back(temp_pos);
 	      remain_edep.push_back(temp_edep);
@@ -338,9 +338,9 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      cal_posy.clear();
 	      cal_posz.clear();
 	      cal_edep.clear();
-		
+
 	      //clear temp
-	      
+
 	      temp_pos.clear();
 	      temp_edep.clear();
 	      temp_ilay.clear();
@@ -349,7 +349,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      temp_tid = -9999;
 	      temp_parentid = -9999;
 	      temp_parentpid = -9999;
-	      
+
 	      //put new hit of new track to temp and cal
 	      cal_posx.push_back(xyz_edep.x());
 	      cal_posy.push_back(xyz_edep.y());
@@ -360,10 +360,10 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      temp_tid = tid_edep;
 	      temp_parentid = parentid_edep;
 	      temp_parentpid = parentpid_edep;
-	    
+
 	      temp_ilay.push_back(ilay_edep);
 
-	    
+
 
 	      if(i == nhits_edep-1){
 		//End of the edep hits
@@ -372,7 +372,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
 		temp_pos.push_back(ave_pos);
 		temp_edep.push_back(CalculateSum(cal_edep));
-		
+
 		//put track info into remain
 		remain_pos.push_back(temp_pos);
 		remain_edep.push_back(temp_edep);
@@ -383,10 +383,10 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		remain_parentpid.push_back(temp_parentpid);
 	      }
 	    }
-	  } 
+	  }
 	}
 
-	
+
 	for(int n=0;n<remain_tid.size();n++){
 	  for(int u=0;u<remain_tid.size();u++){
 	    if(remain_tid[n]==remain_parentid[u]){
@@ -401,16 +401,16 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    }
 	  }
 	}
-	
 
 
 
-      } 
-      
+
+      }
+
 
       for( G4int i=0; i<nhits; ++i ){
 	if(nparticle >20) continue;
-	
+
 
 	G4ThreeVector vtxpos = (*HC)[i]-> GetVtxPosition();
 	G4ThreeVector vtxmom = (*HC)[i]-> GetVtxMomentum();
@@ -430,7 +430,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	//      G4double mass = (*HC)[i]-> GetPDGMass(); //mass(GeV)
 	G4int parentid = (*HC)[i]-> GetParentID();
 	//G4int parentpid = (*HC)[i]-> GetParentID_pid();
-	//Get Parent pid 
+	//Get Parent pid
 	G4int parentpid = -9999;
 	if(parentid>0){
 	  const G4Track* parentTrack = nullptr;
@@ -446,16 +446,15 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    }
 	  }
 	}
-	
+
 	G4double tlength = (*HC)[i]-> GettLength();
 	G4int irow=(*HC)[i]-> GetPadRow();
-	//G4double beta = (*HC)[i]-> GetBeta();
-	G4double beta = (*HC)[i]-> GetEdep();
+	G4double beta = (*HC)[i]-> GetBeta();
 
 	//test edep info save
 	G4double edep;
 
-	
+
 	//test end
 
 	if(pad_configure==3){
@@ -465,7 +464,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    edep = (*HC)[i]-> GetEdep();
 
 	  else if(edep_configure==1){
-	  
+
 	    if(i==0){
 	      G4ThreeVector mom_pre = (*HC)[i+1]-> GetMomentum();
 	      G4double beta_pre = (*HC)[i+1]-> GetBeta();
@@ -517,17 +516,17 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 		if(ilay == remain_ilay[j][k]){
 		  //check position difference
 		  G4double pos_diff = (remain_pos[j][k] - xyz).mag();
-		  
+
 		  if(pos_diff < 50){
 		    edep = remain_edep[j][k];
 		    find_hit = true;
 		    break;
 		  }
-		  
+
 		}
 	      }
 	      if(!find_hit){
-		
+
 		std::cout<<"no same hit"<<std::endl;
 		std::cout<<"Pos SD ilay : "<<ilay<<std::endl;
 	      }
@@ -535,25 +534,25 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    }
 	  }
 	  if(!find_track)std::cout<<"no same track"<<std::endl;
-	}
-	if(!find_hit)edep = -9999;
-	//std::cout<<"Layer : "<<ilay<<", Cal : "<<(*HC)[i]->GetEdep()<<", Exp : "<<edep<<std::endl;
 	
+	  if(!find_hit)edep = -9999;
+	  //std::cout<<"Layer : "<<ilay<<", Cal : "<<(*HC)[i]->GetEdep()<<", Exp : "<<edep<<std::endl;
 
-	int hit_check = 0;
-	if(remain_ilay.size()>0){
-	  for(int f=0;f<remain_ilay.size();++f){
-	    if(remain_ilay[f].size()>0){
-	      hit_check+=remain_ilay[f].size();
-	      for(int k=0;k<remain_ilay[f].size();++k){
-		//std::cout<<"layer : "<<remain_ilay[f][k]<<std::endl;
+
+	  int hit_check = 0;
+	  if(remain_ilay.size()>0){
+	    for(int f=0;f<remain_ilay.size();++f){
+	      if(remain_ilay[f].size()>0){
+		hit_check+=remain_ilay[f].size();
+		for(int k=0;k<remain_ilay[f].size();++k){
+		  //std::cout<<"layer : "<<remain_ilay[f][k]<<std::endl;
+		}
 	      }
 	    }
 	  }
+	  //std::cout<<"nhit Cal : "<<nhits<<"nhit Edep : "<<hit_check<<std::endl;
 	}
-	//std::cout<<"nhit Cal : "<<nhits<<"nhit Edep : "<<hit_check<<std::endl;
 
-	
 
 
 
@@ -595,7 +594,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	  nparticle=nparticle+1;
 
 	}else if( nparticle>0 ){
-	  //	G4cout<<nparticle<<G4endl;
+	  //G4cout<<nparticle<<G4endl;
 	}
 
 	if( (pidtr[nparticle-1] != pid) || (pidtr[nparticle-1] == pid && vtxpxtpc[nparticle-1] != vtxmom[0] && vtxpytpc[nparticle-1] != vtxmom[1] && vtxpztpc[nparticle-1] != vtxmom[2])){
@@ -662,7 +661,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    }
 	    lentpc[nparticle-1]=tlength;
 	  }
-	  
+
 	}
 
 	if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
@@ -686,7 +685,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	    G4cout<<"TPC Resolution type is not determined. Now using constant resolution"<<G4endl;
 	    break;
 	  }
-	
+
 	}
       }
 
@@ -696,15 +695,15 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 			   vtxxtpc[i],vtxytpc[i],vtxztpc[i], vtxenetpc[i]);
       }
 
-      
+
     }
 
-    
-    
+
+
   }
 
 
-#if 0
+  #if 0
   auto trajectoryContainer = anEvent->GetTrajectoryContainer();
   if(trajectoryContainer && G4VVisManager::GetConcreteInstance()){
     G4int n_trajectories = trajectoryContainer->entries();
@@ -713,7 +712,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       trj->DrawTrajectory();
     }
   }
-#endif
+  #endif
 
   gAnaMan.EndOfEventAction();
 }
@@ -722,7 +721,7 @@ G4double
 EventAction::CalculateAverage(const std::vector<double>& pos)
 {
   if(pos.size()==0)return -1000;
-  
+
   G4double pos_sum = 0;
   for(size_t i = 0; i < pos.size(); ++i){
     pos_sum+=pos[i];
@@ -735,7 +734,7 @@ G4double
 EventAction::CalculateSum(const std::vector<double>& edep)
 {
   G4double edep_sum = 0;
-  
+
   for(size_t i = 0; i < edep.size(); ++i){
     edep_sum+=edep[i];
   }
