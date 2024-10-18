@@ -349,6 +349,7 @@ public:
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);
+  G4double GetEffectiveThickness();
   void SetCosTheta(G4double cos_theta);
   void SetCosThetaLambda(G4double cos_theta_lambda);
   void SetPreviousParticle(G4String particle_name, G4String process_name);

@@ -1035,13 +1035,14 @@ AnaManager::EndOfEventAction()
     if (m_next_generator == m_first_generator && m_do_hit_tgt) {
       const auto target_pos  = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
       const auto target_size = gSize.GetSize("Target")*CLHEP::mm;
-      m_effective_thickness = Kinematics::EffectiveThickness(m_next_pos, m_next_mom, target_pos, target_size);
-      G4double rand_thickness = G4RandFlat::shoot(0.0, target_size.getY());
-      if (rand_thickness <= m_effective_thickness) {
+      G4double rand_thickness = G4RandFlat::shoot(0.0, target_size.getY()+5.0); // calc. thickness in 3D, sometimes thickness > target diameter. we need offset
+      if (0 < m_effective_thickness && rand_thickness <= m_effective_thickness) {
 	if (gConf.Get<G4bool>("BeamEventSave")) m_tree->Fill();
 	m_vertex_pos = Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
         m_next_generator   = m_second_generator;
 	m_do_generate_beam = false;
+      } else {
+	m_effective_thickness = -1.0;
       }
     }
     // -- event ---
@@ -1050,12 +1051,14 @@ AnaManager::EndOfEventAction()
       m_next_generator = m_first_generator;
       m_do_generate_beam = true;
       m_effective_evnum++;
+      m_effective_thickness = -1.0;
     }
   }
   else {  //  NOT combine
     if (GetThresholdCondition()) {
       m_tree->Fill();
       m_effective_evnum++;
+      m_effective_thickness = -1.0;
     }
   }
   
@@ -1498,6 +1501,13 @@ void
 AnaManager::SetEffectiveThickness(G4double effective_thickness)
 {
   m_effective_thickness = effective_thickness;
+}
+
+//_____________________________________________________________________________
+G4double
+AnaManager::GetEffectiveThickness()
+{
+  return m_effective_thickness;
 }
 
 //_____________________________________________________________________________

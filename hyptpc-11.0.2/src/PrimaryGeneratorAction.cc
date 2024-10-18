@@ -3743,7 +3743,7 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -3755,10 +3755,10 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVEta_CM = *event.GetDecay(1);  // select eta
-    LVEta_CM.Boost(-1*beta);
+    LVEta_CM.Boost(-1.0*beta);
 
     TLorentzVector LVLambda_CM = *event.GetDecay(0);
-    LVLambda_CM.Boost(-1*beta);
+    LVLambda_CM.Boost(-1.0*beta);
     
     TVector3 EtaDirec_CM = LVEta_CM.Vect();
     TVector3 LambdaDirec_CM = LVLambda_CM.Vect();
@@ -3816,7 +3816,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -3828,7 +3828,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
-    LVPiZero_CM.Boost(-1*beta);
+    LVPiZero_CM.Boost(-1.0*beta);
     TVector3 PiZeroDirec_CM = LVPiZero_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
@@ -3880,7 +3880,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -3892,7 +3892,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVPiPlus_CM = *event.GetDecay(1);  // select pi^+
-    LVPiPlus_CM.Boost(-1*beta);
+    LVPiPlus_CM.Boost(-1.0*beta);
     TVector3 PiPlusDirec_CM = LVPiPlus_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiPlusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiPlusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
@@ -3943,7 +3943,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -3955,7 +3955,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
-    LVPiZero_CM.Boost(-1*beta);
+    LVPiZero_CM.Boost(-1.0*beta);
     TVector3 PiZeroDirec_CM = LVPiZero_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
@@ -4006,7 +4006,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -4018,7 +4018,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVPiMinus_CM = *event.GetDecay(1);  // select pi^-
-    LVPiMinus_CM.Boost(-1*beta);
+    LVPiMinus_CM.Boost(-1.0*beta);
     TVector3 PiMinusDirec_CM = LVPiMinus_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
@@ -4067,7 +4067,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -4079,7 +4079,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
   while (true){
     event.Generate();
     TLorentzVector LVScatKaonMinus_CM = *event.GetDecay(1);  // select K^-
-    LVScatKaonMinus_CM.Boost(-1*beta);
+    LVScatKaonMinus_CM.Boost(-1.0*beta);
     TVector3 ScatKaonMinusDirec_CM = LVScatKaonMinus_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);
@@ -4131,7 +4131,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
   TVector3 beta = W.Vect();
   beta.SetMag(W.Beta());
   TLorentzVector LVKaonMinus_CM = LVKaonMinus;
-  LVKaonMinus_CM.Boost(-1*beta);
+  LVKaonMinus_CM.Boost(-1.0*beta);
   TVector3 KaonMinusDirec_CM = LVKaonMinus_CM.Vect();
 
   // -- check cos theta, and generate decay event ---
@@ -4143,7 +4143,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
   while (true){
     event.Generate();
     TLorentzVector LVKaonZeroS_CM = *event.GetDecay(1);  // select K^0_s
-    LVKaonZeroS_CM.Boost(-1*beta);
+    LVKaonZeroS_CM.Boost(-1.0*beta);
     TVector3 KaonZeroSDirec_CM = LVKaonZeroS_CM.Vect();
     Double_t cos_theta = KaonMinusDirec_CM.Dot(KaonZeroSDirec_CM)/(KaonMinusDirec_CM.Mag()*KaonZeroSDirec_CM.Mag());
     gAnaMan.SetCosTheta(cos_theta);

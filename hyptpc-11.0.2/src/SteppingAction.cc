@@ -50,22 +50,19 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto prePVName = prePV->GetName();
   auto postPoint = theStep->GetPostStepPoint();
   auto theProcess = postPoint->GetProcessDefinedStep()->GetProcessName();
+  auto stepLength = theTrack->GetStepLength();
   G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
+
   
-  // check if it is alive
-  //  if(theTrack->GetTrackStatus() != fAlive) { return; }
-
-  // check if it is primary
-  //  if(theTrack->GetParentID() != 0) { return; }
-
-  // check if it is NOT muon
-  //  auto definition = theTrack->GetDefinition();
-  //  if((definition == G4MuonPlus::MuonPlusDefinition()) ||
-  //      (definition == G4MuonMinus::MuonMinusDefinition()))
-  //  { return; }
-
-  //  G4cout<<"start stepping action:"<<prePVName<<G4endl;
-
+  // -- cal effective thickness -----
+  if (prePVName == "TargetPV") {
+    G4int generator = gAnaMan.GetNextGenerator();
+    if (generator == 7201 && particleName == "kaon-") {
+      G4double effective_thickness = gAnaMan.GetEffectiveThickness();
+      if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
+      else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+    }
+  }
   
   // -- check decay particle -----
   std::pair<G4String, G4String> previous_particle = gAnaMan.GetPreviousParticle();
@@ -76,6 +73,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   }
   gAnaMan.SetPreviousParticle(particleName, theProcess);
   gAnaMan.SetDecayPosition(stepMiddlePosition);
+
   
 #ifdef DEBUG
   PrintHelper helper(3, std::ios::fixed, G4cout);

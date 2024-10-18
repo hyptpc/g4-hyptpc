@@ -1,5 +1,5 @@
 #
-#  DetSize_E72_0
+0;10;1c#  DetSize_E72_0
 #
 #  note:
 #    The size is not half but full length.
@@ -35,7 +35,7 @@ TpcP10Volume		0.0	634.0	606.0
 TpcFieldCage		584.0	586.0	562.0
 TpcEffectiveVolume	0.0	500.0	562.0
 
-TpcPadConfigure		4
+TpcPadConfigure		3
 TpcPadLengthIn		9.0
 TpcPadLengthOut		12.5
 TpcPadGap		0.5
