@@ -47,6 +47,7 @@ AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1.0),
+    m_mom_kaon_lab(0.0),
     m_cos_theta(-9999.),
     m_cos_theta_lambda(-9999.),
     m_do_hit_tgt(false),
@@ -117,6 +118,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("effective_evnum", &m_effective_evnum, "effective_evnum/I");
   m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
+  m_tree->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
   m_tree->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
   m_tree->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
@@ -185,7 +187,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_next_generator  = gConf.Get<G4int>("FirstGenerator");
   m_first_generator  = gConf.Get<G4int>("FirstGenerator");
   m_second_generator = gConf.Get<G4int>("SecondGenerator");
-
+  
 #if 0
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
@@ -360,14 +362,16 @@ AnaManager::BeginOfEventAction()
 
   event.HitNum_p=-1;
 
-  // initialize (for combine generators)
+  // -- initialize -----
+  // for combine generators
   if (m_next_generator == m_first_generator) m_do_hit_tgt = false;
 
-  // initialize (for checking decay particle)
+  // for checking decay particle
   m_previous_particle = std::make_pair("init", "init");
   m_decay_particle_code = 0;
   m_decay_position = G4ThreeVector(-9999.0, -9999.0, -9999.0);
 
+  
   /* ntrtpc initialization */
   for(G4int i=0; i<MaxHitsTPC;++i){
     event.trpidtpc[i]  = -1;
@@ -1021,15 +1025,6 @@ AnaManager::EndOfEventAction()
     }
   }
   
-  // // _____ debug __________
-  // G4cout << "\n-----------------------\n" << m_next_generator << "\neff_evnum = " << m_effective_evnum << G4endl;
-  // G4cout << " Vx = " << m_next_pos.x() << ",  Vy = " << m_next_pos.y() << ",  Vz = " << m_next_pos.z() << G4endl;
-  // G4cout << " Px = " << m_next_mom.x() << ",  Py = " << m_next_mom.y() << ",  Pz = " << m_next_mom.z() << G4endl;
-  // G4cout << "  x = " << m_debug_pos.x() << ",   y = " << m_debug_pos.y() << ",   z = " << m_debug_pos.z() << G4endl;
-  // G4cout << "doHitTGT = " << m_do_hit_tgt << ", doGenerateBeam = " << m_do_generate_beam << G4endl;
-  // G4cout << "r = " << TMath::Sqrt( m_debug_pos.x()*m_debug_pos.x() + TMath::Power(m_debug_pos.z()+143, 2) ) << G4endl;
-  // G4cout << "effective_thickness = " << m_effective_thickness << G4endl;
-
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
     if (m_next_generator == m_first_generator && m_do_hit_tgt) {
@@ -1508,6 +1503,13 @@ G4double
 AnaManager::GetEffectiveThickness()
 {
   return m_effective_thickness;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetMomKaonLab(G4double mom_kaon_lab)
+{
+  m_mom_kaon_lab = mom_kaon_lab;
 }
 
 //_____________________________________________________________________________

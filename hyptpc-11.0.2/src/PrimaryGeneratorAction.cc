@@ -3708,6 +3708,9 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   static const auto mass = KaonMinus->GetPDGMass();
   G4LorentzVector p(m_beam->mom, std::sqrt(m_beam->mom.mag()*m_beam->mom.mag() + mass*mass)); 
   G4LorentzVector v(m_beam->pos, 0.);
+  gAnaMan.SetMomKaonLab(0.0);
+  gAnaMan.SetCosTheta(-9999.0);
+  gAnaMan.SetCosThetaLambda(-9999.0);
   m_particle_gun->SetParticleDefinition(m_KaonMinus);
   m_particle_gun->SetParticleMomentumDirection(p.v());
   m_particle_gun->SetParticleEnergy(p.e() - mass);
@@ -3756,20 +3759,22 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
     event.Generate();
     TLorentzVector LVEta_CM = *event.GetDecay(1);  // select eta
     LVEta_CM.Boost(-1.0*beta);
-
+    
     TLorentzVector LVLambda_CM = *event.GetDecay(0);
     LVLambda_CM.Boost(-1.0*beta);
     
     TVector3 EtaDirec_CM = LVEta_CM.Vect();
     TVector3 LambdaDirec_CM = LVLambda_CM.Vect();
-    
+
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta_eta = KaonMinusDirec_CM.Dot(EtaDirec_CM)/(KaonMinusDirec_CM.Mag()*EtaDirec_CM.Mag());
     Double_t cos_theta_lambda = KaonMinusDirec_CM.Dot(LambdaDirec_CM)/(KaonMinusDirec_CM.Mag()*LambdaDirec_CM.Mag());
-    
+
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta_eta);
     gAnaMan.SetCosThetaLambda(cos_theta_lambda);
     
-    if ( flat || DiffCrossSection::EtaLambda(cos_theta_eta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::EtaLambda(cos_theta_eta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -3830,9 +3835,11 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
     LVPiZero_CM.Boost(-1.0*beta);
     TVector3 PiZeroDirec_CM = LVPiZero_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::PiZeroLambda(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiZeroLambda(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -3894,9 +3901,11 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
     TLorentzVector LVPiPlus_CM = *event.GetDecay(1);  // select pi^+
     LVPiPlus_CM.Boost(-1.0*beta);
     TVector3 PiPlusDirec_CM = LVPiPlus_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiPlusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiPlusDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::PiPlusSigmaMinus(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiPlusSigmaMinus(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -3957,9 +3966,11 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
     LVPiZero_CM.Boost(-1.0*beta);
     TVector3 PiZeroDirec_CM = LVPiZero_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::PiZeroSigmaZero(cos_theta, p_beam.Mag()*GeV) ) break;    
+    if ( flat || DiffCrossSection::PiZeroSigmaZero(cos_theta, mom_kaon_lab) ) break;    
   }
 
   // -- gun events ---
@@ -4020,9 +4031,11 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
     TLorentzVector LVPiMinus_CM = *event.GetDecay(1);  // select pi^-
     LVPiMinus_CM.Boost(-1.0*beta);
     TVector3 PiMinusDirec_CM = LVPiMinus_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*PiMinusDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::PiMinusSigmaPlus(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::PiMinusSigmaPlus(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -4081,9 +4094,11 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
     TLorentzVector LVScatKaonMinus_CM = *event.GetDecay(1);  // select K^-
     LVScatKaonMinus_CM.Boost(-1.0*beta);
     TVector3 ScatKaonMinusDirec_CM = LVScatKaonMinus_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);    
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::KaonMinusProton(cos_theta, p_beam.Mag()*GeV) ) break;    
+    if ( flat || DiffCrossSection::KaonMinusProton(cos_theta, mom_kaon_lab) ) break;    
   }
 
   // -- gun events ---
@@ -4145,9 +4160,11 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
     TLorentzVector LVKaonZeroS_CM = *event.GetDecay(1);  // select K^0_s
     LVKaonZeroS_CM.Boost(-1.0*beta);
     TVector3 KaonZeroSDirec_CM = LVKaonZeroS_CM.Vect();
+    Double_t mom_kaon_lab = p_beam.Mag()*GeV;
     Double_t cos_theta = KaonMinusDirec_CM.Dot(KaonZeroSDirec_CM)/(KaonMinusDirec_CM.Mag()*KaonZeroSDirec_CM.Mag());
+    gAnaMan.SetMomKaonLab(mom_kaon_lab);    
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::KaonZeroNeutron(cos_theta, p_beam.Mag()*GeV) ) break;
+    if ( flat || DiffCrossSection::KaonZeroNeutron(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
