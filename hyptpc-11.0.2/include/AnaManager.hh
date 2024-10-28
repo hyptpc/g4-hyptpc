@@ -5,6 +5,8 @@
 
 #include <vector>
 #include <unordered_map>
+#include <set>
+#include <algorithm>
 
 #include <G4LorentzVector.hh>
 #include <G4ThreeVector.hh>
@@ -237,6 +239,7 @@ private:
 private:
   TFile* m_file;
   TTree* m_tree;
+  TTree* m_tree_light;
   G4int m_on_off_helm;
   G4int m_pad_config;
   G4int m_experiment;
@@ -299,7 +302,7 @@ private:
   // --------------------------------
   // for checking decay particle
   std::pair<G4String, G4String> m_previous_particle; // particle name, process name
-  std::unordered_map<G4int, G4String> m_focus_particle = {
+  const std::unordered_map<G4int, G4String> m_focus_particle = {
     // generator id, particle name
     {7201, "kaon-"},
     {7202, "lambda"},
@@ -312,6 +315,29 @@ private:
   };
   G4int m_decay_particle_code;
   G4ThreeVector m_decay_position;
+  // --------------------------------
+
+  // --------------------------------
+  // for acceptance study
+  const G4double m_edep_threshold = 0.2; // MeV
+  const std::unordered_map<G4int, std::vector<G4int>> m_tpc_check_list = {
+  //  gen   { check parentID, PDG codes of check list }
+    { 7202, {1, 2212, -211} }, // eta Lambda
+    { 7203, {1, 2212, -211} }, // pi0 Lambda
+    { 7204, {0, +211, -211} }, // pi+ Sigma-
+    { 7205, {1, 2212, -211} }, // pi0 Sigma0
+    { 7206, {0, -211, +211, 2212} }, // pi- Sigma+
+    { 7207, {0, -321, 2212} }, // K p
+    { 7208, {1, +211, -211} }  // k0 n
+  };
+  const std::vector<G4int> m_forward_seg_narrow{17, 18, 19, 20, 21};
+  const std::vector<G4int> m_forward_seg_wide{15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+  const std::vector<G4int> m_forward_seg_all{6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
+  const G4double m_refractive_index_kvc = 1.46;
+
+  G4int m_trig_flag_int;
+  G4int m_focus_parent_id;  
+  G4bool m_kaon_beam_flag;
   // --------------------------------
 
   
@@ -395,7 +421,12 @@ public:
   G4bool IsInsideHtof(G4ThreeVector position);
   // --------------------------------
 
+  // --------------------------------
+  // for trigger
+  void SetFocusParentID(G4int focus_parent_id);
+  // --------------------------------
 
+  
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
 		      double ca1, double cb1, double ct01, int qq1,
 		      double ca2, double cb2, double ct02, int qq2,

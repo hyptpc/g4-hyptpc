@@ -4,6 +4,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
 #include <G4ThreeVector.hh>
 #include <Randomize.hh>
 
@@ -46,6 +47,7 @@ std::map<TString, TH1*> hmap;
 AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
+    m_tree_light(new TTree("g4hyptpc_light", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1.0),
     m_mom_kaon_lab(0.0),
     m_cos_theta(-9999.),
@@ -57,10 +59,15 @@ AnaManager::AnaManager()
     m_next_generator(-1),
     m_first_generator(-1),
     m_second_generator(-1),
+    m_next_pos(0.0, 0.0, 0.0),
+    m_next_mom(0.0, 0.0, 0.0),  
     m_threshold_con(true),
     m_previous_particle("init", "init"),
     m_decay_particle_code(0),
-    m_decay_position(-9999.0, -9999.0, -9999.0)
+    m_decay_position(-9999.0, -9999.0, -9999.0),
+    m_trig_flag_int(0),
+    m_kaon_beam_flag(false),
+    m_focus_parent_id(-1)
 {
 }
 
@@ -125,6 +132,12 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
 
+  // -- for trigger study ---
+  m_tree_light->Reset();
+  m_tree_light->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
+  m_tree_light->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
+  m_tree_light->Branch("trig_flag", &m_trig_flag_int, "trig_flag/I");
+  m_tree_light->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
   
   MakeBranch("PRM");
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
@@ -135,6 +148,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     }
   }
 
+  
   //for TPC tracking
   if(gConf.Get<G4bool>("TPCPadOn")){
     m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
@@ -333,7 +347,7 @@ void
 AnaManager::EndOfRunAction()
 {
   m_file->cd();
-  m_tree->Write();
+  gConf.Get<G4bool>("AcceptanceStudy") ? m_tree_light->Write() : m_tree->Write();
   for(auto& h: hmap){
     h.second->Write();
   }
@@ -363,14 +377,14 @@ AnaManager::BeginOfEventAction()
   event.HitNum_p=-1;
 
   // -- initialize -----
-  // for combine generators
-  if (m_next_generator == m_first_generator) m_do_hit_tgt = false;
-
+  // for trigger check
+  m_focus_parent_id = -1;
+    
   // for checking decay particle
   m_previous_particle = std::make_pair("init", "init");
   m_decay_particle_code = 0;
   m_decay_position = G4ThreeVector(-9999.0, -9999.0, -9999.0);
-
+  
   
   /* ntrtpc initialization */
   for(G4int i=0; i<MaxHitsTPC;++i){
@@ -1014,17 +1028,88 @@ AnaManager::EndOfEventAction()
 
 
 
-  // -- check hitting tgt and set next position -----
-  G4int nhit_tgt = event.hits.at("TGT").size();
-  if (nhit_tgt > 0) {
-    auto p = event.hits.at("TGT")[0];
-    if (p.GetPdgCode() == -321 ) { // select K^-
-      m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
-      m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
-      m_do_hit_tgt = true;
+  // -- trigger check -----
+  if (m_do_combine) {  // combine beam and event
+    // -- beam ---
+    if (m_next_generator == m_first_generator) {
+      m_kaon_beam_flag = false;
+      G4int bh2_multi = 0;
+      G4bool is_kaon_at_bac = false;
+      for (const auto &it : event.hits.at("BH2")) if (it.GetWeight() >= m_edep_threshold) bh2_multi++;
+      for (const auto &it : event.hits.at("BAC")) if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
+      if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
+    }
+    // -- event ---
+    else {
+      // -- trigger condition -----
+      G4int tpc_multi_threshold = 6;
+      G4double htof_threshold = 3.0; // MeV
+      const std::vector<G4int> &forward_seg = m_forward_seg_wide;
+      G4int htof_multi_threshold = 2;
+      G4int n_detected_track_threshold = 2;
+      
+      // -- TPC -----
+      G4int n_check_list = m_tpc_check_list.at(m_next_generator).size() - 1;
+      std::vector<std::set<G4int>> layer_id_unique(n_check_list);
+      for (const auto &it : event.hits.at("TPC")) {
+	for (G4int i = 0; i < n_check_list; i++) {
+	  if (it.GetPdgCode() == m_tpc_check_list.at(m_next_generator)[i+1] 
+	      && (m_tpc_check_list.at(m_next_generator)[0] == 0 || it.GetMother(0) == m_focus_parent_id) 
+	      && (0 <= it.GetMother(1) && it.GetMother(1) < 32) ) layer_id_unique[i].insert(it.GetMother(1));
+	}
+      }
+      G4int n_detected_track = 0;
+      for (G4int i = 0; i < n_check_list; i++) {
+	if ((G4int) layer_id_unique[i].size() >= tpc_multi_threshold) n_detected_track++;
+      }
+
+      // -- HTOF -----
+      G4int htof_multi = 0;
+      G4bool is_proton_forward_htof = false;
+      for (const auto &it : event.hits.at("HTOF")) {
+	if (it.GetWeight() > m_edep_threshold) htof_multi++;
+	if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
+      }
+
+      // -- Cherenkov radiation at KVC -----
+      G4bool hit_kvc_anyseg = false;
+      G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
+      for (const auto &it : event.hits.at("KVC")) {
+	// -- calc beta -----
+	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
+	G4double mass = particle->GetPDGMass(); // MeV/c^2
+	G4double mom  = it.P();                 // MeV/c
+	G4double beta = mom / std::sqrt( mass*mass + mom*mom );
+	if (beta > 1.0/m_refractive_index_kvc) hit_kvc_anyseg = true;
+      }
+
+      // -- check trigger -------
+      m_trig_flag_int = 0;
+      if ( m_kaon_beam_flag
+	   && (htof_multi >= htof_multi_threshold || is_proton_forward_htof)
+	   && n_detected_track >= n_detected_track_threshold
+	   && !hit_kvc_anyseg ) m_trig_flag_int = 1;
+      
     }
   }
   
+
+  // -- check hitting tgt and set next position -----
+  if (m_do_combine && m_next_generator == m_first_generator) {
+    m_do_hit_tgt = false;
+    G4int nhit_tgt = event.hits.at("TGT").size();
+    if (nhit_tgt > 0) {
+      auto p = event.hits.at("TGT")[0];
+      if (p.GetPdgCode() == -321 ) { // select K^-
+	m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
+	m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
+	m_do_hit_tgt = true;
+      }
+    }
+  }
+
+  
+  // -- Fill branch -----  
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
     if (m_next_generator == m_first_generator && m_do_hit_tgt) {
@@ -1042,7 +1127,10 @@ AnaManager::EndOfEventAction()
     }
     // -- event ---
     else if (m_next_generator == m_second_generator) {
-      if (GetThresholdCondition()) m_tree->Fill();
+      if (GetThresholdCondition()) {
+	m_tree->Fill();
+	m_tree_light->Fill();
+      }
       m_next_generator = m_first_generator;
       m_do_generate_beam = true;
       m_effective_evnum++;
@@ -1526,7 +1614,6 @@ AnaManager::SetCosThetaLambda(G4double cos_theta_lambda)
   m_cos_theta_lambda = cos_theta_lambda;
 }
 
-
 //  +----------------------------------+
 //  | conbine beam and event generator |
 //  +----------------------------------+
@@ -1746,6 +1833,18 @@ AnaManager::IsInsideHtof(G4ThreeVector position)
   else if ( pos_z < -pos_x + l * (1.0 + tan_pi_over_8)) return true;
   else return false;
 }
+
+//  +--------------------------------+
+//  | For trigger (acceptance study) |
+//  +--------------------------------+
+//_____________________________________________________________________________
+void
+AnaManager::SetFocusParentID(G4int focus_parent_id)
+{
+  m_focus_parent_id = focus_parent_id;
+}
+
+
 
 
 

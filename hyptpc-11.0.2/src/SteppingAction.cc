@@ -43,6 +43,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 
   auto theTrack = theStep->GetTrack();
   auto theParticle = theTrack->GetParticleDefinition();
+  auto parentID = theTrack->GetParentID();
   auto particleName = theParticle->GetParticleName();
   auto particlePdgCode = theParticle->GetPDGEncoding();
   auto prePoint = theStep->GetPreStepPoint();
@@ -53,7 +54,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto stepLength = theTrack->GetStepLength();
   G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
 
-  
+
   // -- cal effective thickness -----
   if (prePVName == "TargetPV") {
     G4int generator = gAnaMan.GetNextGenerator();
@@ -70,6 +71,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   G4int generator = gAnaMan.GetNextGenerator();
   if (previous_particle.second == "Decay" && previous_particle.first == gAnaMan.GetFocusParticle(generator) ){
     if ( gAnaMan.IsInsideHtof(previous_step_pos) ) gAnaMan.SetDecayParticleCode( particlePdgCode );
+    gAnaMan.SetFocusParentID( parentID );
   }
   gAnaMan.SetPreviousParticle(particleName, theProcess);
   gAnaMan.SetDecayPosition(stepMiddlePosition);
