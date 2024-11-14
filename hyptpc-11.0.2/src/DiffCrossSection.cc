@@ -6,13 +6,19 @@
 
 #include "FuncName.hh"
 #include "Kinematics.hh"
+#include "DiffCrossSectionMan.hh"
+
+namespace
+{
+const auto& gDcsMan = DiffCrossSectionMan::GetInstance();
+}
 
 namespace DiffCrossSection
 {
 
 //______________________________________________________________________________
-G4bool
-RejectionSampling(const G4double cos_theta, const G4double mom_kaon, const std::vector<G4double>& mom_kaons, const std::unordered_map<G4double, std::vector<G4double>>& legendre_coeff)
+std::vector<G4double>
+CoeffLinearInterpolation(const G4double mom_kaon, const std::vector<G4double>& mom_kaons, const std::unordered_map<G4double, std::vector<G4double>>& legendre_coeff)
 {
   // -- check whick value mom_kaon is between -----
   auto it = std::lower_bound(mom_kaons.begin(), mom_kaons.end(), mom_kaon);
@@ -39,7 +45,28 @@ RejectionSampling(const G4double cos_theta, const G4double mom_kaon, const std::
       coeff[order] = a*mom_kaon + b;
     }
   }
- 
+
+  return coeff;
+}
+
+//______________________________________________________________________________
+std::vector<G4double>
+CoeffSpline(const G4double mom_kaon)
+{
+  std::vector<G4double> coeff;
+  G4int n_order = gDcsMan.GetNumSpline();
+  for (G4int order = 0; order < n_order; order++) {
+    coeff.push_back( gDcsMan.GetCoeff(order, mom_kaon) );
+  }
+
+  return coeff;
+}
+
+  
+//______________________________________________________________________________
+G4bool
+RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff)
+{
   // -- search maximum value -----
   G4double maximum_value = 0.0;
   G4double range_min = -1.0;
@@ -73,77 +100,126 @@ RejectionSampling(const G4double cos_theta, const G4double mom_kaon, const std::
 G4bool
 EtaLambda(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- Crystal Ball -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_etaLambda_CB;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_etaLambda_CB;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);
+  // -- Crystal Ball -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_etaLambda_CB;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_etaLambda_CB;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 PiZeroLambda(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_pi0Lambda_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_pi0Lambda_bubble1970;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);  
+  // -- bubble chamber 1970 -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_pi0Lambda_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_pi0Lambda_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 PiZeroSigmaZero(const G4double cos_theta, const G4double mom_kaon)
 {
+  std::vector<G4double> coeff;
+    
   // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_pi0Sigma0_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_pi0Sigma0_bubble1970;
-
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);  
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_pi0Sigma0_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_pi0Sigma0_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 PiPlusSigmaMinus(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_piPlusSigmaMinus_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_piPlusSigmaMinus_bubble1970;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);  
+  // -- bubble chamber 1970 -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_piPlusSigmaMinus_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_piPlusSigmaMinus_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 PiMinusSigmaPlus(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_piMinusSigmaPlus_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_piMinusSigmaPlus_bubble1970;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);  
+  // -- bubble chamber 1970 -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_piMinusSigmaPlus_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_piMinusSigmaPlus_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 KaonMinusProton(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_Kp_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_Kp_bubble1970;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);  
+  // -- bubble chamber 1970 -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_Kp_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_Kp_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
 //______________________________________________________________________________
 G4bool
 KaonZeroNeutron(const G4double cos_theta, const G4double mom_kaon)
 {
-  // -- bubble chamber 1970 -----
-  std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_K0n_bubble1970;
-  std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_K0n_bubble1970;
+  std::vector<G4double> coeff;
 
-  return RejectionSampling(cos_theta, mom_kaon, mom_kaons, legendre_coeff);
+  // -- bubble chamber 1970 -----
+  if (gDcsMan.IsReady()) {
+    coeff = CoeffSpline(mom_kaon);
+  } else {
+    std::vector<G4double> mom_kaons = DiffCrossSection::mom_kaons_K0n_bubble1970;
+    std::unordered_map<G4double, std::vector<G4double>> legendre_coeff = DiffCrossSection::legendre_coeff_K0n_bubble1970;
+    coeff = CoeffLinearInterpolation(mom_kaon, mom_kaons, legendre_coeff);
+  }
+  
+  return RejectionSampling(cos_theta, coeff);
 }
 
   

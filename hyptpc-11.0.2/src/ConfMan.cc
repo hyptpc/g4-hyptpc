@@ -22,6 +22,7 @@
 #include "HistMan.hh"
 #include "JamMan.hh"
 #include "IncMan.hh"
+#include "DiffCrossSectionMan.hh"
 
 //_____________________________________________________________________________
 ConfMan::ConfMan()
@@ -140,6 +141,7 @@ ConfMan::InitializeParameterFiles()
           && InitializeParameter<HistMan>("HIST")
           && InitializeParameter<JamMan>("JAM")
           && InitializeParameter<IncMan>("INC")
+	  && InitializeParameter<DiffCrossSectionMan>("DCS")
           );
 }
 

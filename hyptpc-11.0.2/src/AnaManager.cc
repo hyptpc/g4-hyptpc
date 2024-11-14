@@ -29,14 +29,16 @@
 #include "Kinematics.hh"
 #include "DCGeomMan.hh"
 #include "DetSizeMan.hh"
+#include "DiffCrossSectionMan.hh"
 
 
 namespace
 {
-const auto& gConf = ConfMan::GetInstance();
-const auto& gHist = HistMan::GetInstance();
-const auto& gGeom = DCGeomMan::GetInstance();
-const auto& gSize = DetSizeMan::GetInstance();
+const auto& gConf   = ConfMan::GetInstance();
+const auto& gHist   = HistMan::GetInstance();
+const auto& gGeom   = DCGeomMan::GetInstance();
+const auto& gSize   = DetSizeMan::GetInstance();
+const auto& gDcsMan = DiffCrossSectionMan::GetInstance();
 
 Event event;
 std::map<TString, TH1*> hmap;
@@ -1107,8 +1109,8 @@ AnaManager::EndOfEventAction()
       }
     }
   }
-
   
+ 
   // -- Fill branch -----  
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
