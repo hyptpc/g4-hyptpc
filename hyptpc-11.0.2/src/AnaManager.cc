@@ -1035,9 +1035,10 @@ AnaManager::EndOfEventAction()
     // -- beam ---
     if (m_next_generator == m_first_generator) {
       m_kaon_beam_flag = false;
-      G4int bh2_multi = 0;
+      std::set<G4int> bh2_seg_unique;
       G4bool is_kaon_at_bac = false;
-      for (const auto &it : event.hits.at("BH2")) if (it.GetWeight() >= m_edep_threshold) bh2_multi++;
+      for (const auto &it : event.hits.at("BH2")) if (it.GetWeight() >= m_edep_threshold) bh2_seg_unique.insert(it.GetMother(1));
+      G4int bh2_multi = bh2_seg_unique.size();
       for (const auto &it : event.hits.at("BAC")) if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
       if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
     }
@@ -1057,7 +1058,8 @@ AnaManager::EndOfEventAction()
 	for (G4int i = 0; i < n_check_list; i++) {
 	  if (it.GetPdgCode() == m_tpc_check_list.at(m_next_generator)[i+1] 
 	      && (m_tpc_check_list.at(m_next_generator)[0] == 0 || it.GetMother(0) == m_focus_parent_id) 
-	      && (0 <= it.GetMother(1) && it.GetMother(1) < 32) ) layer_id_unique[i].insert(it.GetMother(1));
+	      && (0 <= it.GetMother(1) && it.GetMother(1) < 32)
+	      ) layer_id_unique[i].insert(it.GetMother(1));
 	}
       }
       G4int n_detected_track = 0;
@@ -1066,13 +1068,14 @@ AnaManager::EndOfEventAction()
       }
 
       // -- HTOF -----
-      G4int htof_multi = 0;
+      std::set<G4int> htof_seg_unique;
       G4bool is_proton_forward_htof = false;
       for (const auto &it : event.hits.at("HTOF")) {
-	if (it.GetWeight() > m_edep_threshold) htof_multi++;
+	if (it.GetWeight() > m_edep_threshold) htof_seg_unique.insert(it.GetMother(1));
 	if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
       }
-
+      G4int htof_multi = htof_seg_unique.size();
+      
       // -- Cherenkov radiation at KVC -----
       G4bool hit_kvc_anyseg = false;
       G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
@@ -1825,7 +1828,7 @@ AnaManager::IsInsideHtof(G4ThreeVector position)
   G4double pos_y = std::abs(position.getY());
   G4double pos_z = std::abs(position.getZ());
   
-  G4double l = 332.0;  // origin to HTOF surface distance
+  G4double l = 332.0;  // cordinate origin to HTOF surface distance
   G4double h = 400.0;  // HTOF half height
   G4double tan_pi_over_8 = std::tan(CLHEP::pi / 8.0);
 
