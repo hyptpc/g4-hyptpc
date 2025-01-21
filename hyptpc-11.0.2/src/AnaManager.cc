@@ -142,8 +142,10 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree_light->Branch("trig_flag", &m_trig_flag_int, "trig_flag/I");
   m_tree_light->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
 
+  MakeBranch("BEAM");
   MakeBranch("PRM");
   MakeBranch("SEC");
+
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
     if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
       G4cout << "   make branch : " << sd_name << G4endl;
@@ -1033,6 +1035,7 @@ AnaManager::EndOfEventAction()
 
 
   // -- trigger check -----
+  G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
     if (m_next_generator == m_first_generator) {
@@ -1080,7 +1083,7 @@ AnaManager::EndOfEventAction()
       G4int htof_multi = htof_seg_unique.size();
       // -- Cherenkov radiation at KVC -----
       G4bool hit_kvc_anyseg = false;
-      G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
+      //G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
       for (const auto &it : event.hits.at("KVC")) {
 	// -- calc beta -----
 	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
@@ -1109,11 +1112,17 @@ AnaManager::EndOfEventAction()
       if (p.GetPdgCode() == -321 ) { // select K^-
 	m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
 	m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
+	G4ParticleDefinition *particle = particle_table->FindParticle(p.GetPdgCode());
+	G4double mass = particle->GetPDGMass()/CLHEP::MeV;
+	G4LorentzVector v_beam(m_next_pos);
+	G4ThreeVector p3_beam(p.Px()/CLHEP::MeV,p.Py()/CLHEP::MeV,p.Pz()/CLHEP::MeV);
+	G4LorentzVector p_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(mass,2)));
+	GetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
 	m_do_hit_tgt = true;
       }
     }
   }
- 
+
   // -- Fill branch -----  
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
@@ -1150,6 +1159,7 @@ AnaManager::EndOfEventAction()
     }
   }
 
+  event.hits.at("BEAM").clear();
   event.hits.at("PRM").clear();
   event.hits.at("SEC").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
@@ -1579,6 +1589,24 @@ AnaManager::GetSecondaryVertex(G4int pdg,
                      TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
                      TLorentzVector(v.x(), v.y(), v.z(), v.t()));
   event.hits.at("SEC").push_back(particle);
+}
+
+//_____________________________________________________________________________
+//Stores the beam information used to create the vertex
+void 
+AnaManager::GetBeamInfo(G4int pdg,
+                        const G4LorentzVector& p,
+			const G4LorentzVector& v)
+{
+  TParticle particle(pdg,
+                     0, // fStatus
+                     0, // fMother[0]
+                     0, // fMother[1]
+                     0, // fDaughter[0]
+                     0, // fDaughter[1]
+                     TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
+                     TLorentzVector(v.x(), v.y(), v.z(), v.t()));
+  event.hits.at("BEAM").push_back(particle);
 }
 
 
