@@ -87,6 +87,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_LLphase(particleTable->FindParticle("phaseLL")),
     m_HybridBaryon(particleTable->FindParticle("hybridb"))
 {
+  std::fill(m_primary_pdg, m_primary_pdg + 10, -9999);
   G4cout << FUNC_NAME << G4endl
 	 << "   Beam Generator# = " << gAnaMan.GetFirstGenerator() <<"   Decay Generator# = "<< gAnaMan.GetSecondGenerator() << G4endl;
 
@@ -3791,6 +3792,7 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -3856,6 +3858,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -3922,6 +3925,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -3987,6 +3991,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -4052,6 +4057,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -4115,6 +4121,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 
@@ -4181,6 +4188,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
     m_particle_gun->SetParticlePosition(v.v());
     m_particle_gun->GeneratePrimaryVertex(anEvent);
     gAnaMan.SetPrimaryParticle(i, particle->GetPDGEncoding(), p, v);
+    m_primary_pdg[i] = particle->GetPDGEncoding();
   }
 }
 

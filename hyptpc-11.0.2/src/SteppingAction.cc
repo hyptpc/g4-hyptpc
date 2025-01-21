@@ -13,10 +13,12 @@
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4RunManager.hh> 
 
 #include "ConfMan.hh"
 #include "PrintHelper.hh"
 #include "AnaManager.hh"
+#include "PrimaryGeneratorAction.hh"
 
 namespace
 {
@@ -46,6 +48,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto parentID = theTrack->GetParentID();
   auto particleName = theParticle->GetParticleName();
   auto particlePdgCode = theParticle->GetPDGEncoding();
+  auto particleMass = theParticle->GetPDGMass();
   auto prePoint = theStep->GetPreStepPoint();
   auto prePV = prePoint->GetPhysicalVolume();
   auto prePVName = prePV->GetName();
@@ -75,7 +78,23 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   }
   gAnaMan.SetPreviousParticle(particleName, theProcess);
   gAnaMan.SetDecayPosition(stepMiddlePosition);
-
+  
+  // -- Get Seconday Vertex info --
+  PrimaryGeneratorAction* generatorAction = (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  for(int i=0;i<10;i++){
+    if(particlePdgCode != generatorAction->m_primary_pdg[i]){
+      continue;
+    }else if(particlePdgCode == generatorAction->m_primary_pdg[i]){
+      if(theTrack->GetTrackStatus() == fStopAndKill){
+	G4ParticleDefinition* particle_se = particleTable->GetParticle(generatorAction->m_primary_pdg[i]);
+	G4ThreeVector mom_se = theTrack->GetMomentum();
+	G4LorentzVector v_se(theTrack->GetPosition(), 0);
+	G4LorentzVector p_se(mom_se, std::sqrt(std::pow(particleMass,2)+std::pow(mom_se.mag(),2)));
+	gAnaMan.GetSecondaryVertex(generatorAction->m_primary_pdg[i],p_se,v_se);
+      }
+    }
+  }
   
 #ifdef DEBUG
   PrintHelper helper(3, std::ios::fixed, G4cout);

@@ -373,6 +373,9 @@ public:
                           const G4LorentzVector& p,
                           const G4LorentzVector& v,
                           G4bool is_virtual_beam=false);
+  void GetSecondaryVertex(G4int pdg,
+			   const G4LorentzVector& p,
+			   const G4LorentzVector& v);
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);

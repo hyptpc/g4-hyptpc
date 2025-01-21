@@ -7,6 +7,8 @@
 #include <G4ThreeVector.hh>
 #include <G4Types.hh>
 
+#include <algorithm>
+
 class G4ParticleDefinition;
 class G4ParticleGun;
 class TFile;
@@ -61,6 +63,8 @@ private:
   G4ParticleDefinition* m_HybridBaryon;
   G4double env_target_pos_z;
 
+public:
+  G4int m_primary_pdg[10];
 public:
   virtual void GeneratePrimaries(G4Event* anEvent);
 

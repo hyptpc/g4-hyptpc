@@ -143,6 +143,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree_light->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
 
   MakeBranch("PRM");
+  MakeBranch("SEC");
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
     if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
       G4cout << "   make branch : " << sd_name << G4endl;
@@ -1150,6 +1151,7 @@ AnaManager::EndOfEventAction()
   }
 
   event.hits.at("PRM").clear();
+  event.hits.at("SEC").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
     if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
       event.hits.at(sd_name).clear();
@@ -1561,6 +1563,24 @@ AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
                      TLorentzVector(v.x(), v.y(), v.z(), v.t()));
   event.hits.at("PRM").push_back(particle);
 }
+
+//_____________________________________________________________________________
+void
+AnaManager::GetSecondaryVertex(G4int pdg,
+                               const G4LorentzVector& p,
+			       const G4LorentzVector& v)
+{
+  TParticle particle(pdg,
+                     0, // fStatus
+                     0, // fMother[0]
+                     0, // fMother[1]
+                     0, // fDaughter[0]
+                     0, // fDaughter[1]
+                     TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
+                     TLorentzVector(v.x(), v.y(), v.z(), v.t()));
+  event.hits.at("SEC").push_back(particle);
+}
+
 
 //_____________________________________________________________________________
 void
