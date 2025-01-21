@@ -972,9 +972,10 @@ DetectorConstruction::ConstructHypTPC()
     p10_lv->SetSensitiveDetector(tpc_sd);
   }
   else if(gConf.Get<G4bool>("TPCPadOn")){
+    AddNewDetector(tpc_sd);
+    p10_lv->SetSensitiveDetector(tpc_sd);
     AddNewDetector(tpcpad_sd);
     AddNewDetector(tpcedep_sd);
-    //p10_lv->SetSensitiveDetector(tpcpad_sd);
   }
 
   // Field Cage

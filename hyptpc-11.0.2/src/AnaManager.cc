@@ -138,9 +138,10 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree_light->Reset();
   m_tree_light->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
   m_tree_light->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
+  m_tree_light->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
   m_tree_light->Branch("trig_flag", &m_trig_flag_int, "trig_flag/I");
   m_tree_light->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
-  
+
   MakeBranch("PRM");
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
     if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
@@ -203,7 +204,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_next_generator  = gConf.Get<G4int>("FirstGenerator");
   m_first_generator  = gConf.Get<G4int>("FirstGenerator");
   m_second_generator = gConf.Get<G4int>("SecondGenerator");
-  
+
+ 
 #if 0
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
@@ -222,7 +224,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
 
   m_on_off_helm = gConf.Get<G4int>("ShsFieldMap");
 
-  for(G4int i=0.;i<40;i++){
+   for(G4int i=0.;i<40;i++){
     angle[i]=0;
     seg_angle[i]=0;
     seg_width[i]=0;
@@ -316,8 +318,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     G4int all_channels2=0;
     G4int num_pad_check=0;
 
-    
-    
+     
     for(G4int i=0;i<pad_in_num+pad_out_num;i++){
       if(i<pad_in_num){
 	seg_angle[i]=360./double(numpads[i]);
@@ -496,6 +497,7 @@ AnaManager::EndOfEventAction()
   event.evnum++;
 
   if(HitNum > 0){
+    /*
     G4int c[MAX_TRACK] = {};
 
     for(G4int i=0;i<MAX_TRACK;i++){
@@ -936,7 +938,7 @@ AnaManager::EndOfEventAction()
       }
       //      }
     }
-
+    */
     if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
     }else{
@@ -1029,7 +1031,6 @@ AnaManager::EndOfEventAction()
   }//trigger parts
 
 
-
   // -- trigger check -----
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
@@ -1042,6 +1043,7 @@ AnaManager::EndOfEventAction()
       for (const auto &it : event.hits.at("BAC")) if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
       if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
     }
+    
     // -- event ---
     else {
       // -- trigger condition -----
@@ -1050,7 +1052,6 @@ AnaManager::EndOfEventAction()
       const std::vector<G4int> &forward_seg = m_forward_seg_wide;
       G4int htof_multi_threshold = 2;
       G4int n_detected_track_threshold = 2;
-      
       // -- TPC -----
       G4int n_check_list = m_tpc_check_list.at(m_next_generator).size() - 1;
       std::vector<std::set<G4int>> layer_id_unique(n_check_list);
@@ -1062,6 +1063,7 @@ AnaManager::EndOfEventAction()
 	      ) layer_id_unique[i].insert(it.GetMother(1));
 	}
       }
+
       G4int n_detected_track = 0;
       for (G4int i = 0; i < n_check_list; i++) {
 	if ((G4int) layer_id_unique[i].size() >= tpc_multi_threshold) n_detected_track++;
@@ -1075,7 +1077,6 @@ AnaManager::EndOfEventAction()
 	if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
       }
       G4int htof_multi = htof_seg_unique.size();
-      
       // -- Cherenkov radiation at KVC -----
       G4bool hit_kvc_anyseg = false;
       G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
@@ -1087,7 +1088,6 @@ AnaManager::EndOfEventAction()
 	G4double beta = mom / std::sqrt( mass*mass + mom*mom );
 	if (beta > 1.0/m_refractive_index_kvc) hit_kvc_anyseg = true;
       }
-
       // -- check trigger -------
       m_trig_flag_int = 0;
       if ( m_kaon_beam_flag
@@ -1112,7 +1112,6 @@ AnaManager::EndOfEventAction()
       }
     }
   }
-  
  
   // -- Fill branch -----  
   if (m_do_combine) {  // combine beam and event
@@ -1149,7 +1148,7 @@ AnaManager::EndOfEventAction()
       m_effective_thickness = -1.0;
     }
   }
-  
+
   event.hits.at("PRM").clear();
   for (const auto& sd_name: DetectorConstruction::GetSDList()) {
     if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
