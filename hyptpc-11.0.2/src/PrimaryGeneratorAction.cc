@@ -4155,7 +4155,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
 		      d->Pz()*GeV, d->E()*GeV);
-    auto particle = (i==0 ? m_KaonMinus : m_Proton);
+    auto particle = (i==0 ? m_Proton : m_KaonMinus);
     m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p.v());
     m_particle_gun->SetParticleEnergy(p.e() - p.m());
@@ -4229,7 +4229,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
     auto d = event.GetDecay(i);
     G4LorentzVector p(d->Px()*GeV, d->Py()*GeV,
 		      d->Pz()*GeV, d->E()*GeV);
-    auto particle = (i==0 ? m_KaonZeroS : m_Neutron);
+    auto particle = (i==0 ? m_Neutron : m_KaonZeroS);
     m_particle_gun->SetParticleDefinition(particle);
     m_particle_gun->SetParticleMomentumDirection(p.v());
     m_particle_gun->SetParticleEnergy(p.e() - p.m());
