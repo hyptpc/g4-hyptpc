@@ -1117,7 +1117,7 @@ AnaManager::EndOfEventAction()
 	G4LorentzVector v_beam(m_next_pos);
 	G4ThreeVector p3_beam(p.Px()/CLHEP::MeV,p.Py()/CLHEP::MeV,p.Pz()/CLHEP::MeV);
 	G4LorentzVector p_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(mass,2)));
-	GetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
+	SetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
 	m_do_hit_tgt = true;
       }
     }
@@ -1576,13 +1576,13 @@ AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
 
 //_____________________________________________________________________________
 void
-AnaManager::GetSecondaryVertex(G4int pdg,
+AnaManager::SetSecondaryVertex(G4int pdg, G4int motherPdg,
                                const G4LorentzVector& p,
 			       const G4LorentzVector& v)
 {
   TParticle particle(pdg,
                      0, // fStatus
-                     0, // fMother[0]
+                     motherPdg, // fMother[0]
                      0, // fMother[1]
                      0, // fDaughter[0]
                      0, // fDaughter[1]
@@ -1594,7 +1594,7 @@ AnaManager::GetSecondaryVertex(G4int pdg,
 //_____________________________________________________________________________
 //Stores the beam information used to create the vertex
 void 
-AnaManager::GetBeamInfo(G4int pdg,
+AnaManager::SetBeamInfo(G4int pdg,
                         const G4LorentzVector& p,
 			const G4LorentzVector& v)
 {
@@ -1665,6 +1665,7 @@ AnaManager::SetCosThetaLambda(G4double cos_theta_lambda)
 {
   m_cos_theta_lambda = cos_theta_lambda;
 }
+
 
 //  +----------------------------------+
 //  | conbine beam and event generator |

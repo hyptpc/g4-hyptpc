@@ -56,7 +56,7 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto theProcess = postPoint->GetProcessDefinedStep()->GetProcessName();
   auto stepLength = theTrack->GetStepLength();
   G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
-
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
   // -- cal effective thickness -----
   if (prePVName == "TargetPV") {
@@ -76,22 +76,36 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
     if ( gAnaMan.IsInsideHtof(previous_step_pos) ) gAnaMan.SetDecayParticleCode( particlePdgCode );
     gAnaMan.SetFocusParentID( parentID );
   }
+  
   gAnaMan.SetPreviousParticle(particleName, theProcess);
   gAnaMan.SetDecayPosition(stepMiddlePosition);
   
   // -- Get Seconday Vertex info --
   PrimaryGeneratorAction* generatorAction = (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  
   for(int i=0;i<10;i++){
     if(particlePdgCode != generatorAction->m_primary_pdg[i]){
       continue;
     }else if(particlePdgCode == generatorAction->m_primary_pdg[i]){
       if(theTrack->GetTrackStatus() == fStopAndKill){
-	G4ParticleDefinition* particle_se = particleTable->GetParticle(generatorAction->m_primary_pdg[i]);
-	G4ThreeVector mom_se = theTrack->GetMomentum();
-	G4LorentzVector v_se(theTrack->GetPosition(), 0);
-	G4LorentzVector p_se(mom_se, std::sqrt(std::pow(particleMass,2)+std::pow(mom_se.mag(),2)));
-	gAnaMan.GetSecondaryVertex(generatorAction->m_primary_pdg[i],p_se,v_se);
+	const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
+	if (!secTracks->empty()) {
+	  for (const auto& secTrack : *secTracks) {
+            if (secTrack->GetCreatorProcess()) {
+	      G4String secProcessName = secTrack->GetCreatorProcess()->GetProcessName();
+	      G4int motherPdgCode = particlePdgCode;
+	      G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
+	      G4ThreeVector mom_se = secTrack->GetMomentum();
+	      G4LorentzVector v_se(secTrack->GetPosition(), 0);
+	      G4LorentzVector p_se(mom_se, std::sqrt(std::pow(particleMass,2)+std::pow(mom_se.mag(),2)));
+	      
+	      gAnaMan.SetSecondaryVertex(daughterPdgCode,motherPdgCode,p_se,v_se);
+	      
+            } else {
+	      G4cout << "Secondary particle has no creator process!" << G4endl;
+            }
+	  }
+	}
       }
     }
   }

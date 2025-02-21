@@ -373,10 +373,10 @@ public:
                           const G4LorentzVector& p,
                           const G4LorentzVector& v,
                           G4bool is_virtual_beam=false);
-  void GetSecondaryVertex(G4int pdg,
+  void SetSecondaryVertex(G4int pdg, G4int motherPdg,
 			  const G4LorentzVector& p,
 			   const G4LorentzVector& v);
-  void GetBeamInfo(G4int pdg,
+  void SetBeamInfo(G4int pdg,
 		   const G4LorentzVector& p,
 		   const G4LorentzVector& v);
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);

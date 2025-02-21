@@ -3739,7 +3739,7 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, LambdaMass, EtaMass);
@@ -3822,7 +3822,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, LambdaMass, PiMass);
@@ -3896,7 +3896,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
@@ -3969,7 +3969,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
@@ -4042,7 +4042,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, SigmaMass, PiMass);
@@ -4113,7 +4113,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold (in principle, unnecessary) ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, KaonMass, ProtonMass);
@@ -4187,7 +4187,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
   G4LorentzVector vL_beam(v3_beam);
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
-  gAnaMan.GetBeamInfo(-321,pL_beam,vL_beam);
+  gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
   
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, KaonZeroSMass, NeutronMass);
