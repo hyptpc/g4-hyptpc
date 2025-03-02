@@ -330,8 +330,8 @@ private:
     { 7207, {0, -321, 2212} }, // K p
     { 7208, {1, +211, -211} }  // k0 n
   };
-  const std::vector<G4int> m_forward_seg_narrow{17, 18, 19, 20, 21};
-  const std::vector<G4int> m_forward_seg_wide{15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+  const std::vector<G4int> m_forward_seg_narrow{16, 17, 18, 19, 20, 21, 22};
+  const std::vector<G4int> m_forward_seg_wide{10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29};
   const std::vector<G4int> m_forward_seg_all{6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
   const G4double m_refractive_index_kvc = 1.46;
 

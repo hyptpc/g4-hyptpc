@@ -1043,7 +1043,7 @@ AnaManager::EndOfEventAction()
       std::set<G4int> bh2_seg_unique;
       G4bool is_kaon_at_bac = false;
       for (const auto &it : event.hits.at("BH2")) if (it.GetWeight() >= m_edep_threshold) bh2_seg_unique.insert(it.GetMother(1));
-      G4int bh2_multi = bh2_seg_unique.size();
+      G4int bh2_multi = bh2_seg_unique.size();      
       for (const auto &it : event.hits.at("BAC")) if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
       if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
     }
@@ -1083,7 +1083,6 @@ AnaManager::EndOfEventAction()
       G4int htof_multi = htof_seg_unique.size();
       // -- Cherenkov radiation at KVC -----
       G4bool hit_kvc_anyseg = false;
-      //G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
       for (const auto &it : event.hits.at("KVC")) {
 	// -- calc beta -----
 	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
@@ -1094,10 +1093,16 @@ AnaManager::EndOfEventAction()
       }
       // -- check trigger -------
       m_trig_flag_int = 0;
-      if ( m_kaon_beam_flag
-	   && (htof_multi >= htof_multi_threshold || is_proton_forward_htof)
-	   && n_detected_track >= n_detected_track_threshold
-	   && !hit_kvc_anyseg ) m_trig_flag_int = 1;
+
+      if ( m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg ) {
+	if (htof_multi >= htof_multi_threshold && is_proton_forward_htof) {
+     	  m_trig_flag_int = 3; // HTOF Mp2 && Forward Proton
+	} else if (htof_multi >= htof_multi_threshold) {
+	  m_trig_flag_int = 1; // HTOF Mp2
+	} else if (is_proton_forward_htof) {
+	  m_trig_flag_int = 2; // Forward Proton
+	}
+      }
       
     }
   }
