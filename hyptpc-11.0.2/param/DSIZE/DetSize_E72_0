@@ -18,7 +18,7 @@ World		4000	3000	8000
 Bh2Seg		14.0	100.0	5.0
 Bh2SegWidth	17 14 14 14 14 14 14 17
 BacRadiator	115	115	12.4
-KvcRadiator	26	160	10.0
+KvcRadiator	26	120	10.0
 
 ### Target
 Target	 	0.0	80.0	100.0
