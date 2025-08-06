@@ -327,17 +327,17 @@ DetectorConstruction::ConstructMaterials()
   // Scintillator (Polystyene(C6H5CH=CH2))
   name = "Scintillator";
   m_material_map[name] = new G4Material(name, density=1.032*g/cm3, nel=2);
-  m_material_map[name]->AddElement(m_element_map["Carbon"], natoms=8);
+  m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=8);
   m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=8);
   // EJ-232 (Plastic Scintillator, Polyvinyltoluene)
   name = "EJ232";
   m_material_map[name] = new G4Material(name, density=1.023*g/cm3, nel=2);
-  m_material_map[name]->AddElement(m_element_map["Carbon"], natoms=9);
+  m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=9);
   m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=12);
   // CH2 Polyethelene
   name = "CH2";
   m_material_map[name] = new G4Material(name, density=0.95*g/cm3, nel=2);
-  m_material_map[name]->AddElement(m_element_map["Carbon"], natoms=1);
+  m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=1);
   m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=2);
   // Silica Aerogel for LAC
   name = "SilicaAerogelLAC";
@@ -357,10 +357,16 @@ DetectorConstruction::ConstructMaterials()
   // Acrylic for WC
   name = "Acrylic";
   m_material_map[name] = new G4Material(name, density=1.18 *g/cm3, nel=3);
-  m_material_map[name]->AddElement(m_element_map["Carbon"], natoms=5);
-  m_material_map[name]->AddElement(m_element_map["Hydrogen"],  natoms=8);
-  m_material_map[name]->AddElement(m_element_map["Oxygen"],  natoms=2);
-
+  m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=5);
+  m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=8);
+  m_material_map[name]->AddElement(m_element_map["Oxygen"],   natoms=2);
+  // Mylar
+  name = "Mylar";
+  m_material_map[name] = new G4Material(name, density=1.39 *g/cm3, nel=3);
+  m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=5);
+  m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=4);
+  m_material_map[name]->AddElement(m_element_map["Oxygen"],   natoms=2);
+  
   G4String target_material = gConf.Get<G4String>("TargetMaterial");
   G4cout << "   Target material : " << target_material << G4endl;
   auto itr_target = m_material_map.find(target_material);
@@ -1325,6 +1331,7 @@ DetectorConstruction::ConstructKVC()
   auto kvc_solid = new G4Box("KvcSolid",
                              half_size.x(), half_size.y(), half_size.z());
   auto kvc_lv = new G4LogicalVolume(kvc_solid, m_material_map["QuartzKVC"], "KvcLV");
+  // auto kvc_lv = new G4LogicalVolume(kvc_solid, m_material_map["Scintillator"], "KvcLV");
   for(G4int i=0; i<NumOfSegKVC; ++i){
     pos = G4ThreeVector(half_size.x()*(-NumOfSegKVC+1+2*i), 0., 0.);
     new G4PVPlacement(nullptr, pos, kvc_lv, "KvcPV",
@@ -1540,7 +1547,10 @@ DetectorConstruction::ConstructTarget()
     }
     rot->rotateX(90.*deg);
     const auto kapton_size = gSize.GetSize("TargetKapton")*mm/2.;
-    const auto gfrp_size = gSize.GetSize("TargetGFRP")*mm/2.;
+    const auto al_size     = gSize.GetSize("TargetAl")*mm/2.;
+    const auto mylar_size  = gSize.GetSize("TargetMylar")*mm/2.;
+    const auto gfrp_size   = gSize.GetSize("TargetGFRP")*mm/2.;
+    // -- Kapton -----
     auto kapton = new G4Tubs("TargetKapton",
                              kapton_size[0],
                              kapton_size[1],
@@ -1552,6 +1562,31 @@ DetectorConstruction::ConstructTarget()
     kapton_lv->SetVisAttributes(G4Colour::Red());
     new G4PVPlacement(rot, target_pos, kapton_lv, "TargetKaptonPV",
                       m_world_lv, true, 0, m_check_overlaps);
+    // -- Al-Mylar(Al part) -----
+    auto al = new G4Tubs("TargetAl",
+                           al_size[0],
+                           al_size[1],
+                           al_size[2],
+                           0.*deg, 360.*deg);
+    auto al_lv = new G4LogicalVolume(al,
+				     m_material_map["Aluminum"],
+				     "TargetAlLV");
+    al_lv->SetVisAttributes(G4Colour::Blue());
+    new G4PVPlacement(rot, target_pos, al_lv, "TargetAlPV",
+                      m_world_lv, true, 0, m_check_overlaps);
+    // -- Al-Mylar(Mypar part) -----
+    auto mylar = new G4Tubs("TargetMylar",
+			    mylar_size[0],
+			    mylar_size[1],
+			    mylar_size[2],
+			    0.*deg, 360.*deg);
+    auto mylar_lv = new G4LogicalVolume(mylar,
+					m_material_map["Mylar"],
+					"TargetMylarLV");
+    mylar_lv->SetVisAttributes(G4Colour::Red());
+    new G4PVPlacement(rot, target_pos, mylar_lv, "TargetMylarPV",
+                      m_world_lv, true, 0, m_check_overlaps);
+    // -- GFRP -----
     auto gfrp = new G4Tubs("TargetGFRP",
                            gfrp_size[0],
                            gfrp_size[1],
