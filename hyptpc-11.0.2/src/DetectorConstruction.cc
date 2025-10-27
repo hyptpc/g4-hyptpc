@@ -37,6 +37,7 @@
 #include "FTOFSD.hh"
 #include "HTOFSD.hh"
 #include "KVCSD.hh"
+#include "CVCSD.hh"
 #include "MagneticField.hh"
 #include "TPCSD.hh"
 #include "TPCPadSD.hh"
@@ -85,11 +86,14 @@ G4VPhysicalVolume*
 DetectorConstruction::Construct()
 {
   using CLHEP::m;
+  using CLHEP::mm;
 
   ConstructElements();
   ConstructMaterials();
 
-  auto world_solid = new G4Box("WorldSolid", 10.*m/2, 6.*m/2, 16.*m/2);
+  // auto world_solid = new G4Box("WorldSolid", 10.*m/2, 6.*m/2, 16.*m/2);
+  const auto& world_size = gSize.GetSize("World") * mm / 2.;
+  auto world_solid = new G4Box("WorldSolid", world_size.x(), world_size.y(), world_size.z());
   m_world_lv = new G4LogicalVolume(world_solid, m_material_map["Air"],
                                    "World");
   m_world_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -110,6 +114,7 @@ DetectorConstruction::Construct()
   ConstructBH2();
   ConstructBAC();
   ConstructKVC();
+  ConstructCVC();
 #endif
 
 #if 1
@@ -1339,6 +1344,52 @@ DetectorConstruction::ConstructKVC()
   }
   kvc_lv->SetVisAttributes(G4Colour::Yellow());
   kvc_lv->SetSensitiveDetector(kvcSD);
+}
+
+//_____________________________________________________________________________
+void
+DetectorConstruction::ConstructCVC()
+{
+  using CLHEP::mm;
+  using CLHEP::deg;
+
+  // Detector properties
+  const auto& ra2 = gGeom.GetRotAngle2("CVC")*deg;
+  const auto& half_size = gSize.GetSize("CvcSeg")*mm/2.;
+  auto pos = gGeom.GetGlobalPosition("CVC");
+  int NumOfSegCVC = 8;
+
+  // Sensitive Detector
+  auto cvcSD = new CVCSD("CVC");
+  AddNewDetector(cvcSD);
+
+  // Mother Volume
+  auto mother_solid = new G4Box("CvcMotherSolid",
+                                half_size.x()*NumOfSegCVC + 10*mm,
+                                half_size.y() + 10*mm,
+                                half_size.z() + 10*mm);
+  auto mother_lv = new G4LogicalVolume(mother_solid,
+                                        m_material_map["Air"],
+                                        "CvcMotherLV");
+  auto rot = new G4RotationMatrix;
+  rot->rotateY(- ra2 - m_rotation_angle);
+  pos.rotateY(m_rotation_angle);
+  new G4PVPlacement(rot, pos, mother_lv,
+                    "KvcMotherPV", m_world_lv, false, 0, m_check_overlaps);
+  mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+  // Segment
+  auto segment_solid = new G4Box("CvcSegmentSolid", half_size.x(),
+                                 half_size.y(), half_size.z());
+  auto segment_lv = new G4LogicalVolume(segment_solid,
+                                        m_material_map["Scintillator"],
+                                        "CvcSegmentLV");
+  for(G4int i=0; i<NumOfSegCVC; ++i){
+    pos = G4ThreeVector(half_size.x()*(-NumOfSegCVC+1+2*i), 0., 0.);
+    new G4PVPlacement(nullptr, pos, segment_lv, "CvcPV", mother_lv, false, i, m_check_overlaps);
+  }
+  segment_lv->SetVisAttributes(G4Colour::Cyan());
+  segment_lv->SetSensitiveDetector(cvcSD);
 }
 
 //_____________________________________________________________________________

@@ -3813,7 +3813,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetNextMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -3823,7 +3823,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   G4ThreeVector p3_beam(p_beam.X()*1000,p_beam.Y()*1000,p_beam.Z()*1000);
   G4LorentzVector pL_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(KaonMass*1000,2)));
   gAnaMan.SetBeamInfo(-321,pL_beam,vL_beam);
-  
+
   // -- check threshold ---
   const G4bool is_above_threshold = Kinematics::WThreshold(KaonMass, p_beam.Mag(), ProtonMass, 0.0, LambdaMass, PiMass);
   gAnaMan.SetThresholdCondition(is_above_threshold);

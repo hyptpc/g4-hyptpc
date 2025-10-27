@@ -48,6 +48,7 @@ private:
   void ConstructHTOF();
   void ConstructHypTPC();
   void ConstructKVC();
+  void ConstructCVC();
   void ConstructShsMagnet();
   void ConstructTarget();
   void ConstructFieldOutline();
