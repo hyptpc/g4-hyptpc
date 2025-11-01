@@ -401,7 +401,7 @@ DetectorConstruction::ConstructBAC()
   const auto& half_size = gSize.GetSize("BacRadiator")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("BAC");
   auto bacSD = new BACSD("BAC");
-  bacSD->SetRefractiveIndex(1.10);
+  bacSD->SetRefractiveIndex(1.115);
   AddNewDetector(bacSD);
   auto mother_solid = new G4Box("BacMotherSolid",
                                 half_size.x() + 10*mm,
