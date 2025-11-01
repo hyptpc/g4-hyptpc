@@ -57,6 +57,7 @@ AnaManager::AnaManager()
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
     m_do_combine(false),
+    m_require_tpc_mp(false),
     m_effective_evnum(1),
     m_next_generator(-1),
     m_first_generator(-1),
@@ -203,11 +204,11 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
   // -- initialize combination generator -----
-  m_do_combine      = gConf.Get<G4bool>("Combine");
-  m_next_generator  = gConf.Get<G4int>("FirstGenerator");
+  m_do_combine       = gConf.Get<G4bool>("Combine");
+  m_require_tpc_mp   = gConf.Get<G4bool>("RequireTPCMp");
+  m_next_generator   = gConf.Get<G4int>("FirstGenerator");
   m_first_generator  = gConf.Get<G4int>("FirstGenerator");
   m_second_generator = gConf.Get<G4int>("SecondGenerator");
-
  
 #if 0
   G4double target_pos_z=-143.;
@@ -1109,7 +1110,11 @@ AnaManager::EndOfEventAction()
       // -- check trigger -------
       m_trig_flag_int = 0;
 
-      if ( m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg ) {
+      G4bool trig_w_tpc  = m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg;
+      G4bool trig_wo_tpc = m_kaon_beam_flag && !hit_kvc_anyseg;
+      G4bool trig_use    = m_require_tpc_mp ? trig_w_tpc : trig_wo_tpc;
+      
+      if ( trig_use ) {
 	if (htof_multi >= htof_multi_threshold && is_proton_forward_htof) {
      	  m_trig_flag_int = 3; // HTOF Mp2 && Forward Proton
 	} else if (htof_multi >= htof_multi_threshold) {
@@ -1724,6 +1729,18 @@ G4bool
 AnaManager::GetDoCombine()
 {
   return m_do_combine;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::SetRequireTpcMp(G4bool require_tpc_mp)
+{
+  m_require_tpc_mp = require_tpc_mp;
+}
+G4bool
+AnaManager::GetRequireTpcMp()
+{
+  return m_require_tpc_mp;
 }
 
 //_____________________________________________________________________________

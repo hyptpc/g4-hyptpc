@@ -288,6 +288,7 @@ private:
   G4bool m_do_hit_tgt;
   G4bool m_do_generate_beam;
   G4bool m_do_combine;
+  G4bool m_require_tpc_mp;
   G4bool m_threshold_con;
   G4int m_effective_evnum;
   G4int m_next_generator;
@@ -397,6 +398,8 @@ public:
   G4bool GetDoGenerateBeam();
   void   SetDoCombine(G4bool do_combine);
   G4bool GetDoCombine();
+  void   SetRequireTpcMp(G4bool require_tpc_mp);
+  G4bool GetRequireTpcMp();
   void   SetThresholdCondition(G4bool threshold_con);
   G4bool GetThresholdCondition();
   void  SetEffectiveEvnum(G4int effective_evnum);
