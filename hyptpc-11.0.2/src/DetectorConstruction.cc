@@ -91,7 +91,6 @@ DetectorConstruction::Construct()
   ConstructElements();
   ConstructMaterials();
 
-  // auto world_solid = new G4Box("WorldSolid", 10.*m/2, 6.*m/2, 16.*m/2);
   const auto& world_size = gSize.GetSize("World") * mm / 2.;
   auto world_solid = new G4Box("WorldSolid", world_size.x(), world_size.y(), world_size.z());
   m_world_lv = new G4LogicalVolume(world_solid, m_material_map["Air"],
@@ -114,7 +113,8 @@ DetectorConstruction::Construct()
   ConstructBH2();
   ConstructBAC();
   ConstructKVC();
-  ConstructCVC();
+  if (gConf.Get<G4bool>("IncludeCVC")) ConstructCVC();
+  G4cout << gConf.Get<G4bool>("IncludeCVC") << G4endl; 
 #endif
 
 #if 1

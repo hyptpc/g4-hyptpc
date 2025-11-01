@@ -147,7 +147,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   MakeBranch("SEC");
 
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
-    if(sd_name != "TPCPad" && sd_name != "TPCEdep"){
+    if(sd_name != "TPCPad" && sd_name != "TPCEdep" || (sd_name=="CVC"&&gConf.Get<G4bool>("TPCPadOn")) ){
       G4cout << "   make branch : " << sd_name << G4endl;
       MakeBranch(sd_name);
       MakeHistogram(sd_name);
