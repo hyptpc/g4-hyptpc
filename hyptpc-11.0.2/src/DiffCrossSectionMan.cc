@@ -35,28 +35,53 @@ DiffCrossSectionMan::~DiffCrossSectionMan()
 G4bool
 DiffCrossSectionMan::Initialize()
 {
-  if(m_file_name.empty())
-    return true;
+  if (m_file_name.empty()) return true;
 
-  m_file = new TFile(m_file_name);
-
-  if(!m_file->IsOpen())
+  TFile* file = TFile::Open(m_file_name.c_str(), "READ");
+  if (!file || file->IsZombie() || !file->IsOpen()) {
+    G4cerr << "[DCS] Failed to open file: " << m_file_name << G4endl;
     return false;
-
-  m_n_spline = m_file->GetListOfKeys()->GetSize();
-  for (G4int i = 0; i < m_n_spline; i++) {
-    G4String spline_name = "A" + G4String(std::to_string(i)) + "_spline";
-    TSpline3* spline = dynamic_cast<TSpline3*>(m_file->Get(spline_name.c_str()));
-    if (spline) {
-      m_spline_container.push_back(spline);
-    } else {
-      G4cerr << "Error: Failed to retrieve TSpline3: " << spline_name << G4endl;
-    }
   }
-  m_range_min = m_spline_container[0]->GetXmin();
-  m_range_max = m_spline_container[0]->GetXmax();
 
-  m_file->Close();
+  for (auto* p : m_spline_container) delete p;
+  m_spline_container.clear();
+
+  for (int i = 0; ; ++i) {
+    G4String name = "A" + G4String(std::to_string(i)) + "_spline";
+
+    TSpline3* sp = nullptr;
+    file->GetObject(name.c_str(), sp);
+    if (!sp) {
+      if (i == 0) {
+        G4cerr << "[DCS] No TSpline3 found (expected " << name << ") in "
+               << m_file_name << G4endl;
+        file->Close();
+        return false;
+      }
+      break;
+    }
+
+    TSpline3* sp_clone = static_cast<TSpline3*>(sp->Clone());
+    if (!sp_clone) {
+      G4cerr << "[DCS] Clone failed for: " << name << G4endl;
+      file->Close();
+      return false;
+    }
+    m_spline_container.push_back(sp_clone);
+  }
+
+  if (m_spline_container.empty()) {
+    G4cerr << "[DCS] No TSpline3 cloned from: " << m_file_name << G4endl;
+    file->Close();
+    return false;
+  }
+
+  m_range_min = m_spline_container.front()->GetXmin();
+  m_range_max = m_spline_container.front()->GetXmax();
+
+  file->Close();
+
+  m_n_spline = static_cast<G4int>(m_spline_container.size());
   m_is_ready = true;
   return true;
 }
