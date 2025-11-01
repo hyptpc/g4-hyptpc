@@ -53,8 +53,6 @@ BeamMan::Initialize()
   const auto& gConf = ConfMan::GetInstance();
   const auto& gGeom = DCGeomMan::GetInstance();
   const G4double p0 = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
-  const G4double x0 = gGeom.GetGlobalPosition("BH2").x()*CLHEP::mm;
-  const G4double z0 = gGeom.GetGlobalPosition("BH2").z()*CLHEP::mm;
 
   if(m_file_name.empty())
     return true;
@@ -76,8 +74,7 @@ BeamMan::Initialize()
 
   for(Long64_t i=0, n=tree->GetEntries(); i<n; ++i){
     tree->GetEntry(i);
-    beam.pos.set(beam.x + x0, beam.y, z0);
-    // beam.pos.set(beam.x + x0, beam.y, beam.z);
+    beam.pos.set(beam.x, beam.y, beam.z);
     beam.pos *= CLHEP::mm;
     G4double scale = p0/0.907;
     beam.mom.set(beam.px * scale , beam.py * scale, beam.pz * scale);
