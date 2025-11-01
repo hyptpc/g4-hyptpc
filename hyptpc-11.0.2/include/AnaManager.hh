@@ -319,7 +319,7 @@ private:
 
   // --------------------------------
   // for acceptance study
-  const G4double m_edep_threshold = 0.2; // MeV
+  const G4double m_edep_threshold = 0.2; // MeV/cm
   const std::unordered_map<G4int, std::vector<G4int>> m_tpc_check_list = {
   //  gen   { check parentID, PDG codes of check list }
     { 7202, {1, 2212, -211} }, // eta Lambda
@@ -331,9 +331,10 @@ private:
     { 7208, {1, +211, -211} }  // k0 n
   };
   const std::vector<G4int> m_forward_seg_narrow{16, 17, 18, 19, 20, 21, 22};
-  const std::vector<G4int> m_forward_seg_wide{10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29};
+  const std::vector<G4int> m_forward_seg_wide{10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
   const std::vector<G4int> m_forward_seg_all{6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
   const G4double m_refractive_index_kvc = 1.46;
+  const G4double m_refractive_index_bac = 1.115;
 
   G4int m_trig_flag_int;
   G4int m_focus_parent_id;  

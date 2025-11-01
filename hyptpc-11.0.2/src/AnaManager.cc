@@ -1039,12 +1039,26 @@ AnaManager::EndOfEventAction()
   if (m_do_combine) {  // combine beam and event
     // -- beam ---
     if (m_next_generator == m_first_generator) {
-      m_kaon_beam_flag = false;
+      // -- BH2 -----
+      const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
       std::set<G4int> bh2_seg_unique;
+      for (const auto &it : event.hits.at("BH2"))
+	if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
+	  bh2_seg_unique.insert(it.GetMother(1));
+      G4int bh2_multi = bh2_seg_unique.size();
+
+      // -- BAC -----
       G4bool is_kaon_at_bac = false;
-      for (const auto &it : event.hits.at("BH2")) if (it.GetWeight() >= m_edep_threshold) bh2_seg_unique.insert(it.GetMother(1));
-      G4int bh2_multi = bh2_seg_unique.size();      
-      for (const auto &it : event.hits.at("BAC")) if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
+      for (const auto &it : event.hits.at("BAC")) {
+	// if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
+	// -- calc beta -----
+	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
+	G4double mass = particle->GetPDGMass(); // MeV/c^2
+	G4double mom  = it.P();                 // MeV/c
+	G4double beta = mom / std::sqrt( mass*mass + mom*mom );
+	if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
+      }
+      
       if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
     }
     
@@ -1074,10 +1088,11 @@ AnaManager::EndOfEventAction()
       }
 
       // -- HTOF -----
+      const auto& htof_size = gSize.GetSize("HtofSeg")*CLHEP::mm;
       std::set<G4int> htof_seg_unique;
       G4bool is_proton_forward_htof = false;
       for (const auto &it : event.hits.at("HTOF")) {
-	if (it.GetWeight() > m_edep_threshold) htof_seg_unique.insert(it.GetMother(1));
+	if (it.GetWeight() > m_edep_threshold*htof_size.z()/10.0) htof_seg_unique.insert(it.GetMother(1));
 	if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
       }
       G4int htof_multi = htof_seg_unique.size();
