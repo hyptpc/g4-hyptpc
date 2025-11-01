@@ -334,11 +334,11 @@ DetectorConstruction::ConstructMaterials()
   m_material_map[name] = new G4Material(name, density=1.032*g/cm3, nel=2);
   m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=8);
   m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=8);
-  // EJ-232 (Plastic Scintillator, Polyvinyltoluene)
+  // EJ-232 (Plastic Scintillator, Polyvinyltoluene) ( CH2CH(C6H4CH3) )
   name = "EJ232";
   m_material_map[name] = new G4Material(name, density=1.023*g/cm3, nel=2);
   m_material_map[name]->AddElement(m_element_map["Carbon"],   natoms=9);
-  m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=12);
+  m_material_map[name]->AddElement(m_element_map["Hydrogen"], natoms=10);
   // CH2 Polyethelene
   name = "CH2";
   m_material_map[name] = new G4Material(name, density=0.95*g/cm3, nel=2);
