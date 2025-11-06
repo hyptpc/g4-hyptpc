@@ -37,6 +37,7 @@ private:
   IncInfo*              m_inc;
   G4ParticleDefinition* m_Neutron;
   G4ParticleDefinition* m_Proton;
+  G4ParticleDefinition* m_AntiProton;
   G4ParticleDefinition* m_Lambda;
   G4ParticleDefinition* m_Lambda1405;
   G4ParticleDefinition* m_Lambda1405R;
@@ -149,6 +150,8 @@ public:
   void     GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent); // 7207
   void     GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEvent); // 7208
   void     GenerateE72ProtonForMachineLearning(G4Event* anEvent); // 7209
+  void     GenerateE72UniformAntiProton(G4Event* anEvent); //7210
+  void     GenerateE72UniformPionMinus(G4Event* anEvent); //7211
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002

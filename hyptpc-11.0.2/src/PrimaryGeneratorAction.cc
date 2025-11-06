@@ -62,6 +62,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     m_inc(),
     m_Neutron(particleTable->FindParticle("neutron")),
     m_Proton(particleTable->FindParticle("proton")),
+    m_AntiProton(particleTable->FindParticle("anti_proton")),
     m_Lambda(particleTable->FindParticle("lambda")),
     m_Lambda1405(particleTable->FindParticle("lambda(1405)")),
     m_Lambda1405R(particleTable->FindParticle("lambda1405r")),
@@ -211,6 +212,8 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7207: GenerateE72KaonMinusProtonPhaseSpace(anEvent); break;
   case 7208: GenerateE72KaonZeroShortNeutronPhaseSpace(anEvent); break;
   case 7209: GenerateE72ProtonForMachineLearning(anEvent); break;
+  case 7210: GenerateE72UniformAntiProton(anEvent); break; // for momentum calibration study
+  case 7211: GenerateE72UniformPionMinus(anEvent); break; // for momentum calibration study
   default:
     G4cerr << " * Generator number error : " << next_generator << G4endl;
     break;
@@ -4279,6 +4282,42 @@ PrimaryGeneratorAction::GenerateE72ProtonForMachineLearning(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(v.v());
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
+}
+
+//_____________________________________________________________________________
+//case 7210: Generate uniform anti-proton for momentum calibration study
+void
+PrimaryGeneratorAction::GenerateE72UniformAntiProton(G4Event* anEvent)
+{
+  G4double mom_p = m_beam_p0;
+  G4ThreeVector mom_dir(0., 0., 1.);
+  G4double mass_p = m_AntiProton->GetPDGMass(); 
+  G4ThreeVector vtx = gGeom.GetGlobalPosition("BH2")*mm;
+  G4double energy_p = sqrt(pow(mom_p,2) + pow(mass_p,2));
+
+  m_particle_gun->SetParticleDefinition(m_AntiProton);
+  m_particle_gun->SetParticleMomentumDirection(mom_dir);
+  m_particle_gun->SetParticleEnergy(energy_p - mass_p);
+  m_particle_gun->SetParticlePosition(vtx);
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
+}
+
+//_____________________________________________________________________________
+//case 7211: Generate uniform pion-minus for momentum calibration study
+void
+PrimaryGeneratorAction::GenerateE72UniformPionMinus(G4Event* anEvent)
+{
+  G4double mom_p = m_beam_p0;
+  G4ThreeVector mom_dir(0., 0., 1.);
+  G4double mass_p = m_PionMinus->GetPDGMass();
+  G4ThreeVector vtx = gGeom.GetGlobalPosition("BH2")*mm;
+  G4double energy_p = sqrt(pow(mom_p,2) + pow(mass_p,2));
+
+  m_particle_gun->SetParticleDefinition(m_PionMinus);
+  m_particle_gun->SetParticleMomentumDirection(mom_dir);
+  m_particle_gun->SetParticleEnergy(energy_p - mass_p);
+  m_particle_gun->SetParticlePosition(vtx);
+  m_particle_gun->GeneratePrimaryVertex(anEvent);
 }
 
 
