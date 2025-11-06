@@ -49,6 +49,7 @@ private:
   void ConstructHypTPC();
   void ConstructKVC();
   void ConstructCVC();
+  void ConstructSAC3();
   void ConstructShsMagnet();
   void ConstructTarget();
   void ConstructFieldOutline();

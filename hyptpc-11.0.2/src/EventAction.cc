@@ -34,6 +34,7 @@
 #include "VPSD.hh"
 #include "KVCSD.hh"
 #include "CVCSD.hh"
+#include "SAC3SD.hh"
 #include "DetSizeMan.hh"
 
 #define SDCLASS(x) x ## Hit
@@ -145,17 +146,36 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     }
   }
 
-  {
-    static const auto id = SDManager->GetCollectionID("CVC/hit");
-    if (id >= 0) {
-      auto HC = dynamic_cast<G4THitsCollection<CVCHit>*>(HCTE->GetHC(id));
-      for (G4int i=0, n=HC->entries(); i<n; ++i) {
-	gAnaMan.SetHitData((*HC)[i]);
-      }
-      gAnaMan.SetNhits("CVC", HC->entries());
-    }
-  }
+  if (gConf.Get<G4bool>("IncludeFTOF"))
+    {
+        {
+            static const auto id = SDManager->GetCollectionID("CVC/hit");
+            if (id >= 0)
+            {
+                auto HC = dynamic_cast<G4THitsCollection<CVCHit>*>(HCTE->GetHC(id));
+                for (G4int i = 0, n = HC->entries(); i < n; ++i)
+                {
+                    gAnaMan.SetHitData((*HC)[i]);
+                }
+                gAnaMan.SetNhits("CVC", HC->entries());
+            }
+        }
 
+        {
+            static const auto id = SDManager->GetCollectionID("SAC3/hit");
+            if (id >= 0)
+            {
+                auto HC = dynamic_cast<G4THitsCollection<SAC3Hit>*>(HCTE->GetHC(id));
+                for (G4int i = 0, n = HC->entries(); i < n; ++i)
+                {
+                    gAnaMan.SetHitData((*HC)[i]);
+                }
+                gAnaMan.SetNhits("SAC3", HC->entries());
+            }
+        }
+    }
+
+  
   {
     static const auto id = SDManager->GetCollectionID("VP/hit");
     if (id >= 0) {

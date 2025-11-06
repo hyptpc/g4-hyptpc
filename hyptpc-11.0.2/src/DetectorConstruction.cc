@@ -38,6 +38,7 @@
 #include "HTOFSD.hh"
 #include "KVCSD.hh"
 #include "CVCSD.hh"
+#include "SAC3SD.hh"
 #include "MagneticField.hh"
 #include "TPCSD.hh"
 #include "TPCPadSD.hh"
@@ -113,8 +114,9 @@ DetectorConstruction::Construct()
   ConstructBH2();
   ConstructBAC();
   ConstructKVC();
-  if (gConf.Get<G4bool>("IncludeCVC")) ConstructCVC();
-  G4cout << gConf.Get<G4bool>("IncludeCVC") << G4endl; 
+  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructCVC();
+  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructSAC3();
+  G4cout << gConf.Get<G4bool>("IncludeFTOF") << G4endl; 
 #endif
 
 #if 1
@@ -352,6 +354,11 @@ DetectorConstruction::ConstructMaterials()
   // Silica Aerogel for BAC
   name = "AerogelBAC";
   m_material_map[name] = new G4Material(name, density=0.377 *g/cm3, nel=2);
+  m_material_map[name]->AddElement(m_element_map["Silicon"], natoms=1);
+  m_material_map[name]->AddElement(m_element_map["Oxygen"],  natoms=2);
+  // Silica Aerogel for SAC3
+  name = "AerogelSAC3";
+  m_material_map[name] = new G4Material(name, density=0.11 *g/cm3, nel=2); // based on information here: https://lambda.phys.tohoku.ac.jp/~db/human_resource/thesis/2009_B_3_M_1.pdf
   m_material_map[name]->AddElement(m_element_map["Silicon"], natoms=1);
   m_material_map[name]->AddElement(m_element_map["Oxygen"],  natoms=2);
   // Quartz for KVC (SiO2, crystalline)
@@ -1391,6 +1398,42 @@ DetectorConstruction::ConstructCVC()
   segment_lv->SetVisAttributes(G4Colour::Cyan());
   segment_lv->SetSensitiveDetector(cvcSD);
 }
+
+//_____________________________________________________________________________
+void
+DetectorConstruction::ConstructSAC3()
+{
+  using CLHEP::mm;
+  using CLHEP::deg;
+  const auto& ra2 = gGeom.GetRotAngle2("SAC3")*deg;
+  const auto& half_size = gSize.GetSize("Sac3Radiator")*mm/2.;
+  auto pos = gGeom.GetGlobalPosition("SAC3");
+  auto sac3SD = new SAC3SD("SAC3");
+  sac3SD->SetRefractiveIndex(1.028); // Aerogel SAC3
+  AddNewDetector(sac3SD);
+  auto mother_solid = new G4Box("Sac3MotherSolid",
+                                half_size.x() + 10*mm,
+                                half_size.y() + 10*mm,
+                                half_size.z() + 10*mm);
+  auto mother_lv = new G4LogicalVolume(mother_solid,
+                                       m_material_map["Air"],
+                                       "Sac3MotherLV");
+  auto rot = new G4RotationMatrix;
+  rot->rotateY(- ra2 - m_rotation_angle);
+  pos.rotateY(m_rotation_angle);
+  new G4PVPlacement(rot, pos, mother_lv,
+                    "Sac3MotherPV", m_world_lv, false, 0, m_check_overlaps);
+  mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // Radiator
+  auto sac3_rad_solid = new G4Box("Sac3RadiatorSolid",
+                                   half_size.x(), half_size.y(), half_size.z());
+  auto sac3_rad_lv = new G4LogicalVolume(sac3_rad_solid, m_material_map["AerogelSAC3"], "Sac3RadiatorLV");
+  new G4PVPlacement(nullptr, G4ThreeVector(), sac3_rad_lv, "Sac3RadiatorPV",
+                    mother_lv, false, 0, m_check_overlaps);
+  sac3_rad_lv->SetVisAttributes(G4Colour::Yellow());
+  sac3_rad_lv->SetSensitiveDetector(sac3SD);
+}
+
 
 //_____________________________________________________________________________
 void
