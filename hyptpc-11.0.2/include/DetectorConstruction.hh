@@ -50,6 +50,7 @@ private:
   void ConstructKVC();
   void ConstructCVC();
   void ConstructSAC3();
+  void ConstructSFV();
   void ConstructShsMagnet();
   void ConstructTarget();
   void ConstructFieldOutline();

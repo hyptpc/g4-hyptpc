@@ -39,6 +39,7 @@
 #include "KVCSD.hh"
 #include "CVCSD.hh"
 #include "SAC3SD.hh"
+#include "SFVSD.hh"
 #include "MagneticField.hh"
 #include "TPCSD.hh"
 #include "TPCPadSD.hh"
@@ -116,6 +117,7 @@ DetectorConstruction::Construct()
   ConstructKVC();
   if (gConf.Get<G4bool>("IncludeFTOF")) ConstructCVC();
   if (gConf.Get<G4bool>("IncludeFTOF")) ConstructSAC3();
+  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructSFV();
   G4cout << gConf.Get<G4bool>("IncludeFTOF") << G4endl; 
 #endif
 
@@ -1364,7 +1366,7 @@ DetectorConstruction::ConstructCVC()
   const auto& ra2 = gGeom.GetRotAngle2("CVC")*deg;
   const auto& half_size = gSize.GetSize("CvcSeg")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("CVC");
-  int NumOfSegCVC = 8;
+  G4int NumOfSegCVC = 8;
 
   // Sensitive Detector
   auto cvcSD = new CVCSD("CVC");
@@ -1434,6 +1436,57 @@ DetectorConstruction::ConstructSAC3()
   sac3_rad_lv->SetSensitiveDetector(sac3SD);
 }
 
+//_____________________________________________________________________________
+void
+DetectorConstruction::ConstructSFV()
+{
+  using CLHEP::mm;
+  using CLHEP::deg;
+
+  const auto& ra2 = gGeom.GetRotAngle2("SFV")*deg; 
+  const auto& half_size = gSize.GetSize("SfvSeg")*mm/2.; 
+  auto pos = gGeom.GetGlobalPosition("SFV")*mm;
+  const G4int NumOfSegSFV = 6;
+  const G4double layer_x_gap = 66*mm; 
+  const G4double layer_z_gap = 16*mm;
+
+  auto sfvSD = new SFVSD("SFV"); 
+  AddNewDetector(sfvSD);
+
+  const G4double mother_half_x = half_size.x() * NumOfSegSFV; // 10mm margin included 
+  const G4double mother_half_y = half_size.y() + 10*mm;
+  const G4double mother_half_z = (layer_z_gap / 2.) + half_size.z() + 10*mm;
+
+  auto mother_solid = new G4Box("SfvMotherSolid",
+                                mother_half_x, mother_half_y, mother_half_z);
+  auto mother_lv = new G4LogicalVolume(mother_solid,
+                                       m_material_map["Air"],
+                                       "SfvMotherLV");
+  
+  auto rot = new G4RotationMatrix;
+  rot->rotateY(- ra2 - m_rotation_angle);
+  pos.rotateY(m_rotation_angle);
+  new G4PVPlacement(rot, pos, mother_lv,
+                    "SfvMotherPV", m_world_lv, false, 0, m_check_overlaps);
+  mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+  auto segment_solid = new G4Box("SfvSegmentSolid", half_size.x(),
+                                 half_size.y(), half_size.z());
+  auto segment_lv = new G4LogicalVolume(segment_solid,
+                                        m_material_map["Scintillator"],
+                                        "SfvSegmentLV");
+  segment_lv->SetVisAttributes(G4Colour::Cyan());
+  segment_lv->SetSensitiveDetector(sfvSD);
+
+  for (G4int i_seg = 0; i_seg < NumOfSegSFV; ++i_seg) {
+    G4double x_pos = layer_x_gap * (i_seg - 2.5);
+    G4double y_pos = 0.0;
+    G4double z_pos = layer_z_gap * pow(-1, i_seg);
+    G4ThreeVector seg_pos(x_pos, y_pos, z_pos);
+    new G4PVPlacement(nullptr, seg_pos, segment_lv, "SfvPV", mother_lv, false, i_seg, m_check_overlaps);
+  }
+
+}
 
 //_____________________________________________________________________________
 void
