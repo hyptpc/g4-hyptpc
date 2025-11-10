@@ -1414,9 +1414,9 @@ DetectorConstruction::ConstructSAC3()
   sac3SD->SetRefractiveIndex(1.028); // Aerogel SAC3
   AddNewDetector(sac3SD);
   auto mother_solid = new G4Box("Sac3MotherSolid",
-                                half_size.x() + 10*mm,
-                                half_size.y() + 10*mm,
-                                half_size.z() + 10*mm);
+                                half_size.x() + 5*mm,
+                                half_size.y() + 5*mm,
+                                half_size.z() + 5*mm);
   auto mother_lv = new G4LogicalVolume(mother_solid,
                                        m_material_map["Air"],
                                        "Sac3MotherLV");
@@ -1443,19 +1443,19 @@ DetectorConstruction::ConstructSFV()
   using CLHEP::mm;
   using CLHEP::deg;
 
-  const auto& ra2 = gGeom.GetRotAngle2("SFV")*deg; 
-  const auto& half_size = gSize.GetSize("SfvSeg")*mm/2.; 
+  const auto& ra2 = gGeom.GetRotAngle2("SFV")*deg;
+  const auto& half_size = gSize.GetSize("SfvSeg")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("SFV")*mm;
   const G4int NumOfSegSFV = 6;
-  const G4double layer_x_gap = 66*mm; 
+  const G4double layer_x_gap = 66*mm;
   const G4double layer_z_gap = 16*mm;
 
-  auto sfvSD = new SFVSD("SFV"); 
+  auto sfvSD = new SFVSD("SFV");
   AddNewDetector(sfvSD);
 
-  const G4double mother_half_x = half_size.x() * NumOfSegSFV; // 10mm margin included 
-  const G4double mother_half_y = half_size.y() + 10*mm;
-  const G4double mother_half_z = (layer_z_gap / 2.) + half_size.z() + 10*mm;
+  const G4double mother_half_x = half_size.x() * NumOfSegSFV; // 10mm margin included
+  const G4double mother_half_y = half_size.y() + 5*mm; //5mm margin
+  const G4double mother_half_z = layer_z_gap / 2.0 + half_size.z() + 5*mm; //5mm margin
 
   auto mother_solid = new G4Box("SfvMotherSolid",
                                 mother_half_x, mother_half_y, mother_half_z);
@@ -1481,7 +1481,7 @@ DetectorConstruction::ConstructSFV()
   for (G4int i_seg = 0; i_seg < NumOfSegSFV; ++i_seg) {
     G4double x_pos = layer_x_gap * (i_seg - 2.5);
     G4double y_pos = 0.0;
-    G4double z_pos = layer_z_gap * pow(-1, i_seg);
+    G4double z_pos = pow(-1, i_seg) * layer_z_gap / 2.0;
     G4ThreeVector seg_pos(x_pos, y_pos, z_pos);
     new G4PVPlacement(nullptr, seg_pos, segment_lv, "SfvPV", mother_lv, false, i_seg, m_check_overlaps);
   }
