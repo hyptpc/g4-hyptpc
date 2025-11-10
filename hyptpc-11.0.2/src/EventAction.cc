@@ -35,6 +35,7 @@
 #include "KVCSD.hh"
 #include "CVCSD.hh"
 #include "SAC3SD.hh"
+#include "SFVSD.hh"
 #include "DetSizeMan.hh"
 
 #define SDCLASS(x) x ## Hit
@@ -171,6 +172,19 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
                     gAnaMan.SetHitData((*HC)[i]);
                 }
                 gAnaMan.SetNhits("SAC3", HC->entries());
+            }
+        }
+
+		{
+            static const auto id = SDManager->GetCollectionID("SFV/hit");
+            if (id >= 0)
+            {
+                auto HC = dynamic_cast<G4THitsCollection<SFVHit>*>(HCTE->GetHC(id));
+                for (G4int i = 0, n = HC->entries(); i < n; ++i)
+                {
+                    gAnaMan.SetHitData((*HC)[i]);
+                }
+                gAnaMan.SetNhits("SFV", HC->entries());
             }
         }
     }
