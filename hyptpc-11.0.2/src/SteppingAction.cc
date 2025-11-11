@@ -58,6 +58,13 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
+  // for debug
+  // if (prePoint->GetStepStatus() == fGeomBoundary) {
+  //   G4cout << "!!! VISUAL DEBUG: " << particleName
+  //            << " ENTERED -> " << prePVName
+  //            << " (TrackID: " << theTrack->GetTrackID() << ")" << G4endl;
+  // }
+
   // -- cal effective thickness -----
   if (prePVName == "TargetPV") {
     G4int generator = gAnaMan.GetNextGenerator();

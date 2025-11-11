@@ -1384,7 +1384,7 @@ DetectorConstruction::ConstructCVC()
   rot->rotateY(- ra2 - m_rotation_angle);
   pos.rotateY(m_rotation_angle);
   new G4PVPlacement(rot, pos, mother_lv,
-                    "KvcMotherPV", m_world_lv, false, 0, m_check_overlaps);
+                    "CvcMotherPV", m_world_lv, false, 0, m_check_overlaps);
   mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   // Segment
