@@ -52,7 +52,7 @@ BeamMan::Initialize()
 {
   const auto& gConf = ConfMan::GetInstance();
   const auto& gGeom = DCGeomMan::GetInstance();
-  const G4double p0 = gConf.Get<G4double>("BeamMom")*CLHEP::GeV;
+  const G4double p0 = gConf.Get<G4double>("BeamMom");
 
   if(m_file_name.empty())
     return true;
@@ -72,12 +72,21 @@ BeamMan::Initialize()
   tree->SetBranchAddress("pIny", &beam.py);
   tree->SetBranchAddress("pInz", &beam.pz);
 
+  double mom_sum = 0.;
+  for(Long64_t i=0, n=tree->GetEntries(); i<n; ++i){
+    tree->GetEntry(i);
+    mom_sum += sqrt(beam.px*beam.px+beam.py*beam.py+beam.pz*beam.pz);
+  }
+  double mom_center = mom_sum / tree->GetEntries();
+
   for(Long64_t i=0, n=tree->GetEntries(); i<n; ++i){
     tree->GetEntry(i);
     beam.pos.set(beam.x, beam.y, beam.z);
     beam.pos *= CLHEP::mm;
-    G4double scale = p0/0.907;
+    
+    G4double scale = p0/mom_center;
     beam.mom.set(beam.px * scale , beam.py * scale, beam.pz * scale);
+    beam.mom *= CLHEP::GeV;
     m_param_array.push_back(beam);
   }
 
