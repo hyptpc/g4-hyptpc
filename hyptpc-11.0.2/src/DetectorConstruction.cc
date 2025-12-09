@@ -115,9 +115,11 @@ DetectorConstruction::Construct()
   ConstructBH2();
   ConstructBAC();
   ConstructKVC();
-  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructCVC();
-  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructSAC3();
-  if (gConf.Get<G4bool>("IncludeFTOF")) ConstructSFV();
+  if (gConf.Get<G4bool>("IncludeFTOF")) {
+    ConstructCVC();
+    ConstructSAC3();
+    ConstructSFV();
+  }
   G4cout << gConf.Get<G4bool>("IncludeFTOF") << G4endl; 
 #endif
 
@@ -1447,6 +1449,9 @@ DetectorConstruction::ConstructSFV()
   const auto& half_size = gSize.GetSize("SfvSeg")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("SFV")*mm;
   const G4int NumOfSegSFV = 6;
+  const G4double overlap_x = 4.0*mm;
+  const G4double offset_z = 5.0*mm;
+  
   const G4double layer_x_gap = 66*mm;
   const G4double layer_z_gap = 16*mm;
 
@@ -1454,8 +1459,8 @@ DetectorConstruction::ConstructSFV()
   AddNewDetector(sfvSD);
 
   const G4double mother_half_x = half_size.x() * NumOfSegSFV; // 10mm margin included
-  const G4double mother_half_y = half_size.y() + 5*mm; //5mm margin
-  const G4double mother_half_z = layer_z_gap / 2.0 + half_size.z() + 5*mm; //5mm margin
+  const G4double mother_half_y = half_size.y() + 5.0*mm; //5mm margin
+  const G4double mother_half_z = offset_z + 2.0*half_size.z() + 5.0*mm; //5mm margin
 
   auto mother_solid = new G4Box("SfvMotherSolid",
                                 mother_half_x, mother_half_y, mother_half_z);
@@ -1479,9 +1484,9 @@ DetectorConstruction::ConstructSFV()
   segment_lv->SetSensitiveDetector(sfvSD);
 
   for (G4int i_seg = 0; i_seg < NumOfSegSFV; ++i_seg) {
-    G4double x_pos = layer_x_gap * (i_seg - 2.5);
+    G4double x_pos = (2.0*half_size.x() - overlap_x) * (2.5 - i_seg);
     G4double y_pos = 0.0;
-    G4double z_pos = pow(-1, i_seg) * layer_z_gap / 2.0;
+    G4double z_pos = pow(-1.0, i_seg) * (offset_z + half_size.z());
     G4ThreeVector seg_pos(x_pos, y_pos, z_pos);
     new G4PVPlacement(nullptr, seg_pos, segment_lv, "SfvPV", mother_lv, false, i_seg, m_check_overlaps);
   }
