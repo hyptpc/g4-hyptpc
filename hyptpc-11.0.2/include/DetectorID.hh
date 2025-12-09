@@ -9,26 +9,34 @@
 #include <TString.h>
 
 // Counters ___________________________________________________________________
-const Int_t DetIdBH1     =  1;
-const Int_t DetIdBH2     =  2;
-const Int_t DetIdBAC     =  3;
-const Int_t DetIdHTOF    =  4;
-const Int_t DetIdKVC     =  5;
-const Int_t DetIdFTOF    =  6;
-const Int_t NumOfSegBH1  = 11;
+const Int_t DetIdBH2     =  3;
+const Int_t DetIdBAC     =  4;
+const Int_t DetIdHTOF    =  5;
+const Int_t DetIdKVC     =  6;
+const Int_t DetIdT1      =  7;
+const Int_t DetIdCVC     =  8;
+const Int_t DetIdSAC3    =  9;
+const Int_t DetIdSFV     = 10;
 const Int_t NumOfSegBH2  = 15;
 const Int_t NumOfSegBAC  =  1;
 const Int_t NumOfSegHTOF = 32;
 const Int_t NumOfSegKVC  =  8;
-const Int_t NumOfSegFTOF = 24;
+const Int_t NumOfSegT1   =  1;
+const Int_t NumOfSegCVC  =  8;
+const Int_t NumOfSegSAC3 =  1;
+const Int_t NumOfSegSFV  =  6;
 const Int_t NumOfPlaneHTOF = 8;
 const Int_t NumOfSegHTOFOnePlane = NumOfSegHTOF / NumOfPlaneHTOF;
 
+const Int_t DetIdBH1     =  1;
+const Int_t DetIdFTOF    =  6;
 const Int_t DetIdPVAC    =  5;
 const Int_t DetIdFAC     =  6;
 const Int_t DetIdSCH     =  7;
 const Int_t DetIdLAC     =  9;
 const Int_t DetIdWC      = 10;
+const Int_t NumOfSegBH1  = 11;
+const Int_t NumOfSegFTOF = 24;
 const Int_t NumOfSegFBH  = 16;
 const Int_t NumOfSegCFBH = 31;
 const Int_t NumOfSegPVAC =  1;

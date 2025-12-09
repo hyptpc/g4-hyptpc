@@ -1368,7 +1368,6 @@ DetectorConstruction::ConstructCVC()
   const auto& ra2 = gGeom.GetRotAngle2("CVC")*deg;
   const auto& half_size = gSize.GetSize("CvcSeg")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("CVC");
-  G4int NumOfSegCVC = 8;
 
   // Sensitive Detector
   auto cvcSD = new CVCSD("CVC");
@@ -1448,13 +1447,9 @@ DetectorConstruction::ConstructSFV()
   const auto& ra2 = gGeom.GetRotAngle2("SFV")*deg;
   const auto& half_size = gSize.GetSize("SfvSeg")*mm/2.;
   auto pos = gGeom.GetGlobalPosition("SFV")*mm;
-  const G4int NumOfSegSFV = 6;
   const G4double overlap_x = 4.0*mm;
   const G4double offset_z = 5.0*mm;
   
-  const G4double layer_x_gap = 66*mm;
-  const G4double layer_z_gap = 16*mm;
-
   auto sfvSD = new SFVSD("SFV");
   AddNewDetector(sfvSD);
 
