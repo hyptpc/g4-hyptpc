@@ -44,6 +44,7 @@ public:
   static const T& Get( const G4String& key );
   G4bool    Initialize( void );
   G4bool    Initialize( const G4String& file_name );
+  G4bool    Initialize( const G4String& file_name ,const G4String& file_name2 );
   G4bool    InitializeHistograms( void );
   G4bool    InitializeParameterFiles( void );
   template <typename T>
@@ -53,6 +54,9 @@ public:
   template <typename T>
   G4bool    InitializeParameter( const G4String& key1,
 				 const G4String& key2 );
+  template <typename T>
+  G4bool    InitializeParameter( const G4String& key1,
+				 const G4String& key2 , const G4String& key3);
   G4bool    IsReady( void ) const { return m_is_ready; }
 
 private:
@@ -152,6 +156,17 @@ ConfMan::InitializeParameter( const G4String& key1,
   return
     ShowResult( T::GetInstance().Initialize(m_file[key1],
 					    m_file[key2]),
+		T::GetInstance().ClassName() );
+}
+
+template <typename T>
+inline G4bool
+ConfMan::InitializeParameter( const G4String& key1,
+			      const G4String& key2 , const G4String& key3)
+{
+  return
+    ShowResult( T::GetInstance().Initialize(m_file[key1],
+					    m_file[key2],m_file[key3]),
 		T::GetInstance().ClassName() );
 }
 

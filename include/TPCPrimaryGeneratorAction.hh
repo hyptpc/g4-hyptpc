@@ -6,7 +6,7 @@
 #include <G4VUserPrimaryGeneratorAction.hh>
 #include <G4ThreeVector.hh>
 #include <G4Types.hh>
-
+#include <TH1D.h>
 class G4ParticleGun;
 class G4ParticleDefinition;
 class TFile;
@@ -15,6 +15,7 @@ class TTree;
 struct BeamInfo;
 struct MMVertex;
 struct KmKpL;
+struct HMCXi;
 struct JamInfo;
 struct IncInfo;
 
@@ -34,11 +35,13 @@ private:
   G4ThreeVector         m_e45target_size;
   BeamInfo*             m_beam;
   MMVertex*             m_mm_vert;
+  HMCXi*                m_hmcxi;
   KmKpL*                m_kmkpl;
   KmKpL*                m_kmkpl2;
   G4double              m_beam_p0;
   JamInfo*              m_jam;
   IncInfo*              m_inc;
+  TH1D*                 m_hCosKp;
 	std::vector<double>   rand_cont;
 	G4ParticleDefinition* m_Neutron;
   G4ParticleDefinition* m_Proton;
@@ -92,12 +95,15 @@ public:
   void     GenerateUniformProton( G4Event* anEvent );
   void     GenerateUniformPim( G4Event* anEvent );
   void     GenerateUniformKaonPlus( G4Event* anEvent );
+  void     GenerateDirectionalKaonPlus( G4Event* anEvent );
+  void     GenerateCosHistKaonPlus( G4Event* anEvent );
   void     GenerateBeamProton( G4Event* anEvent );
   void     GenerateUniformProton_P( G4Event* anEvent );
   void     GenerateUniformProton_P_fixphi( G4Event* anEvent );
   void     GenerateUniformProton_P_Multi( G4Event* anEvent );
   void     GenerateJamInput( G4Event* anEvent );
   void     GenerateIncInput( G4Event* anEvent );
+  void     GenerateIncInput_Vertex( G4Event* anEvent );
   void     GenerateJamInput_Randphi( G4Event* anEvent );
   void     GenerateLL_fromXiP( G4Event* anEvent );
   void     GenerateHdibaryonNonReso( G4Event* anEvent );
@@ -133,7 +139,7 @@ public:
 	void		 GenerateKuramaPKmKpXi(G4Event* anEvent);//181321;
 	void		 GenerateKuramaPKmKpXi1530(G4Event* anEvent);//181530;
   void     GenerateTPCXiKmKp(G4Event* anEvent);//1001321
-
+  void     GenerateHMCXiKmKp(G4Event* anEvent);//1101321
   // E07
   void     GenerateE07Study( G4Event* anEvent ); //#700
   void     GenerateE07StudyAll( G4Event* anEvent ); //#701
@@ -174,9 +180,19 @@ public:
   void     GenerateLambda( G4Event* anEvent ); //#-1115
   void     GenerateKaonMinus( G4Event* anEvent ); //#-4930
   void     GenerateKmKpLL_BE( G4Event* anEvent ); //#1811161116
+
+
   void     GenerateTPCXi0nUniform(G4Event* anEvent);
   void     GenerateTPCLLUniform(G4Event* anEvent);
+  
+  void     GenerateTPCXiKmKpProton(G4Event* anEvent);//1001321938
+  void     GenerateKuramaPKmKpXiUniformProton( G4Event* anEvent ); //#1321938
+  void     GenerateKuramaPKmKpXiPip( G4Event* anEvent ); //#1321139
+  void     GenerateKuramaPKmKpXiPim( G4Event* anEvent ); //#-1321139
 
+  void     GenerateAccidentals( int nAccidentals ,G4Event* anEvent); //Not intended for stand-alone use
+
+  
 	double   RandSin(void);
 };
 

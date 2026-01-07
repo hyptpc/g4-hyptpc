@@ -14,7 +14,7 @@
 #
 World		4000	3000	8000
 Target		40.0	20.0	100.0
-E45Target	80.0	40.0	20.0
+E45Target	40.0	40.0	20.0
 
 ### Counters
 Bh2Seg		14.0	80.0	5.0

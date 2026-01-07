@@ -6,12 +6,17 @@
 #include <cmath>
 #include <cstdio>
 
+#include <TF1.h>
 #include <TF2.h>
 #include "FuncName.hh"
 #include <TMath.h>
+#include <TVector3.h>
+#include <TLorentzVector.h>
+#include <TGenPhaseSpace.h>
 
 namespace Kinematics
 {
+const double m_proton = 0.9382720813*CLHEP::GeV; 
 const G4double b = 1.62 * CLHEP::GeV * CLHEP::fermi / CLHEP::hbarc;
 static int gNumOfTracks;
 static std::vector<double> gX0;
@@ -27,6 +32,11 @@ static void fcn_vertex(int &npar, double *gin, double &f, double *par, int iflag
   f = chisqr;
 };
 
+G4double DecayMomentum(double M,double m1, double m2){
+	double ppp = (M+m1+m2)*(M+m1-m2)*(M-m1+m2)*(M-m1-m2)/(4.0*M*M);
+	if (ppp>0) return std::sqrt(ppp);
+	else       return -1.;
+}
 
 //______________________________________________________________________________
 G4ThreeVector
@@ -261,6 +271,75 @@ G4ThreeVector FermiGasMomentum(double p_f){
   G4ThreeVector dir = SphericalRandom();
   return p * dir;
 }
+
+G4ThreeVector FermiEmphiricalMomentum(){
+	//A gaussian function with exponential tail. 1+ Tanh was used insted of step function to implement tail structure
+	//Fermi momentum data based on:
+	//Patsyuk, M., Kahlbow, J., Laskaris, G. et al. Unperturbed inverse kinematics nucleon knockout measurements with a carbon beam. Nat. Phys. 17, 693–699 (2021). https://doi.org/10.1038/s41567-021-01193-4
+  TF1 func_emph("func","[0]*exp(-(x-[1])*(x-[1])/[2]/[2]) + [3]*exp(-x/[4]) * 0.5*(1 + tanh((x-[5])/[6]))");
+	double pars[7] = {
+		46.0615,
+		0.173212,
+		0.0907045,
+		58.7525,
+		0.145068,
+		0.0845702,
+		0.0370511
+	};
+	func_emph.SetParameters(pars);
+	double p = func_emph.GetRandom(0);
+  G4ThreeVector dir = SphericalRandom();
+  return p * dir;
+}
+
+void FermiScattering(TLorentzVector p_in, TLorentzVector& p_out, TLorentzVector& p_proton,
+     int offshellness, int conf,
+     double mass_nuclei, double mass_daughter){
+      //Input should be in units of MeV
+  //conf: 0 empirical fermi momentum
+  //      1 fermi gas model
+  //offshellness: 0 on-shell, 1 off-shell
+  int retry = 1;
+  int ntrial = 0;
+  TLorentzVector fermi_lv;
+  while(retry and ntrial < 100){
+    G4ThreeVector g4fermi_mom;
+    if(conf == 0){
+      g4fermi_mom = FermiEmphiricalMomentum();
+    }
+    else if (conf == 1){
+      g4fermi_mom = FermiGasMomentum();
+    }
+    if(ntrial){
+      G4cout << "#W " << FUNC_NAME << " trial " << ntrial
+       << " Fermi momentum: " << g4fermi_mom.mag() <<
+       "Fermi Mass: " << fermi_lv.M() << G4endl;
+    }
+    ntrial++;
+    double fx = g4fermi_mom.x(),fy = g4fermi_mom.y(),fz = g4fermi_mom.z();
+    TVector3 fermi_mom(fx, fy, fz);
+    TLorentzVector daughter_lv(-fermi_mom,hypot(fermi_mom.Mag(), mass_daughter));
+    fermi_lv = TLorentzVector(fermi_mom, mass_daughter -hypot(fermi_mom.Mag(),mass_daughter));
+    if(offshellness and fermi_lv.M() < 0){
+      continue;
+    }
+    else{
+      fermi_lv = TLorentzVector(fermi_mom, hypot(fermi_mom.Mag(), m_proton));
+    }
+    TLorentzVector p_tot = p_in + fermi_lv;
+    double masses[2] = {p_in.M(), m_proton};
+    if(p_tot.M() < masses[0] + masses[1]){
+      continue;
+    }
+    TGenPhaseSpace event;
+    retry = 0;
+    event.SetDecay(p_tot,2, masses);
+    event.Generate();
+    p_out = *(event.GetDecay(0));
+    p_proton = *(event.GetDecay(1));
+  }
+}
+
 
 G4ThreeVector RotateAlongBeam(G4ThreeVector Beam, G4ThreeVector Vect, G4double phi){
 	G4double BeamMag = Beam.mag();

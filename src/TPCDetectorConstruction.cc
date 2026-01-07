@@ -132,6 +132,7 @@ TPCDetectorConstruction::Construct( void )
   ConstructShsMagnet();
   ConstructHypTPC();
   ConstructHTOF();
+  ConstructTPCVP();
 #endif
 #if 0
   ConstructPVAC2();
@@ -276,7 +277,8 @@ TPCDetectorConstruction::ConstructMaterials( void )
   // LD2
   name ="LD2";
   m_material_map[name] = new G4Material( name, Z=1., A=2.01410*g/mole,
-					 density=166.0*mg/cm3 );
+//					 density=166.0*mg/cm3 );
+					 density=162.4*mg/cm3 );
   // Ar gas
   name = "Argon";
   G4double densityAr = 1.782e-03 * g/cm3 * STP_Temperature / room_temp;
@@ -332,7 +334,7 @@ TPCDetectorConstruction::ConstructMaterials( void )
   m_material_map[name]->AddElement( m_element_map["Hydrogen"], natoms=8 );
   // CH2 Polyethelene
   name = "CH2";
-  m_material_map[name] = new G4Material( name, density=1.13*g/cm3, nel=2 );
+  m_material_map[name] = new G4Material( name, density=0.95*g/cm3, nel=2 );
   m_material_map[name]->AddElement( m_element_map["Carbon"], natoms=1 );
   m_material_map[name]->AddElement( m_element_map["Hydrogen"], natoms=2 );
   // Silica Aerogel for LAC
@@ -2195,8 +2197,8 @@ TPCDetectorConstruction::ConstructKuramaMagnet( void )
   for( G4int i=0; i<NumOfSegVP; ++i ){
     auto vp_pos = ( gGeom.GetGlobalPosition( "KURAMA" ) +
 		    gGeom.GetGlobalPosition( Form( "VP%d", i+1 ) ) );
-    new G4PVPlacement( m_rotation_matrix, vp_pos, vp_lv,
-		       Form( "VP%dPV", i+1 ), m_world_lv, false, i );
+//    new G4PVPlacement( m_rotation_matrix, vp_pos, vp_lv,
+	//	       Form( "VP%dPV", i+1 ), m_world_lv, false, i );
   }
   myField->SetStatusKuramaField( true );
   myField->SetKuramaFieldMap( gConf.Get<G4String>( "KURAMAFLDMAP" ) );
@@ -2931,4 +2933,30 @@ TPCDetectorConstruction::ConstructWC( void )
 */
 
 
+}
+
+//_____________________________________________________________________________
+void
+TPCDetectorConstruction::ConstructTPCVP( void )
+{
+  auto vpSD = new TPCVPSD("/HSVP");
+  G4SDManager::GetSDMpointer()->AddNewDetector( vpSD );
+  const auto& kurama_pos = gGeom.GetGlobalPosition("KURAMA");//VP position is defined in KURAMA coordinate
+  const G4ThreeVector vp_size(200, 200, 1e-3);
+  auto vp_solid = new G4Box( "VPSolid", vp_size.x()*0.5, vp_size.y()*0.5, vp_size.z()*0.5 );
+  G4LogicalVolume* vp_lv[4];
+  
+  for(int il=0;il<4; ++il){
+    auto pos = kurama_pos + gGeom.GetGlobalPosition(Form("VPHS%d",il+1));
+    vp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "VPLV" );
+    vp_lv[il]->SetVisAttributes( G4Colour::Green() );
+//    new G4PVPlacement( nullptr, pos, vp_lv[il], "VPHSPV", m_world_lv, false, il );
+    
+    auto rot = new G4RotationMatrix;
+    rot->rotateX( -90.*deg );
+    pos.rotateX( 90.*deg );
+    const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
+    new G4PVPlacement( rot, pos, vp_lv[il], "VPHSPV", m_tpc_lv, false, il );
+    vp_lv[il]->SetSensitiveDetector( vpSD );
+  }
 }

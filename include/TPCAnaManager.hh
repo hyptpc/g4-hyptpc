@@ -17,7 +17,7 @@ static std::map<TString, TH1*> hmap;
 static std::map<TString, TH2*> hmap2d;
 
 //_____________________________________________________________________________
-static const G4int MaxHits    = 500;
+static const G4int MaxHits    = 2000;
 static const G4int MaxHitsTPC = 500;
 static const G4int MaxPrimaryParticle = 10;
 
@@ -44,6 +44,7 @@ struct CounterData
   G4int ntrk;
   G4double resoX;
   G4int trackID;
+  G4int ncl;
   G4int particleID;
   G4double time;
   G4double beta;
@@ -112,6 +113,7 @@ struct PrimaryInfo
 struct Event
 {
   Int_t evnum; // Event number
+  Int_t runnum; // Run number
   TVector3* pb; // momentum of inncident beam
   Int_t gen;        // generator number
   Int_t mode;        // mode number
@@ -130,6 +132,7 @@ struct Event
   Int_t HitNum_p;
   //  int tpctrNum_p;
 
+	bool Accepted;
 	int NumberOfTracks;
 	int PIDOfTrack[1000];
 	int ParentIDOfTrack[1000];
@@ -284,6 +287,7 @@ struct Event
   Int_t iPadtpc[MaxTrack];      // number of pad 
   Int_t laytpc[MaxTrack];      // number of pad layer
   Int_t rowtpc[MaxTrack];      // number of pad raw
+  Int_t ncltpc[MaxTrack];      // number of cluster
   Double_t toftpc[MaxTrack];   // tof
   Int_t parentID[MaxTrack];      // parent id
   Double_t cir_r[MaxTrack];   // fit radius
@@ -508,6 +512,23 @@ struct Event
   Double_t pzTgtVtxVp[MaxHits];
   Double_t eTgtVtxVp[MaxHits];
 
+  Int_t nhHSVp;
+  Int_t tidHSVp[MaxHits];
+  Int_t pidHSVp[MaxHits];
+  Int_t didHSVp[MaxHits];
+  Int_t prtHSVp[MaxHits];
+  Int_t qHSVp[MaxHits];
+  Double_t massHSVp[MaxHits];
+  Double_t xHSVp[MaxHits];
+  Double_t yHSVp[MaxHits];
+  Double_t zHSVp[MaxHits];
+  Double_t pxHSVp[MaxHits];
+  Double_t pyHSVp[MaxHits];
+  Double_t pzHSVp[MaxHits];
+  Double_t ppHSVp[MaxHits];
+  Double_t deHSVp[MaxHits];
+  Double_t tHSVp[MaxHits];
+
 	// VP
   Int_t nhVp;
   Int_t tidVp[MaxHits];
@@ -684,7 +705,7 @@ public:
 		   G4double vtxenetpc2 );
   void SetBH2Data( const VHitInfo* hit );
   void SetCounterData( G4int ntrk, G4double time, G4ThreeVector pos,
-		       G4ThreeVector mom, G4int track, G4int particle,
+		       G4ThreeVector mom, G4int track, G4int particle, G4int ncl,
 		       G4int iLay, G4int iRow, G4double beta, G4double edep,
 		       G4int parentid, G4double tlength, G4double slength );
   void SetFermiMomentum( const G4ThreeVector& p );
@@ -694,6 +715,7 @@ public:
   void SetSCHData( const VHitInfo* hit );
   void SetSDCData( const VHitInfo* hit );
   void SetBVHData( const VHitInfo* hit );
+  void SetHSVPData( const VHitInfo* hit );
   void SetVPData( const VHitInfo* hit );
   void SetTargetVPData( const VHitInfo* hit );
   void SetWCData( const VHitInfo* hit );

@@ -68,7 +68,7 @@ TPCPolarizedDecayChannel::DecayIt(G4double ParentMas){
 	double px = P_d*sin(Theta)*cos(Phi);
 	double py = P_d*sin(Theta)*sin(Phi);
 	double pz = P_d*cos(Theta);
-	auto Zaxis = Polarity*(1./Polarity.mag()); 
+	auto Zaxis = Polarity.unit(); 
 	auto Xaxis = Polarity.cross(MomVector);
 	int nitr = 0;
 	while((isnan(Xaxis.mag()) or Xaxis.mag()==0 )and nitr < 10){
@@ -83,7 +83,7 @@ TPCPolarizedDecayChannel::DecayIt(G4double ParentMas){
 	if(nitr >= 10){
 		G4cout<<"Warning! "<<*parent_name<<" Xaxis is not set properly! Mom = "<<Form("(%g,%g,%g)",MomVector.x(),MomVector.y(),MomVector.z()) <<" P = "<<Polarization<<G4endl;
 	}
-	Xaxis = Xaxis*(1./Xaxis.mag());
+	Xaxis = Xaxis.unit();
 	auto Yaxis = Zaxis.cross(Xaxis);
 	auto DaughterMom1 = px*Xaxis+py*Yaxis+pz*Zaxis;
 	auto DaughterMom2 =-DaughterMom1;

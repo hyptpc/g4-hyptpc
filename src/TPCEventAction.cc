@@ -119,6 +119,7 @@ TPCEventAction::EndOfEventAction( const G4Event* anEvent )
       G4int ptid = (*padHC)[i]-> GetParentID();
       G4int ptid_pid = (*padHC)[i]-> GetParentID_pid();
       G4int pid = (*padHC)[i]-> GetParticleID();
+      G4int ncl = (*padHC)[i]-> GetClusterSize();
       G4double mass = (*padHC)[i]-> GetMass();
       G4int charge = (*padHC)[i]-> GetCharge();
       // std::cout<<"pid="<<pid<<", mass="<<mass<<", charge="<<charge<<std::endl;
@@ -235,7 +236,7 @@ TPCEventAction::EndOfEventAction( const G4Event* anEvent )
 	}
       //      if(ilay>-1){ //--> ilay 1 : target ilay 0 : TPC, layer is from 2 to 38.
       if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
-	gAnaMan.SetCounterData( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+	gAnaMan.SetCounterData( nparticle-1,tof, xyz, mom, tid, pid, ncl,ilay,
 				irow, beta, edep/CLHEP::MeV, parentid, tlength,slength );
       }
     }
@@ -335,6 +336,14 @@ TPCEventAction::EndOfEventAction( const G4Event* anEvent )
       gAnaMan.SetTargetVPData( (*HC)[i] );
     }
 	}
+	
+  static const G4int id_hsvp = SDManager-> GetCollectionID("HSVP/hit");
+  if( id_hsvp >= 0 ){
+    const auto HC = (G4THitsCollection<TPCVPHit>*)HCTE->GetHC( id_hsvp );
+    for( G4int i=0, n=HC->entries(); i<n; ++i ){
+      gAnaMan.SetHSVPData( (*HC)[i] );
+    }
+  }
   
 	static const G4int id_vp = SDManager-> GetCollectionID("VP/hit");
   if( id_vp >= 0 ){

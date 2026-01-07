@@ -59,6 +59,7 @@ private:
   void ConstructShsMagnet( void );
   void ConstructTarget( void );
   void ConstructWC( void );
+  void ConstructTPCVP( void );
 
 private:
   virtual G4VPhysicalVolume* Construct( void );

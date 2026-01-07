@@ -10,7 +10,7 @@
 #include <G4Timer.hh>
 #include <G4UIterminal.hh>
 #include <G4UItcsh.hh>
-
+#include <TRandom3.h>
 #include "FuncName.hh"
 #include "GetNumberFromKernelEntropyPool.hh"
 #include "TPCAnaManager.hh"
@@ -52,6 +52,7 @@ TPCRunAction::BeginOfRunAction( const G4Run* aRun )
   // int initSeed = GetIntFromKernelEntropyPool()&0x7FFFFFFF;
   // G4Random::setTheSeed(initSeed);
   G4Random::setTheSeed( nanos );
+	gRandom = new TRandom3(0);
 #ifdef DEBUG
   G4cout << "   Initial Seed = " << G4Random::getTheSeed() << G4endl;
   G4Random::showEngineStatus();

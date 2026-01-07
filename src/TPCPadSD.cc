@@ -26,9 +26,13 @@ namespace
 {
   const auto& gConf = ConfMan::GetInstance();
   const auto& gGeom = DCGeomMan::GetInstance();
-	const Double_t sigma_dedx_p[5] = {5.46764, 8.47708, -4.44913, 229.07, -6.63587};
-	const Double_t sigma_dedx_pi[5] = {4.24777, -0.484695, 0.297915, 20.2996, -13.4064};
-	const Double_t sigma_dedx_k[5] = {9.82967, -9.5835, 4.16533, 81.4433, -7.71084};
+//  const Double_t sigma_dedx_p[5] = {5.46764, 8.47708, -4.44913, 229.07, -6.63587};
+//  const Double_t sigma_dedx_pi[5] = {4.24777, -0.484695, 0.297915, 20.2996, -13.4064};
+//  const Double_t sigma_dedx_k[5] = {9.82967, -9.5835, 4.16533, 81.4433, -7.71084};
+	const Double_t sigma_dedx_p[5] = {12.9717, -8.43799, 3.10608, 166.494, -6.56123};
+	const Double_t sigma_dedx_pi[5] = {3.94842, 0.0138502, -0.110281, 12.6065, -10.9347};
+	const Double_t sigma_dedx_k[5] = {6.24543, -3.21037, 1.52683, 127.099, -9.1004};
+
 }
 
 //_____________________________________________________________________________
@@ -375,7 +379,6 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int tid =  aStep-> GetTrack()-> GetTrackID();
   G4int pid =  aStep-> GetTrack()-> GetDefinition() -> GetPDGEncoding();
   G4double mass = aStep -> GetTrack()->GetDynamicParticle()->GetMass();
-  //  G4cout<<mass<<G4endl;
   G4int charge = aStep-> GetTrack()-> GetDefinition()-> GetPDGCharge();
   //  G4double edep = aStep->GetTotalEnergyDeposit();
   //  G4double edep = aStep->GetNonIonizingEnergyDeposit();
@@ -408,7 +411,7 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 	G4ThreeVector PadPos(hitx,0,hitz - m_center_z); 
 	G4ThreeVector MomT(mom.x(),0,mom.z());	
 	G4double alpha = PadPos.theta()-MomT.theta();
-	G4double PathT = PadLen * 1./cos(alpha);
+	G4double PathT = abs(PadLen * 1./abs(cos(alpha)));
 	G4double Pitch = mom.y()/MomT.mag();
 	G4double Path = PathT * sqrt(1+Pitch*Pitch);
 	slength = Path;
@@ -421,6 +424,12 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 	if(edepSig / edepMean < 0.01 or edepSig/edepMean > 0.5)edepSig = 0.2*edepMean;
 	G4double edep = G4RandGauss::shoot(edepMean,edepSig);
 	if(edep <0.1* edepMean)edep = 0.1*edepMean;
+	if(edep<0){
+		G4cout<<"Error! Edep = "<<edep<<G4endl;
+		G4cout<<"Mass = "<<mass<<", Mom = "<<mom<<", path = "<<Path<<G4endl;
+		G4cout<<"EdepMean = "<<edepMean<<", Sig = "<<edepSig<<G4endl;
+	}
+	int ncl = TPCClusterSize(mom.mag(),mass,iLay);
 #ifdef DEBUG
   
   //for test 
@@ -467,7 +476,7 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 
   //  sscanf(name,"PadPV%d",&iLay);
   sscanf(name,"PadPV%d",&iLay_copyNo);
-  TPCPadHit* ahit= new TPCPadHit(pos, mom, tof, tid, pid, iLay, iRow, beta, edep,parentID,tlength, mass, charge, VertexPosition, VertexMomentum, VertexEnergy,slength, parentID_pid );
+  TPCPadHit* ahit= new TPCPadHit(pos, mom, tof, tid, pid, ncl, iLay, iRow, beta, edep,parentID,tlength, mass, charge, VertexPosition, VertexMomentum, VertexEnergy,slength, parentID_pid );
 
   hitsCollection-> insert(ahit);
   return true;
@@ -507,7 +516,6 @@ TPCPadSD::TPCdEdx(Double_t mass/*MeV/c2*/, Double_t beta){
   Double_t me = 0.5109989461; //[MeV]
   Double_t K = 0.307075; //[MeV cm2 mol-1]
   Double_t constant = rho*K*ZoverA; //[MeV cm-1]
-	constant = constant;
   Double_t I2 = I*I; //Mean excitaion energy [eV]
   Double_t beta2 = beta*beta;
   Double_t gamma2 = 1./(1.-beta2);
@@ -523,12 +531,12 @@ TPCPadSD::TPCdEdx(Double_t mass/*MeV/c2*/, Double_t beta){
 double
 TPCPadSD::TPCdEdxSig(Double_t mass/*MeV/c2*/, Double_t mom){
 	double par[5]={0,0,0,0,0} ;
-	if(mass < 0.2){//pion;
+	if(mass < 200){//pion;
 		for(int i=0;i<5;++i){
 			par[i]=sigma_dedx_pi[i];
 		}
 	}
-	else if(mass > 0.7){//proton or heavier;
+	else if(mass > 700){//proton or heavier;
 		for(int i=0;i<5;++i){
 			par[i]=sigma_dedx_p[i];
 		}
@@ -555,6 +563,14 @@ TPCPadSD::DensityEffectCorrection(Double_t betagamma, Double_t *par){
 
   return delta;
 
+}
+//_____________________________________________________________________________
+G4int
+TPCPadSD::TPCClusterSize(G4double mom, G4double mass , G4int layer){
+	double prob = padHelper::GetClSize1Prob(mom,mass,layer);	
+	G4double mc = G4RandGauss::shoot(0,1);
+	if(mc < prob) return 1;
+	else return 2;
 }
 //_____________________________________________________________________________
 void

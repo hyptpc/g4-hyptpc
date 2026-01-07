@@ -47,7 +47,9 @@ TPCVPSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
     return false;
   if( Definition->GetPDGCharge() == 0. )
     return false;
-
+  auto momentum = preStepPoint->GetMomentum();
+  if(particleName == "kaon+" or particleName == "skaon+"){
+  }
   // if( particleName == "e-" )
   //   return false;
   // if( particleName == "e+" )

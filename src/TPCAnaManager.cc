@@ -34,24 +34,31 @@ namespace
 	const auto& ResParamOuterLayerHSOn = gTPC.TPCResolutionParams(true, false); //B=1 T, Outer layers
 	const auto& ResParamInnerLayerHSOff = gTPC.TPCResolutionParams(false, true); //B=0, Inner layers
 	const auto& ResParamOuterLayerHSOff = gTPC.TPCResolutionParams(false, false); //B=0, Outer layers
+	
+	const auto& ResClParamInnerLayerHSOn = gTPC.TPCResolutionParamsCl(true, true); //B=1 T, Inner layers
+	const auto& ResClParamOuterLayerHSOn = gTPC.TPCResolutionParamsCl(true, false); //B=1 T, Outer layers
+	const auto& ResClParamInnerLayerHSOff = gTPC.TPCResolutionParamsCl(false, true); //B=0, Inner layers
+	const auto& ResClParamOuterLayerHSOff = gTPC.TPCResolutionParamsCl(false, false); //B=0, Outer layers
+
 	const auto& DiscardData = gConf.Get<G4bool> ("DiscardData");
-	// 	const ng& Matrix_2D  = gConf.Get<G4String> ("MTX2D");
+	const auto& BeamAngle = gConf.Get<G4double> ("BeamAngle");
+	const auto& Mat_2D  = gConf.Get<G4String> ("MTX2D");
 }
 
 //_____________________________________________________________________________
 TPCAnaManager::TPCAnaManager( void )
 {
-	const TString Matrix_2D = "param/Matrix/mtx2d1/mtx2d1_e42_Kaon_20210602";
-	MatrixReader::mat2d = Matrix_2D;
-	MatrixReader::ReadMatrix();
+//	const TString Matrix_2D = "param/Matrix/mtx2d1/mtx2d1_e42_Kaon_20210602";
+//	G4cout<<"MTX2D: "<<Mat_2D<<G4endl;
+//	std::cout<<Form("Matrix Param: %s",Mat_2D.c_str())<<std::endl;
 	//	if(Matrix_2D)
 	TPC_g = new TTree( "TPC_g", "GEANT4 simulation for HypTPC" );
 	event.pb = new TVector3;
 	TPC_g->Branch( "evnum", &event.evnum, "evnum/I" );
 	TPC_g->Branch( "pb", "TVector3", event.pb );
-	TPC_g->Branch( "nhPrm", &event.nhPrm, "nhPrm/I" );
 	TPC_g->Branch( "data_runnum", &event.data_runnum, "data_runnum/I" );
 	TPC_g->Branch( "data_evnum", &event.data_evnum, "data_evnum/I" );
+	TPC_g->Branch( "Accepted", &event.Accepted, "Accepted/O");
 	TPC_g->Branch( "NumberOfTracks",&event.NumberOfTracks, "NumberOfTracks/I" );
 	TPC_g->Branch( "PIDOfTrack",event.PIDOfTrack, "PIDOfTrack[1000]/I" );
 	TPC_g->Branch( "ParentIDOfTrack",event.ParentIDOfTrack, "ParentIDOfTrack[1000]/I" );
@@ -63,6 +70,7 @@ TPCAnaManager::TPCAnaManager( void )
 	TPC_g->Branch( "MomentumOfTrack_y",event.MomentumOfTrack_y, "MomentumOfTrack_y[1000]/D" );
 	TPC_g->Branch( "MomentumOfTrack_z",event.MomentumOfTrack_z, "MomentumOfTrack_z[1000]/D" );
 	TPC_g->Branch( "trigpat", event.trigpat, "trigpat[32]/I" );
+	TPC_g->Branch( "nhPrm", &event.nhPrm, "nhPrm/I" );
 	TPC_g->Branch( "pidPrm", event.pidPrm, "pidPrm[nhPrm]/I" );
 	TPC_g->Branch( "xPrm", event.xPrm, "xPrm[nhPrm]/D" );
 	TPC_g->Branch( "yPrm", event.yPrm, "yPrm[nhPrm]/D" );
@@ -120,6 +128,7 @@ TPCAnaManager::TPCAnaManager( void )
 	TPC_g->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
 	TPC_g->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
 	TPC_g->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
+	TPC_g->Branch("ncltpc",event.ncltpc,"ncltpc[nhittpc]/I");
 	TPC_g->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
 	TPC_g->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
 	TPC_g->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
@@ -378,6 +387,23 @@ TPCAnaManager::TPCAnaManager( void )
 	TPC_g->Branch( "vtyBvh", event.vtyBvh, "vtyBvh[nhBvh]/D" );
 	TPC_g->Branch( "vtzBvh", event.vtzBvh, "vtzBvh[nhBvh]/D" );
 	TPC_g->Branch( "lengthBvh", event.lengthBvh, "lengthBvh[nhBvh]/D" );
+	// HSVP
+	TPC_g->Branch( "nhHSVp", &event.nhHSVp, "nhHSVp/I" );
+	TPC_g->Branch( "tidHSVp", event.tidHSVp, "tidHSVp[nhHSVp]/I" );
+	TPC_g->Branch( "pidHSVp", event.pidHSVp, "pidHSVp[nhHSVp]/I" );
+	TPC_g->Branch( "didHSVp", event.didHSVp, "didHSVp[nhHSVp]/I" );
+	TPC_g->Branch( "prtHSVp", event.prtHSVp, "prtHSVp[nhHSVp]/I" );
+	TPC_g->Branch( "qHSVp", event.qHSVp, "qHSVp[nhHSVp]/I" );
+	TPC_g->Branch( "massHSVp", event.massHSVp, "massHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "xHSVp", event.xHSVp, "xHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "yHSVp", event.yHSVp, "yHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "zHSVp", event.zHSVp, "zHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "pxHSVp", event.pxHSVp, "pxHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "pyHSVp", event.pyHSVp, "pyHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "pzHSVp", event.pzHSVp, "pzHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "ppHSVp", event.ppHSVp, "ppHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "deHSVp", event.deHSVp, "deHSVp[nhHSVp]/D" );
+	TPC_g->Branch( "tHSVp", event.tHSVp, "tHSVp[nhHSVp]/D" );
 	// VP
 	TPC_g->Branch( "nhVp", &event.nhVp, "nhVp/I" );
 	TPC_g->Branch( "tidVp", event.tidVp, "tidVp[nhVp]/I" );
@@ -442,6 +468,10 @@ TPCAnaManager::~TPCAnaManager( void )
 	void
 TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 {
+	TString Matrix_2D = Mat_2D.c_str();
+	std::cout<<"2D Matrix File: "<<Matrix_2D<<std::endl;
+	MatrixReader::mat2d = Matrix_2D;
+	MatrixReader::ReadMatrix();
 	event.evnum = 0;
 
 	G4double target_pos_z=-143.;
@@ -601,18 +631,6 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 		hmap[key] = new TH1D( key, key, 500, -1.0*CLHEP::GeV, 1.0*CLHEP::GeV );
 		hmap[key]->GetXaxis()->SetTitle( "[MeV/c]" );
 	}
-	key ="BeamGenThetaP";
-	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
-	key ="BeamGenCosTP";
-	hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
-	key ="BeamGenCosTPhi";
-	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
-	key ="BeamGenPhiP";
-	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
-	key ="BeamGenXThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-	key ="BeamGenYThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
 
 
 	key ="Sdc1Hitpat";
@@ -638,6 +656,70 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 
 
 
+	key ="BeamGenThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamGenRotatedThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamGenCosTP";
+	hmap2d[key] = new TH2D(key,key,300,0.85,1,160,0.4,2.);
+	key ="BeamGenCosTPhi";
+	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
+	key ="BeamGenPhiP";
+	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
+	key ="BeamGenXThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	key ="BeamGenYThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+
+
+	key ="BeamAcptThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+
+	key ="BeamAcptRotatedThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamAcptCosTP";
+	hmap2d[key] =hmap2d[key] = new TH2D(key,key,300,0.85,1,160,0.4,2.);
+	key ="BeamAcptCosTPhi";
+	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
+	key ="BeamAcptPhiP";
+	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
+	key ="BeamAcptXThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	key ="BeamAcptYThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+
+
+	key ="BeamGenWCThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamGenWCRotatedThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamGenWCCosTP";
+	hmap2d[key] =hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
+	key ="BeamGenWCCosTPhi";
+	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
+	key ="BeamGenWCPhiP";
+	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
+	key ="BeamGenWCXThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	key ="BeamGenWCYThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+
+
+	key ="BeamAcptWCThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamAcptWCRotatedThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamAcptWCCosTP";
+	hmap2d[key] =hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
+	key ="BeamAcptWCCosTPhi";
+	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
+	key ="BeamAcptWCPhiP";
+	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
+	key ="BeamAcptWCXThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	key ="BeamAcptWCYThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	
 	double dTh = 2.;
 	double maxTh = 30.;
 	int n_Th = maxTh/dTh;
@@ -652,31 +734,21 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 		hmap2d[key] = new TH2D(key,key,300,-3.15,3.15,80,0.4,2);
 	}
 
-
-	key ="BeamAcptThetaP";
-	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
-	key ="BeamAcptCosTP";
-	hmap2d[key] =hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
-	key ="BeamAcptCosTPhi";
-	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
-	key ="BeamAcptPhiP";
-	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
-	key ="BeamAcptXThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-	key ="BeamAcptYThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-
-	double dP = 0.05;//GeV
-	double maxP = 2.;
-	double minP = 0.4;
+	int maxP = 2000;
+	int minP = 400;
+	int dP = 10;//GeV
 	int n_P = (maxP-minP)/dP;
 	for(int i=0;i<n_P;i++){
-		int p_low = 1000*(minP+i*dP);
-		int p_high = 1000*(minP+(i+1)*dP);
+		int p_low = (minP+i*dP);
+		int p_high = (minP+(i+1)*dP);
 		key = Form("BeamGenThPh_P_%d_%d",p_low,p_high);
-		hmap2d[key] = new TH2D(key,key,100,0,30,100,-3.15,3.15);
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
 		key = Form("BeamAcptThPh_P_%d_%d",p_low,p_high);  
-		hmap2d[key] = new TH2D(key,key,100,0,30,100,-3.15,3.15);
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamGenRotatedThPh_P_%d_%d",p_low,p_high);
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamAcptRotatedThPh_P_%d_%d",p_low,p_high);  
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
 	}
 
 
@@ -745,6 +817,7 @@ TPCAnaManager::BeginOfEventAction( void )
 	event.nhLac = 0;
 	event.nhWc = 0;
 	event.nhBvh = 0;
+	event.nhHSVp = 0;
 	event.nhVp = 0;
 	event.nhTgtVp = 0;
 	for( G4int i=0; i<MaxHits; ++i ){
@@ -953,6 +1026,23 @@ TPCAnaManager::BeginOfEventAction( void )
 		event.pyTgtVtxVp[i] = -9999;
 		event.pzTgtVtxVp[i] = -9999;
 
+		// HSVP
+		event.tidHSVp[i] = -9999;
+		event.pidHSVp[i] = -9999;
+		event.didHSVp[i] = -9999;
+		event.prtHSVp[i] = -9999;
+		event.qHSVp[i] = -9999;
+		event.massHSVp[i] = -9999.;
+		event.xHSVp[i] = -9999.;
+		event.yHSVp[i] = -9999.;
+		event.zHSVp[i] = -9999.;
+		event.pxHSVp[i] = -9999.;
+		event.pyHSVp[i] = -9999.;
+		event.pzHSVp[i] = -9999.;
+		event.ppHSVp[i] = -9999.;
+		event.deHSVp[i] = -9999.;
+		event.tHSVp[i] = -9999.;
+
 		// VP
 		event.tidVp[i] = -9999;
 		event.pidVp[i] = -9999;
@@ -1086,6 +1176,7 @@ TPCAnaManager::BeginOfEventAction( void )
 
 		event.ititpc[i] = -1;
 		event.idtpc[i] = -1;
+		event.ncltpc[i] = -1;
 		event.iPadtpc[i] = -1;
 		event.laytpc[i] = -1;
 		event.rowtpc[i] = -1;
@@ -1126,7 +1217,7 @@ TPCAnaManager::EndOfEventAction( void )
 	event.evnum++;
 	auto Mat2D = MatrixReader::Mat2D;
 
-	if(tpctrNum>9){
+	if(tpctrNum>50){
 		G4cout<<"Error--> over the number of tracks in the TPC:"<<tpctrNum<<G4endl;
 	}
 	//Fill Primary Infomation for E27
@@ -1138,6 +1229,7 @@ TPCAnaManager::EndOfEventAction( void )
 		event.theta_CM = primaryInfo.theta_CM;
 		event.mm = CLHEP::mm;
 	}
+	event.Accepted = 0;
 	for(int it=0;it<1000;++it){
 		event.NumberOfTracks = gTrackBuffer.GetNumberOfTracks();
 		event.PIDOfTrack[it] = gTrackBuffer.GetPIDOfTrack()[it];
@@ -1236,6 +1328,7 @@ TPCAnaManager::EndOfEventAction( void )
 						pow(counterData[i].mom[2], 2))/CLHEP::GeV;
 				event.ititpc[event.nhittpc] = counterData[i].trackID;
 				event.idtpc[event.nhittpc] = counterData[i].particleID;
+				event.ncltpc[event.nhittpc] = counterData[i].ncl;
 				event.laytpc[event.nhittpc] = counterData[i].iLay;
 
 				event.rowtpc[event.nhittpc] = counterData[i].iRow;
@@ -1319,31 +1412,9 @@ TPCAnaManager::EndOfEventAction( void )
 
 
 	}//trigger parts
-	if(DiscardData){
-		event.Clear();//Clears real data only
-	}
-	else{
-		TPC_g->Fill();
-		if(event.evnum %100==0) TPC_g->Write("",TObject::kOverwrite);
-		event.Clear();
-	}
-	event.pb->SetXYZ( 0., 0., 0. );
-	event.nhPrm = 0;
-	for( Int_t i=0; i<MaxPrimaryParticle; ++i ){
-		event.pidPrm[i] = -9999;
-		event.xPrm[i] = -9999.;
-		event.yPrm[i] = -9999.;
-		event.zPrm[i] = -9999.;
-		event.pxPrm[i] = -9999.;
-		event.pyPrm[i] = -9999.;
-		event.pzPrm[i] = -9999.;
-		event.ppPrm[i] = -9999.;
-		event.mPrm[i] = -9999.;
-		event.thetaPrm[i] = -9999.;
-		event.phiPrm[i] = -9999.;
-	}
 	bool Trig = false;
 	bool SDC = false;
+	bool WC = false;
 	int nhSdc1=0;
 	int nhSdc2=0;
 	int nhSdc3=0;
@@ -1388,6 +1459,10 @@ TPCAnaManager::EndOfEventAction( void )
 				ySdc4 = event.ySdc[ih];
 			}
 		}
+	}
+	for(int ih=0;ih<event.nhWc;++ih){
+		if(event.tidWc[ih]!=1) continue;
+		WC = 1;
 	}
 	int nhSdcIn= nhSdc1+nhSdc2;
 	int nhSdcOut= nhSdc3+nhSdc4;
@@ -1472,19 +1547,20 @@ TPCAnaManager::EndOfEventAction( void )
 	double vtx_z = event.VertexOfTrack_z[1];	
 	double pkangle = acos(pkth)*180./acos(-1); 
 
-	TString key = "BeamGenThetaP"; 
-	auto H0 = hmap2d[key];
-	key = "BeamGenCosTP"; 
-	auto H1 = hmap2d[key];
-	key ="BeamGenCosTPhi";
-	auto H2 = hmap2d[key];
-	key ="BeamGenPhiP";
-	auto H3 = hmap2d[key];
+	G4ThreeVector beam_x(cos(BeamAngle/180.*acos(-1)),0,-sin(BeamAngle/180.*acos(-1)));
+	G4ThreeVector beam_y(0,1,0);
+	G4ThreeVector beam_z(sin(BeamAngle/180.*acos(-1)),0,cos(BeamAngle/180.*acos(-1)));
+	G4ThreeVector pkk_rot (
+			pkk*beam_x,
+			pkk*beam_y,
+			pkk*beam_z
+			);
+	double pkth_rot = cos(pkk_rot.theta());
+	double pkph_rot = pkk_rot.phi();
+	double pkangle_rot = acos(pkth_rot)*180./acos(-1);
 
-	key ="BeamGenXThetaP";
-	auto H10 = hmap2d[key];
-	key ="BeamGenYThetaP";
-	auto H11 = hmap2d[key];
+
+	TString key;
 
 
 
@@ -1507,6 +1583,22 @@ TPCAnaManager::EndOfEventAction( void )
 	auto VP4Hit = hmap2d[key];
 	key ="VP5Hitpat";
 	auto VP5Hit = hmap2d[key];
+	
+	key = "BeamGenThetaP"; 
+	auto H0 = hmap2d[key];
+	key = "BeamGenCosTP"; 
+	auto H1 = hmap2d[key];
+	key ="BeamGenCosTPhi";
+	auto H2 = hmap2d[key];
+	key ="BeamGenPhiP";
+	auto H3 = hmap2d[key];
+	key ="BeamGenRotatedThetaP";
+	auto H4 = hmap2d[key];
+
+	key ="BeamGenXThetaP";
+	auto H10 = hmap2d[key];
+	key ="BeamGenYThetaP";
+	auto H11 = hmap2d[key];
 
 
 	key ="BeamAcptThetaP";
@@ -1516,7 +1608,20 @@ TPCAnaManager::EndOfEventAction( void )
 	key ="BeamAcptCosTPhi";
 	auto HA2 = hmap2d[key];	
 	key ="BeamAcptPhiP";
-	auto HA3 = hmap2d[key];	
+	auto HA3 = hmap2d[key];
+	key ="BeamAcptRotatedThetaP";
+	auto HA4 = hmap2d[key];	
+	
+	key ="BeamAcptWCThetaP";
+	auto HAW0 = hmap2d[key];	
+	key ="BeamAcptWCCosTP";
+	auto HAW1 = hmap2d[key];	
+	key ="BeamAcptWCCosTPhi";
+	auto HAW2 = hmap2d[key];	
+	key ="BeamAcptWCPhiP";
+	auto HAW3 = hmap2d[key];	
+	key ="BeamAcptWCRotatedThetaP";
+	auto HAW4 = hmap2d[key];
 
 	double dTh = 2.;
 	double maxTh = 30.;
@@ -1547,29 +1652,34 @@ TPCAnaManager::EndOfEventAction( void )
 	H1->Fill(pkth,pk);
 	H2->Fill(pkth,pkph);
 	H3->Fill(pkph,pk);
+	H4->Fill(pkangle_rot,pk);
 	H10->Fill(180*asin(pkx/pk)/acos(-1),pk);
 	H11->Fill(180*asin(pky/pk)/acos(-1),pk);
 
 
-	double dP = 0.05;
-	double maxP = 2.;
-	double minP = 0.4;
-	int pk_bin = (pk-minP)/dP;
-	if(minP < pk and pk < maxP){
-		int p_low = 1000*(minP+pk_bin*dP);
-		int p_high = 1000*(minP+(pk_bin+1)*dP);
+	int maxP = 2000;
+	int minP = 400;
+	int dP = 10;//GeV
+	int pk_bin = (1000 * pk-minP)/dP;
+	if(minP < 1000*pk and 1000*pk < maxP){
+		int p_low = (minP+pk_bin*dP);
+		int p_high = (minP+(pk_bin+1)*dP);
 		key = Form("BeamGenThPh_P_%d_%d",p_low,p_high);
 		hmap2d[key]->Fill(pkangle,pkph);
+		key = Form("BeamGenRotatedThPh_P_%d_%d",p_low,p_high);
+		hmap2d[key]->Fill(pkangle_rot,pkph_rot);
 	}
 
 
 
 
 	if(Trig and SDC){
+		event.Accepted = 1;
 		HA0->Fill(pkangle,pk);
 		HA1->Fill(pkth,pk);
 		HA2->Fill(pkth,pkph);
 		HA3->Fill(pkph,pk);
+		HA4->Fill(pkangle_rot,pk);
 		HA10->Fill(180*asin(pkx/pk)/acos(-1),pk);
 		HA11->Fill(180*asin(pky/pk)/acos(-1),pk);
 		Sdc1Hit->Fill(xSdc1,ySdc1);	
@@ -1581,11 +1691,20 @@ TPCAnaManager::EndOfEventAction( void )
 		VP3Hit->Fill(xVP3,yVP3);	
 		VP4Hit->Fill(xVP4,yVP4);	
 		VP5Hit->Fill(xVP5,yVP5);
-		if(minP < pk and pk < maxP){
-			int p_low = 1000*(minP+pk_bin*dP);
-			int p_high = 1000*(minP+(pk_bin+1)*dP);
+		if(minP < 1000*pk and pk < 1000*maxP){
+			int p_low = (minP+pk_bin*dP);
+			int p_high = (minP+(pk_bin+1)*dP);
 			key = Form("BeamAcptThPh_P_%d_%d",p_low,p_high);
-			hmap2d[key]->Fill(pkangle,pkph);	
+			hmap2d[key]->Fill(pkangle,pkph);
+			key = Form("BeamAcptRotatedThPh_P_%d_%d",p_low,p_high);
+			hmap2d[key]->Fill(pkangle_rot,pkph_rot);	
+		}
+		if(WC){
+			HAW0->Fill(pkangle,pk);
+			HAW1->Fill(pkth,pk);
+			HAW2->Fill(pkth,pkph);
+			HAW3->Fill(pkph,pk);
+			HAW4->Fill(pkangle_rot,pk);
 		}
 	}
 	{
@@ -1601,6 +1720,29 @@ TPCAnaManager::EndOfEventAction( void )
 				}
 			}
 		}
+	}
+	if(DiscardData){
+		event.Clear();//Clears data stacked in tree. Use it to reduce file size.
+	}
+	else{
+		TPC_g->Fill();
+		if(event.evnum %1000==0) TPC_g->Write("",TObject::kOverwrite);
+		event.Clear();
+	}
+	event.pb->SetXYZ( 0., 0., 0. );
+	event.nhPrm = 0;
+	for( Int_t i=0; i<MaxPrimaryParticle; ++i ){
+		event.pidPrm[i] = -9999;
+		event.xPrm[i] = -9999.;
+		event.yPrm[i] = -9999.;
+		event.zPrm[i] = -9999.;
+		event.pxPrm[i] = -9999.;
+		event.pyPrm[i] = -9999.;
+		event.pzPrm[i] = -9999.;
+		event.ppPrm[i] = -9999.;
+		event.mPrm[i] = -9999.;
+		event.thetaPrm[i] = -9999.;
+		event.phiPrm[i] = -9999.;
 	}
 
 	return 0;
@@ -1635,7 +1777,7 @@ TPCAnaManager::SetBH2Data( const VHitInfo* hit )
 	void
 TPCAnaManager::SetCounterData( G4int ntrk, G4double time, G4ThreeVector pos,
 		G4ThreeVector mom,
-		G4int track, G4int particle,
+		G4int track, G4int particle, G4int ncl,
 		G4int iLay,  G4int iRow, G4double beta,
 		G4double edep, G4int parentid,
 		G4double tlength, G4double slength )
@@ -1677,6 +1819,7 @@ TPCAnaManager::SetCounterData( G4int ntrk, G4double time, G4ThreeVector pos,
 		counterData[hitnum].beta = beta;
 		counterData[hitnum].dedx = edep/slength;
 		counterData[hitnum].edep = edep;
+		counterData[hitnum].ncl = ncl;
 		counterData[hitnum].slength = slength;
 		counterData[hitnum].tlength = tlength;
 
@@ -1698,19 +1841,29 @@ TPCAnaManager::SetCounterData( G4int ntrk, G4double time, G4ThreeVector pos,
 		}
 		std::vector<double>ResPar;
 		if(iLay < 10){
-			ResPar = ResParamInnerLayerHSOn;
+			if(ncl==1){
+				ResPar = ResParamInnerLayerHSOn;
+			}
+			else{
+				ResPar = ResClParamInnerLayerHSOn;
+			}
 		}
 		else{
-			ResPar = ResParamOuterLayerHSOn;
+			if(ncl==1){
+				ResPar = ResParamOuterLayerHSOn;
+			}
+			else{
+				ResPar = ResClParamOuterLayerHSOn;
+			}
 		}
 		double par_t[6]={
 			ResPar[0],ResPar[1],ResPar[2],ResPar[3],ResPar[4],ResPar[5]};
-		double par_y[4] = {
-			ResPar[6],ResPar[1],ResPar[7],ResPar[8]};
+		double par_y[6] = {
+			ResPar[6],ResPar[7],ResPar[9],ResPar[9],ResPar[10],ResPar[11]};
 		// G4double compy=0.;
 		G4double compx=0.;
 		auto SmearingVector =
-			GetSmearingVector(sh_pos,mom,par_y,par_t);
+			GetSmearingVector(sh_pos,mom,edep,par_y,par_t);
 
 //Resolution Modification
 #if 0
@@ -1726,7 +1879,7 @@ TPCAnaManager::SetCounterData( G4int ntrk, G4double time, G4ThreeVector pos,
 		}
 #endif
 		auto ResVector =
-			GetResVector(sh_pos,mom,par_y,par_t);
+			GetResVector(sh_pos,mom,edep,par_y,par_t);
 		compx = ResVector.mag();
 		/*
 			 compx = GetTransverseRes(sh_y);
@@ -2008,6 +2161,30 @@ TPCAnaManager::SetTargetVPData( const VHitInfo* hit)
 		event.pyTgtVtxVp[i] = hit->GetVertexMomentum().y();
 		event.pzTgtVtxVp[i] = hit->GetVertexMomentum().z();
 		event.nhTgtVp++;
+	}
+}
+//_____________________________________________________________________________
+	void
+TPCAnaManager::SetHSVPData( const VHitInfo* hit )
+{
+	if( event.nhHSVp >= MaxHits){
+		G4cerr << FUNC_NAME << " too much nhit " << event.nhHSVp << G4endl;
+	} else {
+		Int_t i = event.nhHSVp;
+		event.tidHSVp[i] = hit->GetTrackID();
+		event.pidHSVp[i] = hit->GetParticleID();
+		event.didHSVp[i] = hit->GetDetectorID();
+		event.prtHSVp[i] = hit->GetParentID();
+		event.xHSVp[i] = hit->GetPosition().x();
+		event.yHSVp[i] = hit->GetPosition().y();
+		event.zHSVp[i] = hit->GetPosition().z();
+		event.pxHSVp[i] = hit->GetMomentum().x();
+		event.pyHSVp[i] = hit->GetMomentum().y();
+		event.pzHSVp[i] = hit->GetMomentum().z();
+		event.ppHSVp[i] = hit->GetMomentum().mag();
+		event.deHSVp[i] = hit->GetEnergyDeposit();
+		event.tHSVp[i] = hit->GetTime();
+		event.nhHSVp++;
 	}
 }
 

@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <TH1D.h>
 #include <TH2D.h>
 #include <globals.hh>
 #include <G4ThreeVector.hh>
@@ -34,6 +35,9 @@ struct BeamInfo
 	G4int evnum;
 	G4int runnum;
 	G4int ntBeam;
+	G4double weight = 1;
+	G4double weight_tot = 1;
+	G4double weight_cum = 1;
 };
 struct MMVertex
 {
@@ -108,7 +112,17 @@ struct KmKpL
   G4double z;
   vector<G4ThreeVector> Moms;
 };
-
+struct HMCXi
+{
+	G4int runnum;
+	G4int evnum;
+	G4double x;
+	G4double y;
+	G4double z;
+	vector<G4ThreeVector> KMoms;//Km, Kp
+	vector<G4ThreeVector> Vertices;//XiDecay, L Decay;
+  vector<G4ThreeVector> BaryonMoms;//Xi, Lambda, Proton;
+};
 //_____________________________________________________________________________
 class BeamMan
 {
@@ -126,13 +140,24 @@ private:
   typedef std::vector<BeamInfo> ParamArray;
   typedef std::vector<MMVertex> MMArray;
   typedef std::vector<KmKpL> KmKpLArray;
+  typedef std::vector<HMCXi> HMCXiArray;
   G4bool        m_is_ready;
   G4String      m_file_name;
+  G4String      m_accidental_name;
+  G4String      m_fermi_name;
   TFile*        m_file;
+  TFile*        m_accidental_file;
+  TFile*        m_fermi_file;
   ParamArray    m_param_array;
+  ParamArray    m_accidental_array;
+  ParamArray    m_fermi_array;
   MMArray    		m_mm_array;
   KmKpLArray    m_kmkpl_array;
+  HMCXiArray    m_hmcxi_array;
   G4int         m_n_param;
+  G4int         m_n_accidental;
+  G4int         m_n_fermi;
+  G4double      m_weight_fermi;
   G4bool        m_is_vi; // true:VI or false:VO
   G4bool        m_is_k18=0;
   G4bool        m_is_kurama=0;
@@ -140,31 +165,42 @@ private:
   G4bool        m_is_missmassXi1530=0;
   G4bool        m_is_TPCXi=0;
   G4bool        m_is_KpUniform=0;
+  G4bool        m_is_CosKp=0;
   G4bool        m_is_LL_BE=0;
   G4double      m_primary_z; // from VI or VO
   G4double      m_target_z;
   G4ThreeVector m_vi_pos;
 	G4int         m_nBeam=0;
   TH2D*         HitProfile;
-
+  TH1D*         m_hCosKp;
+  G4bool        m_is_HMCXi=0;
 public:
   const BeamInfo&      Get( void ) const;
   const BeamInfo&      Get( G4int iev ) const;
+  const BeamInfo&      GetAccidental( void ) const;
+  const BeamInfo&      GetFermiMom( void ) const;
+  const BeamInfo&      GetWeightedFermiMom( void ) const;
   const MMVertex&      GetVertex( void ) const;
   const MMVertex&      GetVertex( G4int iev ) const;
+  const HMCXi&         GetHMCXi( G4int iev, G4int nmulti ) const;
   const KmKpL         GetKmKpL( void ) const; 
   const G4int&       	 GetNBeam()const {return m_nBeam; }
+  const G4int&       	 GetNFermi()const {return m_n_fermi; }
   G4double             GetPrimaryZ( void ) const { return m_primary_z; }
   const G4ThreeVector& GetVIPosition( void ) const { return m_vi_pos; }
   G4bool               Initialize( void );
-  G4bool               Initialize( const G4String& filename );
+  G4bool               Initialize( const G4String& filename ,const G4String& accname = "" );
+  G4bool               Initialize( const G4String& filename ,const G4String& accname = "" , const G4String& FermiName = "");
   G4bool               IsReady( void ) const { return m_is_ready; }
   G4bool               IsK18( void ) const { return m_is_k18; }
   G4bool               IsKurama( void ) const { return m_is_kurama; }
   G4bool               IsMissMassXi( void ) const { return m_is_missmassXi; }
   G4bool               IsMissMassXi1530( void ) const { return m_is_missmassXi1530; }
   G4bool               IsReconXi( void ) const { return m_is_TPCXi; }
-  G4bool               IsKpUniform( void ) const { return m_is_KpUniform; } 
+  G4bool               IsHMCXi( void ) const { return m_is_HMCXi; }
+  G4bool               IsKpUniform( void ) const { return m_is_KpUniform; }
+  G4bool               IsCosKpHist( void ) const { return m_is_CosKp; }
+  TH1D*                GetCosKpHist( void ) const { return m_hCosKp; }
   G4bool               IsLL_BE( void ) const { return m_is_LL_BE; }
   void                 Print( void ) const;
   void                 SetPrimaryZ( G4double z ){ m_primary_z = z; }
