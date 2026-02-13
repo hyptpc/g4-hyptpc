@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 k18geant4
 =========
 
@@ -60,3 +61,6 @@ ln -s /group/had/sks/E42/software/param/JAM/* param/JAM/
 ln -s /group/had/sks/E42/software/fieldmap .
 ```
 
+=======
+# g4-hyptpc
+>>>>>>> 6979608f8e3ceeb6cb6e3c549ab802a9eb6b27e1

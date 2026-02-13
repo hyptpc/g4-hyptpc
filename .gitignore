@@ -4,24 +4,40 @@
 *.dev
 *.log
 *.pcm
+<<<<<<< HEAD
+=======
+*.png
+>>>>>>> 6979608f8e3ceeb6cb6e3c549ab802a9eb6b27e1
 *.pdf
 *.pyc
 *.so
 *.swp
 *.root
+<<<<<<< HEAD
 *.sh
 param/*.conf
 backup/
 build/
+=======
+*.wrl
+backup/
+.build/
+>>>>>>> 6979608f8e3ceeb6cb6e3c549ab802a9eb6b27e1
 bin/
 fieldmap
 lib/
 rootfiles/
 rootfiles
 tmp/
+<<<<<<< HEAD
 param/k18conf/*
 param/k18conf*
 param/conf*
 param/k18hs*
 !.gitkeep
 .vscode/settings.json 
+=======
+G4History.macro
+CMakeLists.txt
+!.gitkeep
+>>>>>>> 6979608f8e3ceeb6cb6e3c549ab802a9eb6b27e1
