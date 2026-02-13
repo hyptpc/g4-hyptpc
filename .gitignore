@@ -18,7 +18,8 @@ backup/
 .build/
 bin/
 fieldmap
-ShsFieldMap*
+param/ShsFieldMap*
+param/ShsFieldMap*
 lib/
 rootfiles/
 rootfiles
