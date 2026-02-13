@@ -174,6 +174,20 @@ private:
   TH2D*         HitProfile;
   TH1D*         m_hCosKp;
   G4bool        m_is_HMCXi=0;
+  
+  std::vector<double> pols;
+  std::vector<double> cth_0s;
+  std::vector<double> cth_1s;
+  std::vector<double> sqrts_0s;
+  std::vector<double> sqrts_1s;
+  
+  std::vector<double> sorted_cth_0;
+  std::vector<double> sorted_cth_1;
+  std::vector<double> sorted_sqrts_0;
+  std::vector<double> sorted_sqrts_1;
+  int nbin_cth = 0;
+  int nbin_sqrts = 0;
+  std::vector<std::vector<double>> pol_table;
 public:
   const BeamInfo&      Get( void ) const;
   const BeamInfo&      Get( G4int iev ) const;
@@ -206,6 +220,14 @@ public:
   void                 SetPrimaryZ( G4double z ){ m_primary_z = z; }
   void                 SetVIPosition( G4ThreeVector pos ){ m_vi_pos = pos; }
   void                 GetHitProfile(double& x,double& y) const;
+  G4double             GetXiPolarization( double cth, double sqrts );
+  void                 LoadPolarizationTables();
+  void                 PrintPolarizationTables();
+  int                  GetPolaCThBin( double cth );
+  int                  GetPolaSqrtsBin( double sqrts );
+  double               GetPolaCth(int bin);
+  double               GetPolaSqrts(int bin);
+
 };
 
 //_____________________________________________________________________________

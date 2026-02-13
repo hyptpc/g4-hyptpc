@@ -41,6 +41,7 @@
 #
 /tracking/storeTrajectory 1
 /vis/scene/endOfEventAction accumulate
+/vis/viewer/set/background white
 #
 # At end of each run, an automatic flush causes graphical output.
 #/run/beamOn 1

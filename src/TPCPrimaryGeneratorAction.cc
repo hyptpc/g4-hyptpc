@@ -4,6 +4,7 @@
 #include <TRandom3.h>
 #include <G4Event.hh>
 #include <G4IonTable.hh>
+#include <G4RotationMatrix.hh>
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
 #include <G4ParticleDefinition.hh>
@@ -15,6 +16,7 @@
 #include "TMath.h"
 #include "TLorentzVector.h"
 #include "TGenPhaseSpace.h"
+#include "DetectorID.hh"
 #include "BeamMan.hh"
 #include "ConfMan.hh"
 #include "DCGeomMan.hh"
@@ -35,14 +37,16 @@
 #include "TPCAnaManager.hh"
 #include "TPCTrackBuffer.hh"
 #include <TMatrixD.h>
+#include <array>
 namespace
 {
+  using CLHEP::deg;
   using CLHEP::GeV;
   using CLHEP::MeV;
   using CLHEP::keV;
   using CLHEP::mm;
   auto& gAnaMan = TPCAnaManager::GetInstance();
-  const auto& gBeam = BeamMan::GetInstance();
+  auto& gBeam = BeamMan::GetInstance();
   const auto& gConf = ConfMan::GetInstance();
   const auto& gGeom = DCGeomMan::GetInstance();
   const auto& gSize = DetSizeMan::GetInstance();
@@ -281,6 +285,7 @@ TPCPrimaryGeneratorAction::GeneratePrimaries( G4Event* anEvent )
 	case -493: GenerateKaonMinusBeamthrough( anEvent ); break;
 	case 938: GenerateProtonBeamthrough( anEvent ); break;
 	case 1019: GeneratePPBar2Phi( anEvent); break;
+	case 10190: GeneratePPBar2PhiBG( anEvent); break;
 
 
 	case 700: GenerateE07Study( anEvent ); break; // Study on E07, generate beam and K+ from INC data
@@ -5464,14 +5469,22 @@ TPCPrimaryGeneratorAction::GenerateKuramaPKmKpXi( G4Event* anEvent ){
 	auto TVKmCM = LVKmCM.vect();
 	auto TVKpCM = LVKpCM.vect();
 	auto SpinXi = TVKmCM.cross(TVKpCM);
-	SpinXi = SpinXi*(1./SpinXi.mag());
-	
+	double cth_KmKp = TVKmCM.unit().dot(TVKpCM.unit());
 
+
+
+  G4LorentzVector LVXi(MomXi.x(),MomXi.y(),MomXi.z(),hypot(MomXi.mag(),XiMinusMass));
+  G4LorentzVector LVKp(MomKp.x(),MomKp.y(),MomKp.z(),hypot(MomKp.mag(),KaonPlusMass));
+  G4double sqrts_KpXi = (LVXi + LVKp).mag();
+  double PolaXi = (double)gBeam.GetXiPolarization(cth_KmKp,sqrts_KpXi);
+  gTrackBuffer.SetPolarization(PolaXi,0);
+  
+  SpinXi = SpinXi*(1./SpinXi.mag());
 	gTrackBuffer.SetTrack(1,0,-321,gen_pos,MomKm);
 	MomKm = - MomKm;
-	gTrackBuffer.SetTrack(2,0,321,gen_pos,MomKp);
-	gTrackBuffer.SetTrack(3,0,3312,gen_pos,MomXi);
 
+  gTrackBuffer.SetTrack(2,0,321,gen_pos,MomKp);
+	gTrackBuffer.SetTrack(3,0,3312,gen_pos,MomXi);
 
 	gTrackBuffer.SetPolarity(SpinXi,0);
 	gTrackBuffer.SetMomentum(MomXi,0);
@@ -6052,6 +6065,7 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 
 	static const G4double KaonPlusMass = m_KaonPlus->GetPDGMass()/CLHEP::GeV;
   static const G4double XiMinusMass = m_XiMinus->GetPDGMass()/CLHEP::GeV;
+  static const G4double ProtonMass = m_Proton->GetPDGMass()/CLHEP::GeV;
 	auto MomKm=	m_mm_vert->Moms[0];
 	auto MomKp=	m_mm_vert->Moms[1];
 	auto MomXi=	m_mm_vert->Moms[2];
@@ -6059,10 +6073,12 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 	double KmEnergy = hypot(KaonPlusMass,MomKm.mag()) - KaonPlusMass;
 	double KpEnergy = hypot(KaonPlusMass,MomKp.mag()) - KaonPlusMass;
 	double XiEnergy = hypot(XiMinusMass,MomXi.mag()) - XiMinusMass;
+	
+  
 
 
 	double dx = G4RandFlat::shoot(-15,15);
-	double dy = G4RandFlat::shoot(-25,25);
+	double dy = G4RandFlat::shoot(-10,10);
 	double ex = m_mm_vert->x;
 	double ey = m_mm_vert->y;
 	if(abs(ex<15)) dx = ex;
@@ -6074,7 +6090,23 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 	MomKm.rotateZ(phi);
 	MomXi.rotateZ(phi);
 */
-	auto SpinXi = MomKm.cross(MomXi);
+  G4LorentzVector LVXi(MomXi.x(),MomXi.y(),MomXi.z(),hypot(MomXi.mag(),XiMinusMass));
+  G4LorentzVector LVKp(MomKp.x(),MomKp.y(),MomKp.z(),hypot(MomKp.mag(),KaonPlusMass));
+  G4double sqrts_KpXi = (LVXi + LVKp).mag();
+  G4LorentzVector LVKmCM(MomKm,hypot(MomKm.mag(),KaonPlusMass));
+	G4LorentzVector LVKpCM(MomKp,hypot(MomKp.mag(),KaonPlusMass));
+	G4LorentzVector LVPt(0,0,0,ProtonMass);
+	G4LorentzVector LVCM = LVKmCM+LVPt;
+	auto boostCM = LVCM.boostVector();
+	LVKmCM.boost(-boostCM);
+	LVKpCM.boost(-boostCM);
+	auto TVKmCM = LVKmCM.vect();
+	auto TVKpCM = LVKpCM.vect();
+	double cth_KmKp = TVKmCM.unit().dot(TVKpCM.unit());
+  double PolaXi = (double)gBeam.GetXiPolarization(cth_KmKp,sqrts_KpXi);
+  gTrackBuffer.SetPolarization(PolaXi,0);
+	
+  auto SpinXi = MomKm.cross(MomKp);
 	SpinXi = SpinXi*(1./SpinXi.mag());
 	
 	gTrackBuffer.SetTrack(1,0,-321,gen_pos,MomKm);	
@@ -6611,6 +6643,135 @@ TPCPrimaryGeneratorAction::GeneratePPBar2Phi(G4Event* anEvent){
 			m_particle_gun->GeneratePrimaryVertex( anEvent );
 		}
 	}
+}
+//Case 10190
+void
+TPCPrimaryGeneratorAction::GeneratePPBar2PhiBG(G4Event* anEvent){
+  G4String target_material = gConf.Get<G4String>("TargetMaterial");
+
+	bool FermiMotion = gConf.Get<G4bool>("FermiMotion");
+	int EvConf = gConf.Get<G4int>("EvConf");// 0->BH2 4Pi, 1->BH2 5Pi, 2->HToF4Pi, 3->HToF5Pi, 4->KVC4Pi, 5->KVC5Pi
+	static const G4int PhiID = m_Phi->GetPDGEncoding();
+	G4double PionMass = m_PionMinus->GetPDGMass();
+	G4double KaonMass = m_KaonMinus->GetPDGMass();
+	G4double ProtonMass = m_Proton->GetPDGMass();
+	G4double NeutronMass = m_Neutron->GetPDGMass();
+  G4double PionZeroMass = m_PionZero->GetPDGMass();
+	G4double PhiMass = m_Phi->GetPDGMass();
+	G4double PhiWidth = m_Phi->GetPDGWidth();
+	G4double DeuteronMass = 1875.612942;
+
+
+  G4double du = G4RandFlat::shoot(0.,1.);
+	G4double dr = 40. * sqrt(du);
+  G4double dphi = G4RandFlat::shoot(0.,2*acos(-1));
+  G4double dx = dr*cos(dphi);
+  G4double dz = dr*sin(dphi) - 143;
+	G4double dy = G4RandFlat::shoot(-50.,50.);
+	G4ThreeVector GenPos(dx,dy,dz);
+	TVector3 p_beam(0,0,m_beam_p0*CLHEP::GeV);
+	TLorentzVector LV_beam(p_beam,hypot(p_beam.Mag(),ProtonMass));
+	
+	G4ThreeVector p_beamg4(0,0,m_beam_p0*CLHEP::GeV);
+
+  G4double PhiMass1 = 0;
+  G4double PhiMass2 = 0;
+  G4ThreeVector gen_pos;
+  int conf_geom = EvConf / 2;
+  if(conf_geom == 0){//BH2 Target
+    auto bh2_size = gSize.GetSize("Bh2Seg");
+    double bh2_pitch = bh2_size.x();
+    auto bh2_pos = gGeom.GetGlobalPosition("BH2");
+    int bh2_segs = 15;
+    double x_0 = bh2_pos.x() - (bh2_segs*0.5)*bh2_pitch;
+    double x_1 = bh2_pos.x() + (bh2_segs*0.5)*bh2_pitch;
+    double sig_x = 20;
+    double x_gen = x_gen = G4RandGauss::shoot((x_0+x_1)/2,sig_x);
+    while(x_gen < x_0 or x_gen > x_1){
+      x_gen = G4RandGauss::shoot((x_0+x_1)/2,sig_x);
+    }
+    double y_gen = G4RandFlat::shoot(bh2_pos.y() - bh2_size.y()/2, bh2_pos.y() + bh2_size.y()/2);
+    double z_gen = G4RandFlat::shoot(bh2_pos.z() - bh2_size.z()/2, bh2_pos.z() + bh2_size.z()/2);
+    gen_pos = G4ThreeVector(x_gen,y_gen,z_gen);
+  }else if(conf_geom == 1){//HToF Target
+    auto bh2_size = gSize.GetSize("Bh2Seg");
+    auto kvc_size = gSize.GetSize("KvcRadiator");
+    int hit_seg = 21;//hit_seg = i * Plane + j * PlaneSeg
+    hit_seg = hit_seg - 2;//Due to window segs, htof seg is shifted by 2
+    int PlaneSeg = hit_seg % NumOfPlaneHTOF;
+    int Plane = (hit_seg - PlaneSeg) / NumOfPlaneHTOF;
+  
+    const auto& htof_pos = gGeom.GetGlobalPosition( "HTOF" );
+    auto htof_size = gSize.GetSize("HtofSeg");
+    G4double L = gGeom.GetLocalZ( "HTOF" );
+    G4double dXdW = gGeom.GetWirePitch( "HTOF" );
+    
+    
+    double x_gen_loc = G4RandFlat::shoot(-htof_size.x()/2, htof_size.x()/2);
+    double y_gen_loc = G4RandFlat::shoot(-(bh2_size.y()+kvc_size.y())/2/2, (bh2_size.y()+kvc_size.y())/2/2);
+    double z_gen_loc = G4RandFlat::shoot(-htof_size.z()/2, htof_size.z()/2);
+    G4ThreeVector gen_pos_loc(x_gen_loc,y_gen_loc,z_gen_loc);
+      
+    G4ThreeVector seg_pos( -dXdW * ( PlaneSeg - ( NumOfSegHTOFOnePlane - 1 )/2. ),
+			    0.*mm,
+		     -L );
+    
+    auto rotMOutP = new G4RotationMatrix;
+    double angle = Plane * 360./NumOfPlaneHTOF*deg + 90*deg;
+    rotMOutP->rotateY( - angle );
+    seg_pos.rotateY( angle );
+    gen_pos_loc.rotateY( angle );
+    seg_pos += htof_pos;
+    gen_pos = seg_pos + gen_pos_loc;
+  }else if(conf_geom == 2){//KVC Target
+    auto kvc_size = gSize.GetSize("KvcRadiator");
+    double kvc_pitch = kvc_size.x();
+    auto kvc_pos = gGeom.GetGlobalPosition("KVC");
+    int kvc_segs = 8;
+    double x_0 = kvc_pos.x() - (kvc_segs*0.5)*kvc_pitch;
+    double x_1 = kvc_pos.x() + (kvc_segs*0.5)*kvc_pitch;
+    double sig_x = 100;
+    double x_gen = G4RandGauss::shoot((x_0+x_1)/2,sig_x);
+    while(x_gen < x_0 or x_gen > x_1){
+      x_gen = G4RandGauss::shoot((x_0+x_1)/2,sig_x);
+    }
+    double y_gen = G4RandFlat::shoot(kvc_pos.y() - kvc_size.y()/2, kvc_pos.y() + kvc_size.y()/2);
+    double z_gen = G4RandFlat::shoot(kvc_pos.z() - kvc_size.z()/2, kvc_pos.z() + kvc_size.z()/2);
+    gen_pos = G4ThreeVector(x_gen,y_gen,z_gen);
+  }
+  else if(conf_geom == 3){//LH2 Target
+    gen_pos = GenPos;
+  }
+
+	TLorentzVector LV_target;
+  LV_target = TLorentzVector(0,0,0,ProtonMass);
+  auto LV_Vert = LV_beam + LV_target;
+  TGenPhaseSpace PBarP;
+  G4double sqrt_s = LV_Vert.M();
+  int n_particles = 0;
+  std::vector<G4double> Masses;
+  std::vector<G4ParticleDefinition*> particles;
+  if(EvConf%2 == 0){
+    Masses = {PionMass,PionMass,PionMass,PionMass};
+    particles = {m_PionMinus, m_PionPlus, m_PionMinus, m_PionPlus};
+  }
+  else{
+    Masses = {PionMass,PionMass,PionMass,PionMass,PionZeroMass};
+    particles = {m_PionMinus, m_PionPlus, m_PionMinus, m_PionPlus, m_PionZero};
+  }
+  n_particles = particles.size();
+  PBarP.SetDecay(LV_Vert, n_particles, Masses.data());
+  PBarP.Generate();
+  for(int ip=0;ip<n_particles;ip++){
+    auto LVPart = *PBarP.GetDecay(ip);
+    auto TVPart = LVPart.Vect();
+    G4ThreeVector PPart(TVPart.x(),TVPart.y(),TVPart.z());
+    m_particle_gun->SetParticleDefinition( particles[ip] );
+    m_particle_gun->SetParticlePosition( gen_pos );
+    m_particle_gun->SetParticleMomentumDirection( PPart );
+    m_particle_gun->SetParticleEnergy( LVPart.E() - Masses[ip] );
+    m_particle_gun->GeneratePrimaryVertex( anEvent );
+  }
 }
 	//	KinemaFermi kinema( ProtonMass, ProtonMass, PhiMass, PhiMass,p_beam,p_fermi,cosx);
 void

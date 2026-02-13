@@ -61,6 +61,8 @@ private:
   void ConstructWC( void );
   void ConstructTPCVP( void );
 
+  void ConstructBH2BR( void );
+  void ConstructKVCBR( void );
 private:
   virtual G4VPhysicalVolume* Construct( void );
 };

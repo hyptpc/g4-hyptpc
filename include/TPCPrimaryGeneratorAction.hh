@@ -82,6 +82,7 @@ public:
   void     GenerateKpXi2BodyUniform( G4Event* anEvent );
   void     GenerateKpXi1530Minus2BodyUniform( G4Event* anEvent );
 	void     GeneratePPBar2Phi( G4Event* anEvent );
+	void     GeneratePPBar2PhiBG( G4Event* anEvent );
 	void     GenerateHanul( G4Event* anEvent );
   void     GeneratePhaseSpace( G4Event* anEvent );
   void     GenerateHdibaryon1( G4Event* anEvent );

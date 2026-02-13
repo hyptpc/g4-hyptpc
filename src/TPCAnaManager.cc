@@ -404,6 +404,23 @@ TPCAnaManager::TPCAnaManager( void )
 	TPC_g->Branch( "ppHSVp", event.ppHSVp, "ppHSVp[nhHSVp]/D" );
 	TPC_g->Branch( "deHSVp", event.deHSVp, "deHSVp[nhHSVp]/D" );
 	TPC_g->Branch( "tHSVp", event.tHSVp, "tHSVp[nhHSVp]/D" );
+	// TPCVP
+	TPC_g->Branch( "nhTPCVp", &event.nhTPCVp, "nhTPCVp/I" );
+	TPC_g->Branch( "tidTPCVp", event.tidTPCVp, "tidTPCVp[nhTPCVp]/I" );
+	TPC_g->Branch( "pidTPCVp", event.pidTPCVp, "pidTPCVp[nhTPCVp]/I" );
+	TPC_g->Branch( "didTPCVp", event.didTPCVp, "didTPCVp[nhTPCVp]/I" );
+	TPC_g->Branch( "prtTPCVp", event.prtTPCVp, "prtTPCVp[nhTPCVp]/I" );
+	TPC_g->Branch( "qTPCVp", event.qTPCVp, "qTPCVp[nhTPCVp]/I" );
+	TPC_g->Branch( "massTPCVp", event.massTPCVp, "massTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "xTPCVp", event.xTPCVp, "xTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "yTPCVp", event.yTPCVp, "yTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "zTPCVp", event.zTPCVp, "zTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "pxTPCVp", event.pxTPCVp, "pxTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "pyTPCVp", event.pyTPCVp, "pyTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "pzTPCVp", event.pzTPCVp, "pzTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "ppTPCVp", event.ppTPCVp, "ppTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "deTPCVp", event.deTPCVp, "deTPCVp[nhTPCVp]/D" );
+	TPC_g->Branch( "tTPCVp", event.tTPCVp, "tTPCVp[nhTPCVp]/D" );
 	// VP
 	TPC_g->Branch( "nhVp", &event.nhVp, "nhVp/I" );
 	TPC_g->Branch( "tidVp", event.tidVp, "tidVp[nhVp]/I" );
@@ -689,22 +706,6 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
 
 
-	key ="BeamGenWCThetaP";
-	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
-	key ="BeamGenWCRotatedThetaP";
-	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
-	key ="BeamGenWCCosTP";
-	hmap2d[key] =hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
-	key ="BeamGenWCCosTPhi";
-	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
-	key ="BeamGenWCPhiP";
-	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
-	key ="BeamGenWCXThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-	key ="BeamGenWCYThetaP";
-	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-
-
 	key ="BeamAcptWCThetaP";
 	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
 	key ="BeamAcptWCRotatedThetaP";
@@ -719,7 +720,24 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
 	key ="BeamAcptWCYThetaP";
 	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
-	
+
+
+
+	key ="BeamAcptWCBreakThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamAcptWCBreakRotatedThetaP";
+	hmap2d[key] = new TH2D(key,key,300,0,30,320,0.4,2.);
+	key ="BeamAcptWCBreakCosTP";
+	hmap2d[key] =hmap2d[key] = new TH2D(key,key,100,0.85,1,80,0.4,2.);
+	key ="BeamAcptWCBreakCosTPhi";
+	hmap2d[key] = new TH2D(key,key,100,0.85,1,100,-3.15,3.15);
+	key ="BeamAcptWCBreakPhiP";
+	hmap2d[key] = new TH2D(key,key,100,-3.15,3.15,80,0.4,2.);
+	key ="BeamAcptWCBreakXThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+	key ="BeamAcptWCBreakYThetaP";
+	hmap2d[key] = new TH2D(key,key,100,-30,30,80,0.4,2.);
+
 	double dTh = 2.;
 	double maxTh = 30.;
 	int n_Th = maxTh/dTh;
@@ -745,9 +763,18 @@ TPCAnaManager::BeginOfRunAction( G4int /* runnum */ )
 		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
 		key = Form("BeamAcptThPh_P_%d_%d",p_low,p_high);  
 		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamAcptWCThPh_P_%d_%d",p_low,p_high);  
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamAcptWCBreakThPh_P_%d_%d",p_low,p_high);  
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		
 		key = Form("BeamGenRotatedThPh_P_%d_%d",p_low,p_high);
 		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
 		key = Form("BeamAcptRotatedThPh_P_%d_%d",p_low,p_high);  
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamAcptWCRotatedThPh_P_%d_%d",p_low,p_high);  
+		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
+		key = Form("BeamAcptWCBreakRotatedThPh_P_%d_%d",p_low,p_high);  
 		hmap2d[key] = new TH2D(key,key,300,0,30,300,-3.1416,3.1416);
 	}
 
@@ -818,6 +845,7 @@ TPCAnaManager::BeginOfEventAction( void )
 	event.nhWc = 0;
 	event.nhBvh = 0;
 	event.nhHSVp = 0;
+	event.nhTPCVp = 0;
 	event.nhVp = 0;
 	event.nhTgtVp = 0;
 	for( G4int i=0; i<MaxHits; ++i ){
@@ -1042,6 +1070,23 @@ TPCAnaManager::BeginOfEventAction( void )
 		event.ppHSVp[i] = -9999.;
 		event.deHSVp[i] = -9999.;
 		event.tHSVp[i] = -9999.;
+		
+		// TPCVP
+		event.tidTPCVp[i] = -9999;
+		event.pidTPCVp[i] = -9999;
+		event.didTPCVp[i] = -9999;
+		event.prtTPCVp[i] = -9999;
+		event.qTPCVp[i] = -9999;
+		event.massTPCVp[i] = -9999.;
+		event.xTPCVp[i] = -9999.;
+		event.yTPCVp[i] = -9999.;
+		event.zTPCVp[i] = -9999.;
+		event.pxTPCVp[i] = -9999.;
+		event.pyTPCVp[i] = -9999.;
+		event.pzTPCVp[i] = -9999.;
+		event.ppTPCVp[i] = -9999.;
+		event.deTPCVp[i] = -9999.;
+		event.tTPCVp[i] = -9999.;
 
 		// VP
 		event.tidVp[i] = -9999;
@@ -1214,6 +1259,8 @@ TPCAnaManager::BeginOfEventAction( void )
 	int
 TPCAnaManager::EndOfEventAction( void )
 {
+	double K_WC_th = 700;//eff. threshold maybe?
+	std::vector<int> ToF_WC_chan = {20,21,22,23,24};
 	event.evnum++;
 	auto Mat2D = MatrixReader::Mat2D;
 
@@ -1415,6 +1462,8 @@ TPCAnaManager::EndOfEventAction( void )
 	bool Trig = false;
 	bool SDC = false;
 	bool WC = false;
+	bool WCBreak = false;
+	bool WC17 = false;
 	int nhSdc1=0;
 	int nhSdc2=0;
 	int nhSdc3=0;
@@ -1462,7 +1511,9 @@ TPCAnaManager::EndOfEventAction( void )
 	}
 	for(int ih=0;ih<event.nhWc;++ih){
 		if(event.tidWc[ih]!=1) continue;
+		if(event.ppWc[ih]<K_WC_th) continue;
 		WC = 1;
+		if(event.didWc[ih] == 17) WC17 = true;
 	}
 	int nhSdcIn= nhSdc1+nhSdc2;
 	int nhSdcOut= nhSdc3+nhSdc4;
@@ -1473,7 +1524,11 @@ TPCAnaManager::EndOfEventAction( void )
 	for(int ih=0;ih<event.nhFtof;++ih){
 		if(event.tidFtof[ih] !=1) continue;
 		ToFHit = event.didFtof[ih] ;
+		for(auto ch:ToF_WC_chan){
+			if(ch == ToFHit) WCBreak = true;
+		}
 	}
+	WCBreak = WCBreak or (WC and not WC17);
 	for(int ih=0;ih<event.nhBvh;++ih){
 		if(event.tidBvh[ih] !=1) continue;
 		int ibbb= event.didBvh[ih];
@@ -1622,6 +1677,17 @@ TPCAnaManager::EndOfEventAction( void )
 	auto HAW3 = hmap2d[key];	
 	key ="BeamAcptWCRotatedThetaP";
 	auto HAW4 = hmap2d[key];
+	
+	key ="BeamAcptWCBreakThetaP";
+	auto HAWB0 = hmap2d[key];	
+	key ="BeamAcptWCBreakCosTP";
+	auto HAWB1 = hmap2d[key];	
+	key ="BeamAcptWCBreakCosTPhi";
+	auto HAWB2 = hmap2d[key];	
+	key ="BeamAcptWCBreakPhiP";
+	auto HAWB3 = hmap2d[key];	
+	key ="BeamAcptWCBreakRotatedThetaP";
+	auto HAWB4 = hmap2d[key];
 
 	double dTh = 2.;
 	double maxTh = 30.;
@@ -1698,6 +1764,18 @@ TPCAnaManager::EndOfEventAction( void )
 			hmap2d[key]->Fill(pkangle,pkph);
 			key = Form("BeamAcptRotatedThPh_P_%d_%d",p_low,p_high);
 			hmap2d[key]->Fill(pkangle_rot,pkph_rot);	
+			if(WC){
+				key = Form("BeamAcptWCThPh_P_%d_%d",p_low,p_high);
+				hmap2d[key]->Fill(pkangle,pkph);
+				key = Form("BeamAcptWCRotatedThPh_P_%d_%d",p_low,p_high);
+				hmap2d[key]->Fill(pkangle_rot,pkph_rot);	
+			}
+			if(WCBreak){
+				key = Form("BeamAcptWCBreakThPh_P_%d_%d",p_low,p_high);
+				hmap2d[key]->Fill(pkangle,pkph);
+				key = Form("BeamAcptWCBreakRotatedThPh_P_%d_%d",p_low,p_high);
+				hmap2d[key]->Fill(pkangle_rot,pkph_rot);	
+			}
 		}
 		if(WC){
 			HAW0->Fill(pkangle,pk);
@@ -1705,6 +1783,13 @@ TPCAnaManager::EndOfEventAction( void )
 			HAW2->Fill(pkth,pkph);
 			HAW3->Fill(pkph,pk);
 			HAW4->Fill(pkangle_rot,pk);
+		}
+		if(WCBreak){
+			HAWB0->Fill(pkangle,pk);
+			HAWB1->Fill(pkth,pk);
+			HAWB2->Fill(pkth,pkph);
+			HAWB3->Fill(pkph,pk);
+			HAWB4->Fill(pkangle_rot,pk);
 		}
 	}
 	{
@@ -2185,6 +2270,31 @@ TPCAnaManager::SetHSVPData( const VHitInfo* hit )
 		event.deHSVp[i] = hit->GetEnergyDeposit();
 		event.tHSVp[i] = hit->GetTime();
 		event.nhHSVp++;
+	}
+}
+
+//_____________________________________________________________________________
+	void
+TPCAnaManager::SetTPCVPData( const VHitInfo* hit )
+{
+	if( event.nhTPCVp >= MaxHits){
+		G4cerr << FUNC_NAME << " too much nhit " << event.nhTPCVp << G4endl;
+	} else {
+		Int_t i = event.nhTPCVp;
+		event.tidTPCVp[i] = hit->GetTrackID();
+		event.pidTPCVp[i] = hit->GetParticleID();
+		event.didTPCVp[i] = hit->GetDetectorID();
+		event.prtTPCVp[i] = hit->GetParentID();
+		event.xTPCVp[i] = hit->GetPosition().x();
+		event.yTPCVp[i] = hit->GetPosition().y();
+		event.zTPCVp[i] = hit->GetPosition().z();
+		event.pxTPCVp[i] = hit->GetMomentum().x();
+		event.pyTPCVp[i] = hit->GetMomentum().y();
+		event.pzTPCVp[i] = hit->GetMomentum().z();
+		event.ppTPCVp[i] = hit->GetMomentum().mag();
+		event.deTPCVp[i] = hit->GetEnergyDeposit();
+		event.tTPCVp[i] = hit->GetTime();
+		event.nhTPCVp++;
 	}
 }
 

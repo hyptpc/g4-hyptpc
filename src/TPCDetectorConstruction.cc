@@ -125,7 +125,13 @@ TPCDetectorConstruction::Construct( void )
   ConstructBC4();
 #endif
 #if 1
+if (m_experiment == 45){
+  ConstructBH2BR();
+  ConstructKVCBR();
+}
+else{
   ConstructBH2();
+}
 #endif
 
 #if 1
@@ -741,7 +747,7 @@ TPCDetectorConstruction::ConstructHTOF( void )
   htof_lv->SetSensitiveDetector( htof_sd );
   htof_upper_lv->SetSensitiveDetector( htof_sd );
   htof_lower_lv->SetSensitiveDetector( htof_sd );
-  htof_lv->SetVisAttributes( G4Colour::Cyan() );
+  htof_lv->SetVisAttributes( G4Colour::Blue() );
   htof_upper_lv->SetVisAttributes( G4Colour::Green() );
   htof_lower_lv->SetVisAttributes( G4Colour::Green() );
 
@@ -1003,11 +1009,9 @@ TPCDetectorConstruction::ConstructHypTPC( void )
       new G4PVPlacement(nullptr,target_pos-G4ThreeVector(0,0,target_size.z()+3*vp_th/2),vp_lv_dummy,"TpcPadPV0",
           m_world_lv,0,0);
   }
-		new G4PVPlacement(nullptr,target_pos-G4ThreeVector(0,0,target_size.z()+vp_th/2),vp_lv,"VPTargetBefore",
-				m_world_lv,0,0);
+//		new G4PVPlacement(nullptr,target_pos-G4ThreeVector(0,0,target_size.z()+vp_th/2),vp_lv,"VPTargetBefore",				m_world_lv,0,0);
 		auto after_tgt = target_pos + G4ThreeVector(0,0,target_size.z()+2*mm) ; 
-		new G4PVPlacement(nullptr,target_pos+G4ThreeVector(0,0,target_size.z()+vp_th/2),vp_lv,"VPTargetAfter",
-				m_world_lv,0,1);
+//		new G4PVPlacement(nullptr,target_pos+G4ThreeVector(0,0,target_size.z()+vp_th/2),vp_lv,"VPTargetAfter",m_world_lv,0,1);
   if(BeamData)return;
   {
     const G4double Rin  = gSize.Get( "TpcRin" )*mm/2;
@@ -1028,7 +1032,7 @@ TPCDetectorConstruction::ConstructHypTPC( void )
     G4VSolid* Empty_volume = nullptr; 
     if(m_experiment == 42){
       G4ThreeVector Empty_Volume_Dim = G4ThreeVector( target_size.x()+2*mm, target_size.y()+2*mm, target_size.z()+2*mm );  
-		  Empty_volume = new G4Box("hollow",Empty_Volume_Dim.x()/2,Empty_Volume_Dim.y()/2,Empty_Volume_Dim.z()/2);
+		  Empty_volume = new G4Box("hollow",Empty_Volume_Dim.x(),Empty_Volume_Dim.y(),Empty_Volume_Dim.z());
     }
     else if (m_experiment == 27 or m_experiment == 45){
       G4double Target_r = gSize.Get( "Target", ThreeVector::X );
@@ -2939,8 +2943,8 @@ TPCDetectorConstruction::ConstructWC( void )
 void
 TPCDetectorConstruction::ConstructTPCVP( void )
 {
-  auto vpSD = new TPCVPSD("/HSVP");
-  G4SDManager::GetSDMpointer()->AddNewDetector( vpSD );
+  auto HSvpSD = new TPCVPSD("/HSVP");
+  G4SDManager::GetSDMpointer()->AddNewDetector( HSvpSD );
   const auto& kurama_pos = gGeom.GetGlobalPosition("KURAMA");//VP position is defined in KURAMA coordinate
   const G4ThreeVector vp_size(200, 200, 1e-3);
   auto vp_solid = new G4Box( "VPSolid", vp_size.x()*0.5, vp_size.y()*0.5, vp_size.z()*0.5 );
@@ -2950,13 +2954,111 @@ TPCDetectorConstruction::ConstructTPCVP( void )
     auto pos = kurama_pos + gGeom.GetGlobalPosition(Form("VPHS%d",il+1));
     vp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "VPLV" );
     vp_lv[il]->SetVisAttributes( G4Colour::Green() );
-//    new G4PVPlacement( nullptr, pos, vp_lv[il], "VPHSPV", m_world_lv, false, il );
+    //new G4PVPlacement( nullptr, pos, vp_lv[il], "VPHSPV", m_world_lv, false, il );
     
     auto rot = new G4RotationMatrix;
     rot->rotateX( -90.*deg );
     pos.rotateX( 90.*deg );
     const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
     new G4PVPlacement( rot, pos, vp_lv[il], "VPHSPV", m_tpc_lv, false, il );
-    vp_lv[il]->SetSensitiveDetector( vpSD );
+    vp_lv[il]->SetSensitiveDetector( HSvpSD );
   }
+
+
+  auto TPCvpSD = new TPCVPSD("/TPCVP");
+  G4SDManager::GetSDMpointer()->AddNewDetector( TPCvpSD );
+  for(int il=0;il<5; ++il){
+    auto pos = kurama_pos + gGeom.GetGlobalPosition(Form("VPTPC%d",il+1));
+    vp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "TPCVPLV" );
+    vp_lv[il]->SetVisAttributes( G4Colour::Green() );
+    //new G4PVPlacement( nullptr, pos, vp_lv[il], "VPTPCPV", m_world_lv, false, il );
+
+    auto rot = new G4RotationMatrix;
+    rot->rotateX( -90.*deg );
+    pos.rotateX( 90.*deg );
+    const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
+    new G4PVPlacement( rot, pos, vp_lv[il], "VPTPCPV", m_tpc_lv, false, il );
+    vp_lv[il]->SetSensitiveDetector( TPCvpSD );
+  }
+}
+
+void
+TPCDetectorConstruction::ConstructBH2BR( void ){
+  const auto& ra2 = gGeom.GetRotAngle2("BH2") * deg;
+  const auto& half_size = gSize.GetSize("Bh2Seg") * 0.5 * mm;
+  const G4double pitch = gSize.GetSize("Bh2Seg").x();
+  auto bh2SD = new TPCBH2SD("/BH2");
+  G4SDManager::GetSDMpointer()->AddNewDetector( bh2SD );
+  // Mother
+  int NumOfSegBH2BR = 15;
+  auto mother_solid = new G4Box( "Bh2MotherSolid",
+				 half_size.x()*NumOfSegBH2BR + 50.*mm,
+				 half_size.y() + 50.*mm,
+				 half_size.z()*2 + 50.*mm );
+  auto mother_lv = new G4LogicalVolume( mother_solid,
+					m_material_map["Air"],
+					"Bh2MotherLV" );
+  auto rot = new G4RotationMatrix;
+  rot->rotateY( - ra2 - m_rotation_angle );
+  auto pos = (
+   //  gGeom.GetGlobalPosition("KURAMA") + In 72, coordinate center is HypTPC
+	       gGeom.GetGlobalPosition("BH2") );
+  pos.rotateY( m_rotation_angle );
+  new G4PVPlacement( rot, pos, mother_lv,
+		     "Bh2MotherPV", m_world_lv, false, 0 );
+  mother_lv->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // Segment
+  auto segment_solid = new G4Box( "Bh2SegmentSolid", half_size.x(),
+				  half_size.y(), half_size.z() );
+  auto segment_lv = new G4LogicalVolume( segment_solid,
+					 m_material_map["Scintillator"],
+					 "Bh2SegmentLV" );
+
+  for( G4int i=0; i<NumOfSegBH2BR; ++i ){
+      pos = G4ThreeVector( ( -NumOfSegBH2BR/2 + i + 0.5 )*pitch, 0.*mm, 0.*mm );
+      new G4PVPlacement( nullptr, pos, segment_lv,
+			 "Bh2SegmentPV", mother_lv, false, i );
+  }
+  segment_lv->SetVisAttributes( G4Colour::Cyan() );
+  segment_lv->SetSensitiveDetector( bh2SD );
+}
+void
+TPCDetectorConstruction::ConstructKVCBR( void ){
+  const auto& ra2 = gGeom.GetRotAngle2("KVC") * deg;
+  const auto& half_size = gSize.GetSize("KvcRadiator") * 0.5 * mm;
+  int NumOfSegKVCBR = 8;
+  const G4double pitch = half_size.x()*2;
+  auto kvcSD = new TPCWCSD("/WC");
+  G4SDManager::GetSDMpointer()->AddNewDetector( kvcSD );
+  // Mother
+  auto mother_solid = new G4Box( "KVCMotherSolid",
+				 half_size.x()*NumOfSegKVCBR + 50.*mm,
+				 half_size.y() + 50.*mm,
+				 half_size.z()*2 + 50.*mm );
+  auto mother_lv = new G4LogicalVolume( mother_solid,
+					m_material_map["Air"],
+					"KVCMotherLV" );
+  auto rot = new G4RotationMatrix;
+  rot->rotateY( - ra2 - m_rotation_angle );
+  auto pos = (
+   //  gGeom.GetGlobalPosition("KURAMA") + In 72, coordinate center is HypTPC
+	       gGeom.GetGlobalPosition("KVC") );
+  pos.rotateY( m_rotation_angle );
+  new G4PVPlacement( rot, pos, mother_lv,
+		     "KVCMotherPV", m_world_lv, false, 0 );
+  mother_lv->SetVisAttributes( G4VisAttributes::GetInvisible() );
+  // Segment
+  auto segment_solid = new G4Box( "KvcSegmentSolid", half_size.x(),
+				  half_size.y(), half_size.z() );
+  auto segment_lv = new G4LogicalVolume( segment_solid,
+					 m_material_map["Quartz"],
+					 "KvcSegmentLV" );
+
+  for( G4int i=0; i<NumOfSegKVCBR; ++i ){
+      pos = G4ThreeVector( ( -NumOfSegKVCBR/2 + i + 0.5 )*pitch, 0.*mm, 0.*mm );
+      new G4PVPlacement( nullptr, pos, segment_lv,
+			 "KvcSegmentPV", mother_lv, false, i );
+  }
+  segment_lv->SetVisAttributes( G4Colour::Blue() );
+  segment_lv->SetSensitiveDetector( kvcSD );
 }

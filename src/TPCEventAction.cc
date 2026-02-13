@@ -345,6 +345,14 @@ TPCEventAction::EndOfEventAction( const G4Event* anEvent )
     }
   }
   
+  static const G4int id_tpcvp = SDManager-> GetCollectionID("TPCVP/hit");
+  if( id_tpcvp >= 0 ){
+    const auto HC = (G4THitsCollection<TPCVPHit>*)HCTE->GetHC( id_tpcvp );
+    for( G4int i=0, n=HC->entries(); i<n; ++i ){
+      gAnaMan.SetTPCVPData( (*HC)[i] );
+    }
+  }
+  
 	static const G4int id_vp = SDManager-> GetCollectionID("VP/hit");
   if( id_vp >= 0 ){
     const auto HC = (G4THitsCollection<TPCVPHit>*)HCTE->GetHC( id_vp );

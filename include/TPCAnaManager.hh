@@ -528,6 +528,23 @@ struct Event
   Double_t ppHSVp[MaxHits];
   Double_t deHSVp[MaxHits];
   Double_t tHSVp[MaxHits];
+  
+  Int_t nhTPCVp;
+  Int_t tidTPCVp[MaxHits];
+  Int_t pidTPCVp[MaxHits];
+  Int_t didTPCVp[MaxHits];
+  Int_t prtTPCVp[MaxHits];
+  Int_t qTPCVp[MaxHits];
+  Double_t massTPCVp[MaxHits];
+  Double_t xTPCVp[MaxHits];
+  Double_t yTPCVp[MaxHits];
+  Double_t zTPCVp[MaxHits];
+  Double_t pxTPCVp[MaxHits];
+  Double_t pyTPCVp[MaxHits];
+  Double_t pzTPCVp[MaxHits];
+  Double_t ppTPCVp[MaxHits];
+  Double_t deTPCVp[MaxHits];
+  Double_t tTPCVp[MaxHits];
 
 	// VP
   Int_t nhVp;
@@ -716,6 +733,7 @@ public:
   void SetSDCData( const VHitInfo* hit );
   void SetBVHData( const VHitInfo* hit );
   void SetHSVPData( const VHitInfo* hit );
+  void SetTPCVPData( const VHitInfo* hit );
   void SetVPData( const VHitInfo* hit );
   void SetTargetVPData( const VHitInfo* hit );
   void SetWCData( const VHitInfo* hit );

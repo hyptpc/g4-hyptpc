@@ -224,7 +224,7 @@ BeamMan::Initialize(void)
   const auto &gConf = ConfMan::GetInstance();
   const auto &gGeom = DCGeomMan::GetInstance();
   const G4double p0 = gConf.Get<G4double>("BeamMom");
-
+	
   if (m_file_name.empty())
     return true;
 
@@ -232,6 +232,7 @@ BeamMan::Initialize(void)
 	m_mm_array.clear();
 	m_kmkpl_array.clear();
 	G4int generator = gConf.Get<G4int>("Generator");
+	if(generator == 25) return true;
 	m_is_vi = (gConf.Get<G4int>("Generator") == 10);
 	if (abs(generator) == 135 or abs(generator) == 493 or abs(generator) == 938){
 //		m_is_k18 = 1;
@@ -513,11 +514,12 @@ BeamMan::Initialize(void)
 	    tree->SetBranchAddress("p", &beam.dp);
 	  }
 	//for (Long64_t i = 0, n = tree->GetEntries(); i < n; ++i)
+	int scale_down = 1;//For test purpose fast loading
 	std::cout << "BeamEvents = " << tree->GetEntries() << std::endl;
-	for (Long64_t i = 0, n = tree->GetEntries(); i < n; ++i)
+	for (Long64_t i = 0, n = tree->GetEntries()/scale_down; i < n; ++i)
 	{
 		tree->GetEntry(i);
-		if (i % 100000 == 0)
+		if (i % 10000 == 0)
 			G4cout << Form("Event %lld/%lld", i, tree->GetEntries()) << G4endl;
 		if (reader)
 			reader->Next();
@@ -567,6 +569,8 @@ BeamMan::Initialize(void)
 			int ntKurama = **ntTPCKurama;
 			int ntK18 = **ntTPCK18;
 			if(! in) continue;
+			if(!**Xiflag) continue;
+
 			for (int itk18 = 0; itk18 < ntK18; ++itk18)
 			{
 				if (ntK18 != 1 or ntKurama != 1)
@@ -598,7 +602,7 @@ BeamMan::Initialize(void)
 			  continue;
 			if ((*vtzTPC)->at(0) == 0)
 			  continue;
-			if (pKp < 1.4 and qKp > 0 and m2Kp > 0.14 and m2Kp < 0.34 and in and abs(mm - 1.321) < 0.05)
+			if (pKp < 1.4 and qKp > 0 and m2Kp > 0.14 and m2Kp < 0.34 and in and abs(mm - 1.321) < 0.13)
 			  {
 			    MMVertex MMVert;
 			    MMVert.x = ((*vtxTPC)->at(0));
@@ -742,11 +746,14 @@ BeamMan::Initialize(void)
 			if ((*MissMass)->size() == 0) continue;
 			double mm = (*MissMass)->at(0);
 			if (abs(mm - 1.321) > 0.13) continue;
+			if((*kflagTPCKurama)->at(0) == 0) continue;
 			if(!**Xiflag) continue;
 			if(isnan(**KFXiProductionVtx_z) or **KFXiProductionVtx_z==0) continue;
 			if(isnan(**KFXiProductionVtxMom_z) or **KFXiProductionVtxMom_z==0) continue;
 			if(**KFXiPval <0.01) continue;
 			if(**XiResidualsMultiplicity > 0) continue;
+			if(abs(**KFXiProductionVtx_z+143)>10 or abs(**KFXiProductionVtx_x)> 15 or abs(**KFXiProductionVtx_y)> 10) continue;
+			// For Accurate Xi Production momentum
 			G4ThreeVector TVKm((*KmMom_x)->at(0), (*KmMom_y)->at(0), (*KmMom_z)->at(0));
 			G4ThreeVector TVKp((*KpMom_x)->at(0), (*KpMom_y)->at(0), (*KpMom_z)->at(0));	
 			MMVertex MMVert;
@@ -906,7 +913,7 @@ BeamMan::Initialize(void)
 	G4cout << "Accidental events = " << entries_acc << G4endl;
 	BeamInfo accidental;
 	double prop = abs(m_target_z - (-250))+ 20;
-	for( int iev=0;iev < entries_acc;++iev){
+	for( int iev=0;iev < entries_acc/scale_down;++iev){
 		tree_acc->GetEntry(iev);
 		if(iev % 100000 == 0) G4cout<<"Reading Accidental Events "<<iev<<" / "<<entries_acc<<G4endl;
 		if(ntBeam != 1) continue;
@@ -960,6 +967,49 @@ BeamMan::Initialize(void)
 			f.weight_tot = weight_sum;
 		}
 	}
+  
+	const int PolarizedDecay = gConf.Get<G4int>("PolarizedDecay");
+	const TString PolarizationFile = gConf.Get<G4String>("PolarizationFile");
+	G4cout<<"PolarizedDecay: "<<PolarizedDecay<<G4endl;
+	G4cout<<"PolarizationFile: "<<PolarizationFile<<G4endl;
+	if(PolarizationFile == ""){
+		const double pol = gConf.Get<G4double>("XiPolarization");
+		cth_0s.push_back(1.0);
+		cth_1s.push_back(-1.0);
+		sqrts_0s.push_back(0);
+		sqrts_1s.push_back(999);
+		pols.push_back(0.0);
+	}
+	else{
+		TFile* pol_file = new TFile(PolarizationFile);
+		int conf,AngBin;
+		double cth_0,cth_1,x_0,x_1,PXi;
+		TTree* pol_tree = (TTree*)pol_file->Get("tree");
+		pol_tree->SetBranchAddress("conf",&conf);
+		pol_tree->SetBranchAddress("AngBin",&AngBin);
+		pol_tree->SetBranchAddress("cth_0",&cth_0);
+		pol_tree->SetBranchAddress("cth_1",&cth_1);
+		pol_tree->SetBranchAddress("x_0",&x_0);
+		pol_tree->SetBranchAddress("x_1",&x_1);
+		pol_tree->SetBranchAddress("PXi",&PXi);
+		int nentries = pol_tree->GetEntries();
+		int nc = 0;
+		for(int i=0;i<nentries;++i){
+			pol_tree->GetEntry(i);
+			if(conf != 0) continue;
+			if(AngBin == -1) continue;
+			cth_0s.push_back(cth_0);
+			cth_1s.push_back(cth_1);
+			sqrts_0s.push_back(x_0);
+			sqrts_1s.push_back(x_1);
+			pols.push_back(PXi);
+			nc++;
+		}
+		G4cout<<"Loaded "<<nc<<" polarization bins"<<G4endl;
+	}
+	G4cout<<"Loading Polarization Tables"<<G4endl;
+	LoadPolarizationTables();
+//	PrintPolarizationTables();
 	return true;
 	
   }
@@ -1078,3 +1128,145 @@ BeamMan::Initialize(void)
 	}
 	return m_fermi_array.at(i);
   }
+  void BeamMan::LoadPolarizationTables(){
+	G4cout<<"sqrts_data size: "<<sqrts_0s.size()<<G4endl;
+	G4cout<<"cth_data size: "<<cth_0s.size()<<G4endl;
+	for(int ix=0;ix<sqrts_0s.size();ix++){
+		double x0,x1;
+		x0 = sqrts_0s[ix];
+		x1 = sqrts_1s[ix];
+		double x_tmp = x0;
+		if(x0 > x1){
+			x0 = x1;
+			x1 = x_tmp;
+		}
+		bool dupl = 0;
+		for(int jx=0;jx<sorted_sqrts_0.size();jx++){
+			if(abs(x0 - sorted_sqrts_0[jx])<1e-6 and abs(x1 - sorted_sqrts_1[jx])<1e-6){
+				dupl = 1;
+				break;
+			}
+		}
+		if(!dupl){
+			sorted_sqrts_0.push_back(x0);
+			sorted_sqrts_1.push_back(x1);
+		}
+	}
+	G4cout<<"Number of sqrts bins: "<<sorted_sqrts_0.size()<<G4endl;
+	for(int is=0;is<sorted_sqrts_0.size();is++){
+		G4cout<<std::setw(8)<<sorted_sqrts_0[is]<<"-"<<std::setw(8)<<sorted_sqrts_1[is]<<G4endl;
+	}
+	nbin_sqrts = sorted_sqrts_0.size() + 2;// for underflow and overflow
+	for(int ic=0;ic<cth_0s.size();ic++){
+		double cth0,cth1;
+		cth0 = cth_0s[ic];
+		cth1 = cth_1s[ic];
+		double cth_tmp = cth0;
+		if(cth0 > cth1){
+			cth0 = cth1;
+			cth1 = cth_tmp;
+		}
+		bool dupl = 0;
+		for(int jc=0;jc<sorted_cth_0.size();jc++){
+			if(abs(cth0 - sorted_cth_0[jc])<1e-6 and abs(cth1 - sorted_cth_1[jc])<1e-6){
+				dupl = 1;
+				break;
+			}
+		}
+		if(!dupl){
+			sorted_cth_0.push_back(cth0);
+			sorted_cth_1.push_back(cth1);
+		}
+	}
+	nbin_cth = sorted_cth_0.size() + 2;// for underflow and overflow
+	G4cout<<"Number of cth bins: "<<sorted_cth_0.size()<<G4endl;
+	for(int ic=0;ic<sorted_cth_0.size();ic++){
+		G4cout<<std::setw(8)<<sorted_cth_0[ic]<<"-"<<std::setw(8)<<sorted_cth_1[ic]<<G4endl;
+	}
+	for(int is=0;is<nbin_sqrts;++is){
+		vector<double> pol_cth;
+		for(int ic=0;ic<nbin_cth;++ic){
+			pol_cth.push_back(0.0);
+		}
+		pol_table.push_back(pol_cth);
+	}
+	for(int iev = 0; iev < pols.size(); ++iev){
+		int cth_bin = GetPolaCThBin((cth_0s[iev] + cth_1s[iev])/2);
+		int sqrt_bin = GetPolaSqrtsBin((sqrts_0s[iev] + sqrts_1s[iev])/2);
+		pol_table[cth_bin][sqrt_bin] = pols[iev];
+	}
+	//Fill underflow and overflow bins
+	for(int is=1;is<nbin_sqrts-1;++is){
+		pol_table[0][is] = pol_table[1][is];
+		pol_table[nbin_cth-1][is] = pol_table[nbin_cth-2][is];
+	}
+	for(int ic=0;ic<nbin_cth;++ic){
+		pol_table[ic][0] = pol_table[ic][1];
+		pol_table[ic][nbin_sqrts-1] = pol_table[ic][nbin_sqrts-2];
+	}
+  }
+
+	int BeamMan::GetPolaCThBin(double cth){
+		int ibin = -1;
+		for(int i=0;i<nbin_cth-2;++i){
+			if(cth >= sorted_cth_0[i] and cth < sorted_cth_1[i]){
+				ibin = i+1;
+				break;
+			}
+		}
+		if(ibin == -1){
+			if(cth < sorted_cth_0[0]) ibin = 0;
+			else if(cth >= sorted_cth_1[nbin_cth-3]) ibin = nbin_cth -1;
+		}
+		return ibin;
+	}
+	int BeamMan::GetPolaSqrtsBin(double sqrt){
+		int ibin = -1;
+		for(int i=0;i<nbin_sqrts-2;++i){
+			if(sqrt >= sorted_sqrts_0[i] and sqrt < sorted_sqrts_1[i]){
+				ibin = i+1;
+				break;
+			}
+		}
+		if(ibin == -1){
+			if(sqrt < sorted_sqrts_0[0]) ibin = 0;
+			else if(sqrt >= sorted_sqrts_1[nbin_sqrts-3]) ibin = nbin_sqrts -1;
+		}
+		return ibin;
+	}
+	double BeamMan::GetPolaCth(int bin){
+		if(bin == 0) return sorted_cth_0[0];
+		if(bin == nbin_cth-1) return sorted_cth_1[nbin_cth-3];
+		return (sorted_cth_0[bin-1] + sorted_cth_1[bin-1])/2;
+	}
+	double BeamMan::GetPolaSqrts(int bin){
+		if(bin == 0) return sorted_sqrts_0[0];
+		if(bin == nbin_sqrts-1) return sorted_sqrts_1[nbin_sqrts-3];
+		return (sorted_sqrts_0[bin-1] + sorted_sqrts_1[bin-1])/2;
+	}
+	void BeamMan::PrintPolarizationTables(){
+		G4cout<<"Xi Polarization Table:"<<G4endl;
+		for(int is=0;is<nbin_sqrts-2;++is){
+			G4cout<<sorted_sqrts_0[is]<<"-"<<sorted_sqrts_1[is]<<"         ";
+		}
+		G4cout<<G4endl;
+		for(int ic=0;ic<nbin_cth-2;++ic){
+			G4cout<<sorted_cth_0[ic]<<"-"<<sorted_cth_1[ic]<<" ";
+			for(int is=0;is<nbin_sqrts-2;++is){
+				G4cout<<std::setw(8)<<pol_table[ic+1][is+1]<<" ";
+			}
+			G4cout<<G4endl;
+		}
+	}
+	G4double BeamMan::GetXiPolarization(double cth,double sqrt){
+		int cth_bin = GetPolaCThBin(cth);
+		int sqrt_bin = GetPolaSqrtsBin(sqrt);
+		double cth0 = GetPolaCth(cth_bin);
+		double sqrt0 = GetPolaSqrts(sqrt_bin);
+		double p_cth_left,p_cth_right;
+		double p_sqrt_left,p_sqrt_right;
+		double cth0_left,cth0_right;
+		double sqrt0_left,sqrt0_right;
+
+		return pol_table[cth_bin][sqrt_bin];
+	}
