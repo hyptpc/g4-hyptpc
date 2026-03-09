@@ -1679,7 +1679,7 @@ DetectorConstruction::ConstructTarget()
     rot->rotateX(90.*deg);
     break;
   }
-  case 72: {
+  case 72: case 104: {
     if (gConf.Get<G4bool>("TargetVP")) {
       target_solid = new G4Box("TargetSolid",
                                target_size[1],

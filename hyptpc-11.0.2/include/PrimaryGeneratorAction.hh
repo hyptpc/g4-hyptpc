@@ -57,6 +57,7 @@ private:
   G4ParticleDefinition* m_KaonZeroS;
   G4ParticleDefinition* m_KaonStarZero;
   G4ParticleDefinition* m_Eta;
+  G4ParticleDefinition* m_Phi;
   G4ParticleDefinition* m_Hdibaryon;
   G4ParticleDefinition* m_HdibaryonS;
   G4ParticleDefinition* m_HdibaryonLL;
@@ -164,6 +165,8 @@ public:
   // E45
   void     GenerateE45ElasticPionPlus(G4Event* anEvent); //#4501
   void     GenerateE45ElasticPionMinus(G4Event* anEvent); //#4502
+  void     GenerateE104OldBeamData(G4Event* anEvent); //#10401
+  void     GenerateE104PhiPhi(G4Event* anEvent); //#10402
   // Other methods
   double   RandSin();
 };

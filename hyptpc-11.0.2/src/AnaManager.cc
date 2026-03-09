@@ -209,11 +209,13 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_next_generator   = gConf.Get<G4int>("FirstGenerator");
   m_first_generator  = gConf.Get<G4int>("FirstGenerator");
   m_second_generator = gConf.Get<G4int>("SecondGenerator");
+  m_experiment       = gConf.Get<G4int>("Experiment");
+  m_do_accep_study   = gConf.Get<G4bool>("AcceptanceStudy");
  
 #if 0
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
-  m_experiment = gConf.Get<G4int>("Experiment");
+  //m_experiment = gConf.Get<G4int>("Experiment");
   //out side less 100 mm. 10+5*x < 100 mm is pad_in_num
   pad_length_in = gConf.Get<G4double>("PadLengthIn");
   pad_length_out = gConf.Get<G4double>("PadLengthOut");
@@ -499,450 +501,7 @@ int
 AnaManager::EndOfEventAction()
 {
   event.evnum++;
-
   if(HitNum > 0){
-    /*
-    G4int c[MAX_TRACK] = {};
-
-    for(G4int i=0;i<MAX_TRACK;i++){
-      mean[i]=0.;
-      trmean[i]=0.;
-    }
-
-    G4double vtxxfit[MAX_TRACK];//read fit parameters
-    G4double vtxyfit[MAX_TRACK];//read fit parameters
-    G4double vtxzfit[MAX_TRACK];//read fit parameters
-    
-    G4double vtxpxfit[MAX_TRACK];//read fit parameters
-    // G4double vtxpyfit[MAX_TRACK];//read fit parameters
-    G4double vtxpzfit[MAX_TRACK];//read fit parameters
-    
-    for(G4int i=0;i<MAX_TRACK;i++){
-      vtxxfit[i]=-9999.9999;
-      vtxyfit[i]=-9999.9999;
-      vtxzfit[i]=-9999.9999;
-      vtxpxfit[i]=-9999.9999;
-      // vtxpyfit[i]=-9999.9999;
-      vtxpzfit[i]=-9999.9999;
-      Pz[i]=-9999.9999;
-    }
-
-    G4double x[MAX_TRACK][MAXtpctrhitNum]={{-9999.9999},{-9999.9999}};;
-    G4double z[MAX_TRACK][MAXtpctrhitNum]={{-9999.9999},{-9999.9999}};
-    G4double y[MAX_TRACK][MAXtpctrhitNum]={{-9999.9999},{-9999.9999}};
-    G4double ede[MAX_TRACK][MAXtpctrhitNum]={{0.},{0.}};
-
-    ////// shhwang position read
-    ///shhwang code
-    
-    if(tpctrNum>9){
-      G4cout<<"Error--> over the number of tracks in the TPC:"<<tpctrNum<<G4endl;
-    }
-
-    G4int sh_paID[MAX_TRACK] = {};
-    for(G4int i=0; i<HitNum; i++){
-      G4int ii=counterData[i].ntrk;
-      x[ii][c[ii]]=counterData[i].pos[0];
-      z[ii][c[ii]]=counterData[i].pos[2];
-      y[ii][c[ii]]=counterData[i].pos[1];
-      sh_paID[ii]=counterData[i].parentID;
-      ede[ii][c[ii]]=counterData[i].dedx;
-      c[ii]=c[ii]+1;
-    }
-
-    G4double test[MAX_TRACK]={-1};
-    G4double cx[MAX_TRACK]={-9999.9999};
-    G4double cz[MAX_TRACK]={-9999.9999};
-    G4double cir_x[MAX_TRACK]={-9999.9999};
-    G4double cir_z[MAX_TRACK]={-9999.9999};
-    G4double rad[MAX_TRACK]={-9999.9999};
-    G4double a_fory[MAX_TRACK]={-9999.9999};
-    G4double b_fory[MAX_TRACK]={-9999.9999};
-    G4double theta0_fory[MAX_TRACK]={-9999.9999};
-    G4int vtx_flag[MAX_TRACK]={-1};
-
-    for(G4int i=0;i<MAX_TRACK;i++){
-      cir_r[i]=-9999.9999;
-      cir_x[i]=-9999.9999;
-      cir_z[i]=-9999.9999;
-      mean[i]=-9999.9999;
-    }
-
-
-    for(G4int kk=0; kk<tpctrNum; kk++){
-      if(c[kk]>3.){
-	//	G4cout<<"start circle fit"<<G4endl;
-	// test[kk]=circleFit(x[kk],z[kk],y[kk],c[kk],&cx[kk],&cz[kk],&rad[kk],&Pz[kk],
-	// 		   &a_fory[kk], &b_fory[kk], &theta0_fory[kk]);
-	if(test[kk]!=-1.){
-	  cir_r[kk]=rad[kk];
-	  cir_x[kk]=cx[kk];
-	  cir_z[kk]=cz[kk];
-	}
-
-      }
-    }
-    G4double mom_theta[MAX_TRACK]={0.};
-
-    // calcute vtx with production points
-    for(G4int i=0;i<MAX_TRACK;i++){
-      G4double rho1 = rad[i];
-      G4double cx1 = cx[i];
-      G4double cz1 = cz[i];
-      G4double cx2 = event.hits.at("PRM")[0].Vx();
-      G4double cz2 = event.hits.at("PRM")[0].Vz();
-      G4double theta12=atan2(cz2-cz1, cx2-cx1);
-      G4double ca1=a_fory[i];
-      G4double cb1=b_fory[i];
-      G4double ct01=theta0_fory[i];
-
-
-      G4double cent_dist=sqrt(pow(cx1-cx2,2)+pow(cz1-cz2,2));
-
-      vtxxfit[i]=cos(theta12)*cent_dist+cx1;
-      vtxzfit[i]=sin(theta12)*cent_dist+cz1;
-      vtxyfit[i]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta12-ct01)+cb1;
-
-      mom_theta[i]=atan2(vtxzfit[i]-cz[i],vtxxfit[i]-cx[i])-acos(-1.)/2;
-
-      // vtxpxfit[i]=cos(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-      // vtxpzfit[i]=sin(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-
-      vtx_flag[i]=1;
-    }
-
-    ////think about parent ID
-    ////--> find the track with same parent ID
-    //// sh_
-    
-    for(G4int i=0;i<MAX_TRACK;i++){
-      for(G4int j=i;j<MAX_TRACK;j++){
-	if(i!=j && (test[i]>0 && test[j]>0)){
-	  if(sh_paID[i]==sh_paID[j] && sh_paID[i]>0. && sh_paID[j]>0.){
-	    //	    G4cout<<"vtx1"<<env_helm_field<<G4endl;
-	    G4double rho1=rad[i];
-	    G4double rho2=rad[j];
-
-	    G4double cx1=cx[i];
-	    G4double cz1=cz[i];
-	    G4double ca1=a_fory[i];
-	    G4double cb1=b_fory[i];
-	    G4double ct01=theta0_fory[i];
-
-	    G4double cx2=cx[j];
-	    G4double cz2=cz[j];
-	    G4double ca2=a_fory[j];
-	    G4double cb2=b_fory[j];
-	    G4double ct02=theta0_fory[j];
-
-
-	    G4double cent_dist=sqrt(pow(cx1-cx2,2)+pow(cz1-cz2,2));
-
-	    double point1[3]={0};
-	    double point2[3]={0};
-	    G4int k;
-
-	    if((cent_dist-(rho1+rho2))>0.){
-
-
-	      G4double theta12=atan2(cz2-cz1,cx2-cx1);
-	      G4double centr=rho1+(cent_dist-(rho1+rho2))/2;
-
-	      point1[0]=cos(theta12)*centr+cx1;
-	      point1[1]=sin(theta12)*centr+cz1;
-	      point1[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta12-ct01)+cb1;
-
-	      G4double theta21=atan2(cz1-cz2,cx1-cx2);
-	      G4double centr1=rho2+(cent_dist-(rho1+rho2))/2;
-	      point2[0]=cos(theta21)*centr1+cx2;
-	      point2[1]=sin(theta21)*centr1+cz2;
-	      point2[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta21-ct02)+cb2;
-
-	      vtxxfit[i]=point1[0];
-	      vtxzfit[i]=point1[1];
-	      vtxyfit[i]=(point1[2]+point2[2])/2.;
-	      vtxxfit[j]=point2[0];
-	      vtxzfit[j]=point2[1];
-	      vtxyfit[j]=(point1[2]+point2[2])/2.;
-	      vtx_flag[i]=2;
-	      vtx_flag[j]=2;
-	      //
-	    }else  if((cent_dist+fmin(rho1,rho2))<fmax(rho1,rho2)){
-	      if(rho1>=rho2){ //rho1>rho2
-		G4double theta12=atan2(cz2-cz1,cx2-cx1);
-		G4double centr=rho1-(rho1-cent_dist-rho2)/2; //rho1>rho2
-		point1[0]=cos(theta12)*centr+cx1;
-		point1[1]=sin(theta12)*centr+cz1;
-		point1[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta12-ct01)+cb1;
-
-		G4double theta21=atan2(cz2-cz1,cx2-cx1);
-		G4double centr1=rho2+(rho1-cent_dist-rho2)/2.; //rho1>rho2
-		point2[0]=cos(theta21)*centr1+cx2;
-		point2[1]=sin(theta21)*centr1+cz2;
-		point2[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta21-ct02)+cb2;
-		//		G4cout<<"test1"<<G4endl;
-
-	      }else if(rho2>rho1){ //rho1<rho2
-		G4double theta12=atan2(cz1-cz2,cx1-cx2);
-		G4double centr=rho2-(rho2-cent_dist-rho1)/2; //rho1<rho2
-		point1[0]=cos(theta12)*centr+cx2;
-		point1[1]=sin(theta12)*centr+cz2;
-		point1[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta12-ct02)+cb2;
-
-		G4double theta21=atan2(cz1-cz2,cx1-cx2);
-		G4double centr1=rho1+(rho2-cent_dist-rho1)/2; //rho1<rho2
-		point2[0]=cos(theta21)*centr1+cx1;
-		point2[1]=sin(theta21)*centr1+cz1;
-		point2[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta21-ct01)+cb1;
-	      }
-
-	      vtxxfit[i]=point1[0];
-	      vtxzfit[i]=point1[1];
-	      vtxyfit[i]=(point1[2]+point2[2])/2.;
-	      // vtxxfit[j]=point1[0];
-	      // vtxzfit[j]=point1[1];
-	      // vtxyfit[j]=point1[2];
-	      vtxxfit[j]=point2[0];
-	      vtxzfit[j]=point2[1];
-	      vtxyfit[j]=(point1[2]+point2[2])/2.;
-
-	      vtx_flag[i]=3;
-	      vtx_flag[j]=3;
-	    } else {
-
-	      //k = CircleIntersect(cx1,cz1,rho1,cx2,cz2,rho2,point1,point2);
-	      k = CircleIntersect(cx1,cz1,rho1,cx2,cz2,rho2,ca1,cb1,ct01,tpcData[i].tpcqq,ca2,cb2,ct02,tpcData[j].tpcqq,point1,point2);
-	      if(k == 0) {
-		G4cout << "no solution" << G4endl;
-	      }else if(k>0){
-
-
-		G4double dist1=sqrt(pow(point1[0]-tpcData[i].tpcvtxx,2)+pow(point1[1]-tpcData[i].tpcvtxz,2));
-		G4double dist2=sqrt(pow(point2[0]-tpcData[i].tpcvtxx,2)+pow(point2[1]-tpcData[i].tpcvtxz,2));
-
-		if(dist1<=dist2){//point1 is correct
-		  vtxxfit[i]=point1[0];
-		  vtxzfit[i]=point1[1];
-		  vtxyfit[i]=point1[2];
-
-		  vtxxfit[j]=point1[0];
-		  vtxzfit[j]=point1[1];
-		  vtxyfit[j]=point1[2];
-		}else if(dist1>dist2){//point1 is correct
-		  vtxxfit[i]=point2[0];
-		  vtxzfit[i]=point2[1];
-		  vtxyfit[i]=point2[2];
-
-		  vtxxfit[j]=point2[0];
-		  vtxzfit[j]=point2[1];
-		  vtxyfit[j]=point2[2];
-		}
-		vtx_flag[i]=4;
-		vtx_flag[j]=4;
-	      }
-
-	      mom_theta[i]=atan2(vtxzfit[i]-cz[i],vtxxfit[i]-cx[i])-acos(-1.)/2;
-	      mom_theta[j]=atan2(vtxzfit[j]-cz[j],vtxxfit[j]-cx[j])-acos(-1.)/2;
-
-
-	      // std::cout<<"x01="<<x[i][0]<<", x2="<<x[j][0]<<std::endl;
-	      // std::cout<<"y01="<<y[i][0]<<", y2="<<y[j][0]<<std::endl;
-	      // std::cout<<"z01="<<z[i][0]<<", z2="<<z[j][0]<<std::endl;
-
-	      // std::cout<<"vtx fit="<<vtxxfit[i]<<", true vtx="<<tpcData[i].tpcvtxx<<std::endl;
-	      // std::cout<<"vty fit="<<vtxyfit[i]<<", true vty="<<tpcData[i].tpcvtxy<<std::endl;
-	      // std::cout<<"vtz fit="<<vtxzfit[i]<<", true vtz="<<tpcData[i].tpcvtxz<<std::endl;
-	      //getchar();
-
-
-	      // vtxpxfit[i]=cos(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-	      // vtxpzfit[i]=sin(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-	      // vtxpxfit[j]=cos(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-	      // vtxpzfit[j]=sin(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-	      //	    G4cout<<"bfield:"<<env_helm_field<<G4endl;
-
-
-	    }
-
-	    ///from vertex particle, but it need more than 2
-	  }else if(sh_paID[i]==sh_paID[j] && sh_paID[i]==0. && sh_paID[j]==0.){
-	    //	    G4cout<<"vtx2"<<env_helm_field<<G4endl;
-	    G4double rho1=rad[i];
-	    G4double rho2=rad[j];
-
-	    G4double cx1=cx[i];
-	    G4double cz1=cz[i];
-	    G4double ca1=a_fory[i];
-	    G4double cb1=b_fory[i];
-	    G4double ct01=theta0_fory[i];
-
-	    G4double cx2=cx[j];
-	    G4double cz2=cz[j];
-	    G4double ca2=a_fory[j];
-	    G4double cb2=b_fory[j];
-	    G4double ct02=theta0_fory[j];
-
-	    G4double cent_dist=sqrt(pow(cx1-cx2,2)+pow(cz1-cz2,2));
-
-	    double point1[3]={0};
-	    double point2[3]={0};
-	    G4int k;
-
-	    if((cent_dist-(rho1+rho2))>0.){
-
-
-	      G4double theta12=atan2(cz2-cz1,cx2-cx1);
-	      G4double centr=rho1+(cent_dist-(rho1+rho2))/2;
-
-	      point1[0]=cos(theta12)*centr+cx1;
-	      point1[1]=sin(theta12)*centr+cz1;
-	      point1[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta12-ct01)+cb1;
-
-	      G4double theta21=atan2(cz1-cz2,cx1-cx2);
-	      G4double centr1=rho2+(cent_dist-(rho1+rho2))/2;
-	      point2[0]=cos(theta21)*centr1+cx2;
-	      point2[1]=sin(theta21)*centr1+cz2;
-	      point2[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta21-ct02)+cb2;
-
-	      vtxxfit[i]=point1[0];
-	      vtxzfit[i]=point1[1];
-	      vtxyfit[i]=(point1[2]+point2[2])/2.;
-	      vtxxfit[j]=point1[0];
-	      vtxzfit[j]=point1[1];
-	      vtxyfit[j]=(point1[2]+point2[2])/2.;
-
-	      vtx_flag[i]=5;
-	      vtx_flag[j]=5;
-	    }else  if((cent_dist+fmin(rho1,rho2))<fmax(rho1,rho2)){
-
-	      if(rho1>=rho2){ //rho1>rho2
-		G4double theta12=atan2(cz2-cz1,cx2-cx1);
-		G4double centr=rho1-(rho1-cent_dist-rho2)/2; //rho1>rho2
-		point1[0]=cos(theta12)*centr+cx1;
-		point1[1]=sin(theta12)*centr+cz1;
-		point1[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta12-ct01)+cb1;
-
-		G4double theta21=atan2(cz2-cz1,cx2-cx1);
-		G4double centr1=rho2+(rho1-cent_dist-rho2)/2.; //rho1>rho2
-		point2[0]=cos(theta21)*centr1+cx2;
-		point2[1]=sin(theta21)*centr1+cz2;
-		point2[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta21-ct02)+cb2;
-		//		G4cout<<"test1"<<G4endl;
-
-	      }else if(rho2>rho1){ //rho1<rho2
-		G4double theta12=atan2(cz1-cz2,cx1-cx2);
-		G4double centr=rho2-(rho2-cent_dist-rho1)/2; //rho1<rho2
-		point1[0]=cos(theta12)*centr+cx2;
-		point1[1]=sin(theta12)*centr+cz2;
-		point1[2]=-1.*tpcData[j].tpcqq*ca2*rho2*(theta12-ct02)+cb2;
-
-		G4double theta21=atan2(cz1-cz2,cx1-cx2);
-		G4double centr1=rho1+(rho2-cent_dist-rho1)/2; //rho1<rho2
-		point2[0]=cos(theta21)*centr1+cx1;
-		point2[1]=sin(theta21)*centr1+cz1;
-		point2[2]=-1.*tpcData[i].tpcqq*ca1*rho1*(theta21-ct01)+cb1;
-	      }
-
-	      vtxxfit[i]=point1[0];
-	      vtxzfit[i]=point1[1];
-	      vtxyfit[i]=(point1[2]+point2[2])/2.;
-	      vtxxfit[j]=point2[0];
-	      vtxzfit[j]=point2[1];
-	      vtxyfit[j]=(point1[2]+point2[2])/2.;
-	      vtx_flag[i]=6;
-	      vtx_flag[j]=6;
-	    } else {
-
-	      //k = CircleIntersect(cx1,cz1,rho1,cx2,cz2,rho2,point1,point2);
-	      k = CircleIntersect(cx1,cz1,rho1,cx2,cz2,rho2,ca1,cb1,ct01,tpcData[i].tpcqq,ca2,cb2,ct02,tpcData[j].tpcqq,point1,point2);
-	      if(k == 0) {
-		G4cout << "no solution" << G4endl;
-	      }else if(k>0){
-
-		G4double dist1=sqrt(pow(point1[0]-tpcData[i].tpcvtxx,2)+pow(point1[1]-tpcData[i].tpcvtxz,2));
-		G4double dist2=sqrt(pow(point2[0]-tpcData[i].tpcvtxx,2)+pow(point2[1]-tpcData[i].tpcvtxz,2));
-
-		if(dist1<=dist2){//point1 is correct
-		  vtxxfit[i]=point1[0];
-		  vtxzfit[i]=point1[1];
-		  vtxyfit[i]=point1[2];
-
-		  vtxxfit[j]=point1[0];
-		  vtxzfit[j]=point1[1];
-		  vtxyfit[j]=point1[2];
-		}else if(dist1>dist2){//point1 is correct
-		  vtxxfit[i]=point2[0];
-		  vtxzfit[i]=point2[1];
-		  vtxyfit[i]=point2[2];
-
-		  vtxxfit[j]=point2[0];
-		  vtxzfit[j]=point2[1];
-		  vtxyfit[j]=point2[2];
-		}
-		vtx_flag[i]=7;
-		vtx_flag[j]=7;
-	      }
-
-	      mom_theta[i]=atan2(vtxzfit[i]-cz[i],vtxxfit[i]-cx[i])-acos(-1.)/2;
-	      mom_theta[j]=atan2(vtxzfit[j]-cz[j],vtxxfit[j]-cx[j])-acos(-1.)/2;
-
-	      // vtxpxfit[i]=cos(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-	      // vtxpzfit[i]=sin(mom_theta[i])*(cir_r[i])*(-0.299792458)*(env_helm_field)*(tpcData[i].tpcqq);
-	      // vtxpxfit[j]=cos(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-	      // vtxpzfit[j]=sin(mom_theta[j])*(cir_r[j])*(-0.299792458)*(env_helm_field)*(tpcData[j].tpcqq);
-	      //	    G4cout<<"env_helm_field:"<<env_helm_field<<G4endl;
-	    }
-	  }
-	}
-      }
-    }
-    
-
-    ///////////////////////vertex momentum for P_t
-    G4int trn[MAX_TRACK];
-    //// trancated mean --> now mean
-    for(G4int i=0;i<tpctrNum;i++){
-      trn[i]=c[i]*(truncated_mean_cut);
-      G4double trtmp[MAX_TRACK]={0.000000000};
-      for(G4int iii=0;iii<MAX_TRACK;iii++){
-	trtmp[iii]=0.000000000;
-      }
-
-      for(G4int l=0;l<trn[i];l++){ //--> loop truncated number
-	for(G4int k=0;k<c[i];k++){
-	  if(l==0){
-	    if(trtmp[l]<ede[i][k]){
-	      trtmp[l]=ede[i][k];
-	    }
-	  }else if(l>0){
-	    if(trtmp[l-1]>ede[i][k]){
-	      if(trtmp[l]<ede[i][k]){
-		trtmp[l]=ede[i][k];
-	      }
-	    }
-	  }
-
-	}//--loop end
-      }
-      for(G4int j=0;j<c[i];j++){
-	if(trn[i]!=0.){
-	  G4int sh_ch=1;
-	  for(G4int jj=0;jj<trn[i];jj++){
-	    if(ede[i][j]==trtmp[jj]){
-	      sh_ch=-1;
-	    }
-	  }
-	  if(sh_ch>0){
-	    trmean[i]=trmean[i]+ede[i][j]/(c[i]-trn[i]);
-	  }
-	}else if(trn[i]==0.){
-	  trmean[i]=trmean[i]+ede[i][j]/(c[i]-trn[i]);
-	}
-
-      }
-      //      }
-    }
-    */
     if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
     }else{
@@ -1034,96 +593,99 @@ AnaManager::EndOfEventAction()
     }
   }//trigger parts
 
-
-  // -- trigger check -----
   G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
-  if (m_do_combine) {  // combine beam and event
-    // -- beam ---
-    if (m_next_generator == m_first_generator) {
-      // -- BH2 -----
-      const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
-      std::set<G4int> bh2_seg_unique;
-      for (const auto &it : event.hits.at("BH2"))
-	if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
-	  bh2_seg_unique.insert(it.GetMother(1));
-      G4int bh2_multi = bh2_seg_unique.size();
-
-      // -- BAC -----
-      G4bool is_kaon_at_bac = false;
-      for (const auto &it : event.hits.at("BAC")) {
-	// if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
-	// -- calc beta -----
-	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
-	G4double mass = particle->GetPDGMass(); // MeV/c^2
-	G4double mom  = it.P();                 // MeV/c
-	G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
-      }
-      
-      if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
-    }
+  // -- trigger check -----
+  if(m_do_accep_study){
     
-    // -- event ---
-    else {
-      // -- trigger condition -----
-      G4int tpc_multi_threshold = 6;
-      G4double htof_threshold = 3.0; // MeV
-      const std::vector<G4int> &forward_seg = m_forward_seg_wide;
-      G4int htof_multi_threshold = 2;
-      G4int n_detected_track_threshold = 2;
-      // -- TPC -----
-      G4int n_check_list = m_tpc_check_list.at(m_next_generator).size() - 1;
-      std::vector<std::set<G4int>> layer_id_unique(n_check_list);
-      for (const auto &it : event.hits.at("TPC")) {
+    if (m_do_combine) {  // combine beam and event
+      // -- beam ---
+      if (m_next_generator == m_first_generator) {
+	// -- BH2 -----
+	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
+	std::set<G4int> bh2_seg_unique;
+	for (const auto &it : event.hits.at("BH2"))
+	  if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
+	    bh2_seg_unique.insert(it.GetMother(1));
+	G4int bh2_multi = bh2_seg_unique.size();
+
+	// -- BAC -----
+	G4bool is_kaon_at_bac = false;
+	for (const auto &it : event.hits.at("BAC")) {
+	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
+	  // -- calc beta -----
+	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
+	  G4double mass = particle->GetPDGMass(); // MeV/c^2
+	  G4double mom  = it.P();                 // MeV/c
+	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
+	  if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
+	}
+      
+	if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
+      }
+    
+      // -- event ---
+      else {
+	// -- trigger condition -----
+	G4int tpc_multi_threshold = 6;
+	G4double htof_threshold = 3.0; // MeV
+	const std::vector<G4int> &forward_seg = m_forward_seg_wide;
+	G4int htof_multi_threshold = 2;
+	G4int n_detected_track_threshold = 2;
+	// -- TPC -----
+	G4int n_check_list = m_tpc_check_list.at(m_next_generator).size() - 1;
+	std::vector<std::set<G4int>> layer_id_unique(n_check_list);
+	for (const auto &it : event.hits.at("TPC")) {
+	  for (G4int i = 0; i < n_check_list; i++) {
+	    if (it.GetPdgCode() == m_tpc_check_list.at(m_next_generator)[i+1] 
+		&& (m_tpc_check_list.at(m_next_generator)[0] == 0 || it.GetMother(0) == m_focus_parent_id) 
+		&& (0 <= it.GetMother(1) && it.GetMother(1) < 32)
+		) layer_id_unique[i].insert(it.GetMother(1));
+	  }
+	}
+
+	G4int n_detected_track = 0;
 	for (G4int i = 0; i < n_check_list; i++) {
-	  if (it.GetPdgCode() == m_tpc_check_list.at(m_next_generator)[i+1] 
-	      && (m_tpc_check_list.at(m_next_generator)[0] == 0 || it.GetMother(0) == m_focus_parent_id) 
-	      && (0 <= it.GetMother(1) && it.GetMother(1) < 32)
-	      ) layer_id_unique[i].insert(it.GetMother(1));
+	  if ((G4int) layer_id_unique[i].size() >= tpc_multi_threshold) n_detected_track++;
 	}
-      }
 
-      G4int n_detected_track = 0;
-      for (G4int i = 0; i < n_check_list; i++) {
-	if ((G4int) layer_id_unique[i].size() >= tpc_multi_threshold) n_detected_track++;
-      }
-
-      // -- HTOF -----
-      const auto& htof_size = gSize.GetSize("HtofSeg")*CLHEP::mm;
-      std::set<G4int> htof_seg_unique;
-      G4bool is_proton_forward_htof = false;
-      for (const auto &it : event.hits.at("HTOF")) {
-	if (it.GetWeight() > m_edep_threshold*htof_size.z()/10.0) htof_seg_unique.insert(it.GetMother(1));
-	if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
-      }
-      G4int htof_multi = htof_seg_unique.size();
-      // -- Cherenkov radiation at KVC -----
-      G4bool hit_kvc_anyseg = false;
-      for (const auto &it : event.hits.at("KVC")) {
-	// -- calc beta -----
-	G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
-	G4double mass = particle->GetPDGMass(); // MeV/c^2
-	G4double mom  = it.P();                 // MeV/c
-	G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	if (beta > 1.0/m_refractive_index_kvc) hit_kvc_anyseg = true;
-      }
-      // -- check trigger -------
-      m_trig_flag_int = 0;
-
-      G4bool trig_w_tpc  = m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg;
-      G4bool trig_wo_tpc = m_kaon_beam_flag && !hit_kvc_anyseg;
-      G4bool trig_use    = m_require_tpc_mp ? trig_w_tpc : trig_wo_tpc;
-      
-      if ( trig_use ) {
-	if (htof_multi >= htof_multi_threshold && is_proton_forward_htof) {
-     	  m_trig_flag_int = 3; // HTOF Mp2 && Forward Proton
-	} else if (htof_multi >= htof_multi_threshold) {
-	  m_trig_flag_int = 1; // HTOF Mp2
-	} else if (is_proton_forward_htof) {
-	  m_trig_flag_int = 2; // Forward Proton
+	// -- HTOF -----
+	const auto& htof_size = gSize.GetSize("HtofSeg")*CLHEP::mm;
+	std::set<G4int> htof_seg_unique;
+	G4bool is_proton_forward_htof = false;
+	for (const auto &it : event.hits.at("HTOF")) {
+	  if (it.GetWeight() > m_edep_threshold*htof_size.z()/10.0) htof_seg_unique.insert(it.GetMother(1));
+	  if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
 	}
-      }
+	G4int htof_multi = htof_seg_unique.size();
+	// -- Cherenkov radiation at KVC -----
+	G4bool hit_kvc_anyseg = false;
+	for (const auto &it : event.hits.at("KVC")) {
+	  // -- calc beta -----
+	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
+	  G4double mass = particle->GetPDGMass(); // MeV/c^2
+	  G4double mom  = it.P();                 // MeV/c
+	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
+	  if (beta > 1.0/m_refractive_index_kvc) hit_kvc_anyseg = true;
+
+	}
+	// -- check trigger -------
+	m_trig_flag_int = 0;
+
+	G4bool trig_w_tpc  = m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg;
+	G4bool trig_wo_tpc = m_kaon_beam_flag && !hit_kvc_anyseg;
+	G4bool trig_use    = m_require_tpc_mp ? trig_w_tpc : trig_wo_tpc;
       
+	if ( trig_use ) {
+	  if (htof_multi >= htof_multi_threshold && is_proton_forward_htof) {
+	    m_trig_flag_int = 3; // HTOF Mp2 && Forward Proton
+	  } else if (htof_multi >= htof_multi_threshold) {
+	    m_trig_flag_int = 1; // HTOF Mp2
+	  } else if (is_proton_forward_htof) {
+	    m_trig_flag_int = 2; // Forward Proton
+	  }
+	}
+      
+      }
     }
   }
   
@@ -1134,7 +696,14 @@ AnaManager::EndOfEventAction()
     G4int nhit_tgt = event.hits.at("TGT").size();
     if (nhit_tgt > 0) {
       auto p = event.hits.at("TGT")[0];
-      if (p.GetPdgCode() == -321 ) { // select K^-
+      bool particle_pass = false;
+      if(m_experiment == 72){
+	if (p.GetPdgCode() == -321 )particle_pass = true;// select K^-
+      }
+      else if(m_experiment == 104){
+	if (p.GetPdgCode() == -2212 )particle_pass = true;// select anti-proton
+      }
+      if ( particle_pass ) { 
 	m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
 	m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
 	G4ParticleDefinition *particle = particle_table->FindParticle(p.GetPdgCode());

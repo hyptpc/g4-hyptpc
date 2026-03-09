@@ -66,12 +66,22 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   // }
 
   // -- cal effective thickness -----
+  static const G4int experiment = gConf.Get<G4int>("Experiment");
   if (prePVName == "TargetPV") {
     G4int generator = gAnaMan.GetNextGenerator();
-    if (generator == 7201 && particleName == "kaon-") {
-      G4double effective_thickness = gAnaMan.GetEffectiveThickness();
-      if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
-      else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+    if(experiment == 72){
+      if (generator == 7201 && particleName == "kaon-") {
+	G4double effective_thickness = gAnaMan.GetEffectiveThickness();
+	if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
+	else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+      }
+    }
+    else if(experiment == 104){
+      if (generator == 10401 && particleName == "anti_proton") {
+	G4double effective_thickness = gAnaMan.GetEffectiveThickness();
+	if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
+	else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+      }
     }
   }
   

@@ -243,6 +243,7 @@ private:
   G4int m_on_off_helm;
   G4int m_pad_config;
   G4int m_experiment;
+  G4bool m_do_accep_study;
 
   G4double m_effective_thickness;
   G4double m_mom_kaon_lab;
@@ -329,7 +330,9 @@ private:
     { 7205, {1, 2212, -211} }, // pi0 Sigma0
     { 7206, {0, -211, +211, 2212} }, // pi- Sigma+
     { 7207, {0, -321, 2212} }, // K p
-    { 7208, {1, +211, -211} }  // k0 n
+    { 7208, {1, +211, -211} }, // k0 n
+    
+    { 10402, {1, +321, -321, +321, -321}} //Phi Phi
   };
   const std::vector<G4int> m_forward_seg_narrow{16, 17, 18, 19, 20, 21, 22};
   const std::vector<G4int> m_forward_seg_wide{10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
