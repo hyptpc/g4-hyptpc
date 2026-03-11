@@ -17,7 +17,7 @@ World		4000	3000	8000
 ### Counters
 Bh2Seg		14.0	100.0	5.0
 Bh2SegWidth	14 14 14 14 14 14 14 14 14 14 14 14 14 14 14
-BacRadiator	115	115	30.0
+BacRadiator	115	115	37.0
 KvcRadiator	26	120	20.0
 CvcSeg		100.0	1500.0  30.0
 Sac3Radiator	400.0	200.0   125.0
