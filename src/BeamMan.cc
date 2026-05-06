@@ -233,6 +233,7 @@ BeamMan::Initialize(void)
 	m_kmkpl_array.clear();
 	G4int generator = gConf.Get<G4int>("Generator");
 	if(generator == 25) return true;
+	if(generator == 10025) return true;
 	m_is_vi = (gConf.Get<G4int>("Generator") == 10);
 	if (abs(generator) == 135 or abs(generator) == 493 or abs(generator) == 938){
 //		m_is_k18 = 1;
@@ -754,8 +755,18 @@ BeamMan::Initialize(void)
 			if(**XiResidualsMultiplicity > 0) continue;
 			if(abs(**KFXiProductionVtx_z+143)>10 or abs(**KFXiProductionVtx_x)> 15 or abs(**KFXiProductionVtx_y)> 10) continue;
 			// For Accurate Xi Production momentum
-			G4ThreeVector TVKm((*KmMom_x)->at(0), (*KmMom_y)->at(0), (*KmMom_z)->at(0));
-			G4ThreeVector TVKp((*KpMom_x)->at(0), (*KpMom_y)->at(0), (*KpMom_z)->at(0));	
+			double ub = (*ubTPC)->at(0);
+			double vb = (*vbTPC)->at(0);
+			double nb = hypot(hypot(1, ub), vb);
+			double pb = (*pHS)->at(0);
+			double pzb = pb / nb;
+			G4ThreeVector TVKm(pzb * ub, pzb * vb, pzb);
+			double us = (*usTPC)->at(0);
+			double vs = (*vsTPC)->at(0);
+			double ns = hypot(hypot(1, us), vs);
+			double ps = (*pTPCKurama)->at(0);
+			double pzs = ps / ns;
+			G4ThreeVector TVKp(pzs * us, pzs * vs, pzs);
 			MMVertex MMVert;
 			double PxXi = **KFXiProductionVtxMom_x;
 			double PyXi = **KFXiProductionVtxMom_y;
@@ -813,22 +824,31 @@ BeamMan::Initialize(void)
 			if ((*MissMass)->size() == 0)
 				continue;
 			double mm = (*MissMass)->at(0);
-			if (abs(mm - 1.321) > 0.1)//loose Xi selection, 
+			if (abs(mm - 1.321) > 0.13)//loose Xi selection, 
 				continue;
-			if (!(**Xiflag))
-				continue;
-			if(isnan(**KFXiProductionVtx_z) or **KFXiProductionVtx_z==0)
-				continue;
-			if(isnan(**KFXiProductionVtxMom_z) or **KFXiProductionVtxMom_z==0)
-				continue;
+			if((*kflagTPCKurama)->at(0) == 0) continue;
+			if (!(**Xiflag)) continue;
+			if(isnan(**KFXiProductionVtx_z) or **KFXiProductionVtx_z==0) continue;
+			if(isnan(**KFXiProductionVtxMom_z) or **KFXiProductionVtxMom_z==0) continue;
+			if(abs(**KFXiProductionVtx_z+143)>10 or abs(**KFXiProductionVtx_x)> 15 or abs(**KFXiProductionVtx_y)> 10) continue;
 			HMCXi HMCXiVert;
 			HMCXiVert.runnum = runnum;
 			HMCXiVert.evnum = evnum;
 			HMCXiVert.x = **KFXiProductionVtx_x;
 			HMCXiVert.y = **KFXiProductionVtx_y;
 			HMCXiVert.z = **KFXiProductionVtx_z;
-			G4ThreeVector TVKm((*KmMom_x)->at(0), (*KmMom_y)->at(0), (*KmMom_z)->at(0));
-			G4ThreeVector TVKp((*KpMom_x)->at(0), (*KpMom_y)->at(0), (*KpMom_z)->at(0));
+			double ub = (*ubTPC)->at(0);
+			double vb = (*vbTPC)->at(0);
+			double nb = hypot(hypot(1, ub), vb);
+			double pb = (*pHS)->at(0);
+			double pzb = pb / nb;
+			G4ThreeVector TVKm(pzb * ub, pzb * vb, pzb);
+			double us = (*usTPC)->at(0);
+			double vs = (*vsTPC)->at(0);
+			double ns = hypot(hypot(1, us), vs);
+			double ps = (*pTPCKurama)->at(0);
+			double pzs = ps / ns;
+			G4ThreeVector TVKp(pzs * us, pzs * vs, pzs);
 			HMCXiVert.KMoms.push_back(TVKm);
 			HMCXiVert.KMoms.push_back(TVKp);
 			
@@ -978,7 +998,7 @@ BeamMan::Initialize(void)
 		cth_1s.push_back(-1.0);
 		sqrts_0s.push_back(0);
 		sqrts_1s.push_back(999);
-		pols.push_back(0.0);
+		pols.push_back(pol);
 	}
 	else{
 		TFile* pol_file = new TFile(PolarizationFile);

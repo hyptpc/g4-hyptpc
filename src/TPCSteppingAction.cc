@@ -112,8 +112,8 @@ TPCSteppingAction::UserSteppingAction( const G4Step* theStep )
 		auto CreationProcess = theTrack->GetCreatorProcess()->GetProcessName();
 //		G4cout<<CreationProcess<<G4endl;
 		if(CreationProcess != "Decay"){
-			theTrack->SetTrackStatus( fStopAndKill );
-			return; 
+			//theTrack->SetTrackStatus( fStopAndKill );
+			//return; 
 		}
 		if(NStep > 2000){
 			theTrack->SetTrackStatus( fStopAndKill );
@@ -125,11 +125,11 @@ TPCSteppingAction::UserSteppingAction( const G4Step* theStep )
 		return; 
 	}
 	if( particleName == "e-" ) { 
-		theTrack->SetTrackStatus( fStopAndKill );
+		//theTrack->SetTrackStatus( fStopAndKill );
 		return; 
 	}
 	if( particleName == "e+" ) { 
-		theTrack->SetTrackStatus( fStopAndKill );
+		//theTrack->SetTrackStatus( fStopAndKill );
 		return; 
 	}
 	if( particleName == "nu_mu" ) { 

@@ -57,6 +57,10 @@ private:
   G4ParticleDefinition* m_XiMinus;
   G4ParticleDefinition* m_Xi1530Minus;
   G4ParticleDefinition* m_XiZero;
+  G4ParticleDefinition* m_MuonPlus;
+  G4ParticleDefinition* m_MuonMinus;
+  G4ParticleDefinition* m_ElectronPlus;
+  G4ParticleDefinition* m_ElectronMinus;
   G4ParticleDefinition* m_PionPlus;
   G4ParticleDefinition* m_PionMinus;
   G4ParticleDefinition* m_PionZero;
@@ -185,6 +189,7 @@ public:
 
   void     GenerateTPCXi0nUniform(G4Event* anEvent);
   void     GenerateTPCLLUniform(G4Event* anEvent);
+  void     GenerateKaonPlusDecayFromSDCOut( G4Event* anEvent ); //10025
   
   void     GenerateTPCXiKmKpProton(G4Event* anEvent);//1001321938
   void     GenerateKuramaPKmKpXiUniformProton( G4Event* anEvent ); //#1321938

@@ -98,6 +98,10 @@ TPCPrimaryGeneratorAction::TPCPrimaryGeneratorAction( void )
     m_XiMinus( particleTable->FindParticle( "xi-" ) ),
     m_Xi1530Minus( particleTable->FindParticle( "xi(1530)-" ) ),
     m_XiZero( particleTable->FindParticle( "xi0" ) ),
+    m_MuonPlus( particleTable->FindParticle( "mu+" ) ),
+    m_MuonMinus( particleTable->FindParticle( "mu-" ) ),
+    m_ElectronPlus( particleTable->FindParticle( "e+" ) ),
+    m_ElectronMinus( particleTable->FindParticle( "e-" ) ),
     m_PionPlus( particleTable->FindParticle( "pi+" ) ),
     m_PionMinus( particleTable->FindParticle( "pi-" ) ),
     m_PionZero( particleTable->FindParticle( "pi0" ) ),
@@ -338,6 +342,7 @@ TPCPrimaryGeneratorAction::GeneratePrimaries( G4Event* anEvent )
   case -1321139: GenerateKuramaPKmKpXiPim( anEvent ); break;
   case 4201: GenerateTPCXi0nUniform( anEvent ); break;
   case 4202: GenerateTPCLLUniform( anEvent ); break;
+  case 10025: GenerateKaonPlusDecayFromSDCOut( anEvent ); break;
   default:
     G4cerr << " * Generator number error : " << m_generator << G4endl;
     break;
@@ -745,6 +750,10 @@ TPCPrimaryGeneratorAction::GenerateUniformKaonPlus( G4Event* anEvent )
   G4double Energy_k,  mom_kp_x, mom_kp_y, mom_kp_z;
 	//GetPDGMass -> Returns in MeV.
   //angle
+	double BeamAngle = gConf.Get<G4double> ("BeamAngle");
+	G4ThreeVector beam_x(cos(BeamAngle/180.*acos(-1)),0,-sin(BeamAngle/180.*acos(-1)));
+	G4ThreeVector beam_y(0,1,0);
+	G4ThreeVector beam_z(sin(BeamAngle/180.*acos(-1)),0,cos(BeamAngle/180.*acos(-1)));
   G4double phi=G4RandFlat::shoot(0.,2.)*acos(-1);
   G4double mom_kp=G4RandFlat::shoot(0.40,2.0)*GeV;
 	double cos_theta = G4RandFlat::shoot(sqrt(3)/2,1);
@@ -753,8 +762,10 @@ TPCPrimaryGeneratorAction::GenerateUniformKaonPlus( G4Event* anEvent )
   mom_kp_x = mom_kp*sin(theta)*cos(phi);
   mom_kp_y = mom_kp*sin(theta)*sin(phi);
   mom_kp_z = mom_kp*cos(theta);
+	G4ThreeVector mom_vec_kp = mom_kp_x*beam_x + mom_kp_y*beam_y + mom_kp_z*beam_z;
   Energy_k=sqrt(pow(mom_kp,2)+pow(m_KaonPlus->GetPDGMass(),2));
 
+	//mom_vec_kp = G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z);
   G4double rn_vtx=-1;  G4double rn_vtz=-1;
   G4double vtx=0;  G4double vty=0;   G4double vtz=0;
   if( gConf.Get<G4int>("Experiment") == 45. ){
@@ -782,7 +793,8 @@ TPCPrimaryGeneratorAction::GenerateUniformKaonPlus( G4Event* anEvent )
 	// pi- //
   //Energy_p=sqrt(pow(mom_p,2)+pow(m_PionMinus->GetPDGMass()/GeV,2));
   m_particle_gun->SetParticleDefinition(m_KaonPlus);
-  m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
+  //m_particle_gun->SetParticleMomentumDirection(G4ThreeVector(mom_kp_x,mom_kp_y,mom_kp_z));
+  m_particle_gun->SetParticleMomentumDirection(mom_vec_kp);
   m_particle_gun->SetParticleEnergy((Energy_k - m_KaonPlus->GetPDGMass()));
   m_particle_gun->SetParticlePosition(G4ThreeVector(vtx,vty,vtz));
   m_particle_gun->GeneratePrimaryVertex( anEvent );
@@ -6069,6 +6081,35 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 	auto MomKm=	m_mm_vert->Moms[0];
 	auto MomKp=	m_mm_vert->Moms[1];
 	auto MomXi=	m_mm_vert->Moms[2];
+	
+  int EvConf = gConf.Get<G4int>("EvConf");//If conf == 1, KpXi will be randomly rotated along the beam.
+  if(EvConf == 1){
+    double phi = G4RandFlat::shoot(-acos(-1),acos(-1));
+    G4ThreeVector beam_z = MomKm.unit();
+    G4ThreeVector beam_y = (MomKp.cross(MomXi)).unit();
+    G4ThreeVector beam_x = beam_z.cross(beam_y);// x y definition may be inverted, but anyway. We randomly rotate with phi. No matter which direction is x or y.
+
+    double MomKp_z = MomKp.dot(beam_z);
+    double MomKp_x = MomKp.dot(beam_x);
+    double MomKp_y = MomKp.dot(beam_y);
+    double MomKp_cth = MomKp_z/MomKp.mag();
+    double MomKp_sth = sqrt(1 - MomKp_cth*MomKp_cth);
+    double MomKp_phi = atan2(MomKp_y,MomKp_x);
+
+    MomKp = (MomKp_cth * beam_z + MomKp_sth*cos(MomKp_phi + phi) * beam_x + MomKp_sth*sin(MomKp_phi +  phi) * beam_y)*MomKp.mag();
+
+    double MomXi_z = MomXi.dot(beam_z);
+    double MomXi_x = MomXi.dot(beam_x);
+    double MomXi_y = MomXi.dot(beam_y);
+    double MomXi_cth = MomXi_z/MomXi.mag();
+    double MomXi_sth = sqrt(1 - MomXi_cth*MomXi_cth);
+    double MomXi_phi = atan2(MomXi_y,MomXi_x);
+
+    MomXi = (MomXi_cth * beam_z + MomXi_sth*cos(MomXi_phi + phi) * beam_x + MomXi_sth*sin(MomXi_phi +  phi) * beam_y)*MomXi.mag();
+  }
+
+
+
 	gAnaMan.SetMMVertex(m_mm_vert);
 	double KmEnergy = hypot(KaonPlusMass,MomKm.mag()) - KaonPlusMass;
 	double KpEnergy = hypot(KaonPlusMass,MomKp.mag()) - KaonPlusMass;
@@ -6105,7 +6146,7 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 	double cth_KmKp = TVKmCM.unit().dot(TVKpCM.unit());
   double PolaXi = (double)gBeam.GetXiPolarization(cth_KmKp,sqrts_KpXi);
   gTrackBuffer.SetPolarization(PolaXi,0);
-	
+
   auto SpinXi = MomKm.cross(MomKp);
 	SpinXi = SpinXi*(1./SpinXi.mag());
 	
@@ -6118,20 +6159,20 @@ TPCPrimaryGeneratorAction::GenerateTPCXiKmKp(G4Event* anEvent){
 	gTrackBuffer.SetMomentum(MomXi,0);
 	gTrackBuffer.SetVertexMomentum(MomXi,0);
 	gAnaMan.SetNumberOfPrimaryParticle( 3 );
-	gAnaMan.SetPrimaryParticle(0,MomKm,KaonPlusMass,KaonMinusID);
-	gAnaMan.SetPrimaryParticle(1,MomKp,KaonPlusMass,KaonPlusID);
+	gAnaMan.SetPrimaryParticle(0,MomKp,KaonPlusMass,KaonPlusID);
+	gAnaMan.SetPrimaryParticle(1,MomKm,KaonPlusMass,KaonMinusID);
 	gAnaMan.SetPrimaryParticle(2,MomXi,XiMinusMass,XiMinusID);
-	
-	m_particle_gun->SetParticleDefinition( m_sKaonPlus );
-	m_particle_gun->SetParticleEnergy(KmEnergy * GeV);
-	m_particle_gun->SetParticlePosition(gen_pos );
-	m_particle_gun->SetParticleMomentumDirection(MomKm );
-  m_particle_gun->GeneratePrimaryVertex( anEvent );
 	
 	m_particle_gun->SetParticleDefinition( m_sKaonPlus );
 	m_particle_gun->SetParticleEnergy(KpEnergy * GeV);
 	m_particle_gun->SetParticlePosition(gen_pos );
 	m_particle_gun->SetParticleMomentumDirection(MomKp );
+  m_particle_gun->GeneratePrimaryVertex( anEvent );
+	
+	m_particle_gun->SetParticleDefinition( m_sKaonPlus );
+	m_particle_gun->SetParticleEnergy(KmEnergy * GeV);
+	m_particle_gun->SetParticlePosition(gen_pos );
+	m_particle_gun->SetParticleMomentumDirection(MomKm );
   m_particle_gun->GeneratePrimaryVertex( anEvent );
 
 	m_particle_gun->SetParticleDefinition( m_XiMinus );
@@ -6995,6 +7036,74 @@ TPCPrimaryGeneratorAction::GenerateTPCLLUniform(G4Event* anEvent){
   m_particle_gun->GeneratePrimaryVertex( anEvent );
 
 }
+//10025
+void
+TPCPrimaryGeneratorAction::GenerateKaonPlusDecayFromSDCOut( G4Event* anEvent){
+  G4double mom_kp=G4RandFlat::shoot(0.9,1.5)*GeV;
+  TLorentzVector LV_Kp(0,0,mom_kp,hypot(mom_kp,m_KaonPlus->GetPDGMass()));
+  double posKurama = gGeom.GetLocalZ("KURAMA");
+  double posZMin = gGeom.GetLocalZ("SDC4-X2") + posKurama; 
+  double posZMax = gGeom.GetLocalZ("TOF-UX") + posKurama  + 300; 
+  G4double posZ = G4RandFlat::shoot(posZMin,posZMax);
+  G4ThreeVector gen_pos(0,0,posZ);
+  G4ThreeVector gen_mom(0,0,mom_kp);
+  gTrackBuffer.SetTrack(0,-1,m_KaonPlus->GetPDGEncoding(),gen_pos,gen_mom);
+  struct decay_channel{
+    TString name;
+    double branching_ratio;
+    vector<double> masses;
+    vector<int> pdg_codes;
+  };
+  double mmu = m_MuonPlus->GetPDGMass();
+  double mpi = m_PionMinus->GetPDGMass();
+  double mpi0 = m_PionZero->GetPDGMass();
+  double me = m_ElectronPlus->GetPDGMass();
+  std::vector<decay_channel> decay_channels = { 
+      {"muonic", 0.6356, {mmu,0}, {m_MuonPlus->GetPDGEncoding(),0}},
+      {"twopi", 0.2067, {mpi,mpi0}, {m_PionPlus->GetPDGEncoding(),0}},
+      {"epi0", 0.0507, {me,mpi0,0}, {m_ElectronPlus->GetPDGEncoding(),0,0}},
+      {"threepi", 0.0559, {mpi,mpi,mpi}, {m_PionPlus->GetPDGEncoding(),m_PionPlus->GetPDGEncoding(),m_PionMinus->GetPDGEncoding()}},
+      {"muonpi0", 0.0335, {mmu,mpi0,0}, {m_MuonPlus->GetPDGEncoding(),0,0}},
+      {"pipi0pi0", 0.0176, {mpi,mpi0,mpi0}, {m_PionPlus->GetPDGEncoding(),0,0}}
+  };
+  TGenPhaseSpace decay;
+  double total_br = 0;
+  for(const auto& channel : decay_channels){
+    total_br += channel.branching_ratio;
+  }
+  double r = G4RandFlat::shoot(0.,total_br);
+  const decay_channel* selected_channel = nullptr;
+  double cumulative_br = 0;
+  for(const auto& channel : decay_channels){
+    cumulative_br += channel.branching_ratio;
+    if(r < cumulative_br){
+      selected_channel = &channel;
+//      G4cout<<"Selected decay channel: "<<channel.name<<" with branching ratio "<<channel.branching_ratio<<G4endl;
+      break;
+    }
+  }
+  if(selected_channel == nullptr){
+    selected_channel = &decay_channels.back();
+  }
+  decay.SetDecay(LV_Kp, selected_channel->masses.size(), selected_channel->masses.data());
+  decay.Generate();
+  for(size_t i=0;i<selected_channel->pdg_codes.size();i++){
+    auto LV_part = *decay.GetDecay(i);
+    auto TV_part = LV_part.Vect();
+    if(selected_channel->pdg_codes[i] == 0) continue;//neglect neutral particles
+    G4ThreeVector P_part(TV_part.x(),TV_part.y(),TV_part.z());
+    auto particle_def = G4ParticleTable::GetParticleTable()->FindParticle(selected_channel->pdg_codes[i]);
+ //   G4cout<<"Generated "<<selected_channel->name<<" decay: "<<particle_def->GetParticleName()<<" pid = "<<particle_def->GetPDGEncoding()<<" with energy "<<LV_part.E()<<" GeV, "<< i << " / "<<selected_channel->pdg_codes.size()<<G4endl;
+    m_particle_gun->SetParticleDefinition( particle_def );
+    m_particle_gun->SetParticlePosition( gen_pos );
+    m_particle_gun->SetParticleMomentumDirection( P_part );
+    m_particle_gun->SetParticleEnergy( LV_part.E() - particle_def->GetPDGMass() );
+    m_particle_gun->GeneratePrimaryVertex( anEvent );
+  }
+
+
+}
+
 
 void
 TPCPrimaryGeneratorAction::GenerateAccidentals( int nAccidentals, G4Event* anEvent ){

@@ -135,10 +135,14 @@ else{
 #endif
 
 #if 1
-  ConstructShsMagnet();
-  ConstructHypTPC();
-  ConstructHTOF();
-  ConstructTPCVP();
+  if( gConf.Get<G4int>("DeconstructHS") ){
+  }
+  else{
+    ConstructShsMagnet();
+    ConstructHypTPC();
+    ConstructHTOF();
+    ConstructTPCVP();
+  }
 #endif
 #if 0
   ConstructPVAC2();
@@ -937,8 +941,7 @@ TPCDetectorConstruction::ConstructHTOF( void )
 
 //_____________________________________________________________________________
 void
-TPCDetectorConstruction::ConstructHypTPC( void )
-{
+TPCDetectorConstruction::ConstructHypTPC( void ){
 
   const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
   
