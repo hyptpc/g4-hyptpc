@@ -2949,39 +2949,40 @@ TPCDetectorConstruction::ConstructTPCVP( void )
   auto HSvpSD = new TPCVPSD("/HSVP");
   G4SDManager::GetSDMpointer()->AddNewDetector( HSvpSD );
   const auto& kurama_pos = gGeom.GetGlobalPosition("KURAMA");//VP position is defined in KURAMA coordinate
-  const G4ThreeVector vp_size(200, 200, 1e-3);
+  const G4ThreeVector vp_size(400, 400, 1e-3);
   auto vp_solid = new G4Box( "VPSolid", vp_size.x()*0.5, vp_size.y()*0.5, vp_size.z()*0.5 );
-  G4LogicalVolume* vp_lv[4];
+  G4LogicalVolume* hsvp_lv[4];
   
   for(int il=0;il<4; ++il){
     auto pos = kurama_pos + gGeom.GetGlobalPosition(Form("VPHS%d",il+1));
-    vp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "VPLV" );
-    vp_lv[il]->SetVisAttributes( G4Colour::Green() );
+    hsvp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "VPLV" );
+    hsvp_lv[il]->SetVisAttributes( G4Colour::Green() );
     //new G4PVPlacement( nullptr, pos, vp_lv[il], "VPHSPV", m_world_lv, false, il );
     
     auto rot = new G4RotationMatrix;
     rot->rotateX( -90.*deg );
     pos.rotateX( 90.*deg );
     const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
-    new G4PVPlacement( rot, pos, vp_lv[il], "VPHSPV", m_tpc_lv, false, il );
-    vp_lv[il]->SetSensitiveDetector( HSvpSD );
+    new G4PVPlacement( rot, pos, hsvp_lv[il], "VPHSPV", m_tpc_lv, false, il );
+    hsvp_lv[il]->SetSensitiveDetector( HSvpSD );
   }
 
 
+  G4LogicalVolume* tpcvp_lv[5];
   auto TPCvpSD = new TPCVPSD("/TPCVP");
   G4SDManager::GetSDMpointer()->AddNewDetector( TPCvpSD );
   for(int il=0;il<5; ++il){
     auto pos = kurama_pos + gGeom.GetGlobalPosition(Form("VPTPC%d",il+1));
-    vp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "TPCVPLV" );
-    vp_lv[il]->SetVisAttributes( G4Colour::Green() );
+    tpcvp_lv[il] = new G4LogicalVolume( vp_solid, m_material_map["P10"], "TPCVPLV" );
+    tpcvp_lv[il]->SetVisAttributes( G4Colour::Green() );
     //new G4PVPlacement( nullptr, pos, vp_lv[il], "VPTPCPV", m_world_lv, false, il );
 
     auto rot = new G4RotationMatrix;
     rot->rotateX( -90.*deg );
     pos.rotateX( 90.*deg );
     const auto& tpc_pos = gGeom.GetGlobalPosition("HypTPC");
-    new G4PVPlacement( rot, pos, vp_lv[il], "VPTPCPV", m_tpc_lv, false, il );
-    vp_lv[il]->SetSensitiveDetector( TPCvpSD );
+    new G4PVPlacement( rot, pos, tpcvp_lv[il], "VPTPCPV", m_tpc_lv, false, il );
+    tpcvp_lv[il]->SetSensitiveDetector( TPCvpSD );
   }
 }
 
