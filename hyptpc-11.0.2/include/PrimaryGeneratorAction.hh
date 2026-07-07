@@ -153,6 +153,11 @@ public:
   void     GenerateE72ProtonForMachineLearning(G4Event* anEvent); // 7209
   void     GenerateE72UniformAntiProton(G4Event* anEvent); //7210
   void     GenerateE72UniformPionMinus(G4Event* anEvent); //7211
+  void     GenerateE72PiPiLambdaPhaseSpace(G4Event* anEvent); //7212
+  void     GenerateE72PiPlusPiMinusSimgaZeroPhaseSpace(G4Event* anEvent); //7213
+  void     GenerateE72PiMinusPiZeroSigmaPlusPhaseSpace(G4Event* anEvent); //7214
+  void     GenerateE72PiPlusPiZeroSigmaMinusPhaseSpace(G4Event* anEvent); //7215
+ 
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001
   void     GenerateKKppLL2(G4Event* anEvent);//#3002
