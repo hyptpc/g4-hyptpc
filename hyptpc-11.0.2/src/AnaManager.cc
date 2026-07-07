@@ -42,6 +42,14 @@ const auto& gDcsMan = DiffCrossSectionMan::GetInstance();
 
 Event event;
 std::map<TString, TH1*> hmap;
+
+enum TriggerBit {
+    kBeamBit    = 1 << 4,   // 10000 : 1 when kBeam
+    kKVCBit     = 1 << 3,   // 01000 : 1 when KVC Hit
+    kHTOFMp2Bit = 1 << 2,   // 00100 : 1 when HTOF Mp >= 2
+    kHTOFFwdBit = 1 << 1,   // 00010 : 1 when HTOF Fwd On
+    kTPCBit     = 1 << 0    // 00001 : 1 when Satisfy TPC cond
+};
 }
 
 //_____________________________________________________________________________
@@ -602,10 +610,14 @@ AnaManager::EndOfEventAction()
       if (m_next_generator == m_first_generator) {
 	// -- BH2 -----
 	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
+	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
 	std::set<G4int> bh2_seg_unique;
-	for (const auto &it : event.hits.at("BH2"))
+	for (const auto &it : event.hits.at("BH2")){
+	  G4int seg = it.GetMother(1);
+	  if(selected_bh2_seg.count(seg) == 0)continue;
 	  if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
 	    bh2_seg_unique.insert(it.GetMother(1));
+	}
 	G4int bh2_multi = bh2_seg_unique.size();
 
 	// -- BAC -----
@@ -619,14 +631,14 @@ AnaManager::EndOfEventAction()
 	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
 	  if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
 	}
-      
 	if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
       }
-    
+
       // -- event ---
       else {
 	// -- trigger condition -----
-	G4int tpc_multi_threshold = 6;
+	//G4int tpc_multi_threshold = 6;
+	G4int tpc_multi_threshold = 5;
 	G4double htof_threshold = 3.0; // MeV
 	const std::vector<G4int> &forward_seg = m_forward_seg_wide;
 	G4int htof_multi_threshold = 2;
@@ -651,10 +663,19 @@ AnaManager::EndOfEventAction()
 	// -- HTOF -----
 	const auto& htof_size = gSize.GetSize("HtofSeg")*CLHEP::mm;
 	std::set<G4int> htof_seg_unique;
+	std::set<G4int> exclude_htof_multi_seg = {0,5};
+	
 	G4bool is_proton_forward_htof = false;
 	for (const auto &it : event.hits.at("HTOF")) {
-	  if (it.GetWeight() > m_edep_threshold*htof_size.z()/10.0) htof_seg_unique.insert(it.GetMother(1));
-	  if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), it.GetMother(1))) is_proton_forward_htof =true;
+	  G4int seg = it.GetMother(1);
+	  // HTOF Mp2
+	  if (!exclude_htof_multi_seg.count(seg)) {
+	    if (it.GetWeight() > m_edep_threshold * htof_size.z()/10.0) {
+	      htof_seg_unique.insert(seg);
+	    }
+	  }
+	  //HTOF Fwd
+	  if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), seg)) is_proton_forward_htof =true;
 	}
 	G4int htof_multi = htof_seg_unique.size();
 	// -- Cherenkov radiation at KVC -----
@@ -671,21 +692,53 @@ AnaManager::EndOfEventAction()
 	// -- check trigger -------
 	m_trig_flag_int = 0;
 
-	G4bool trig_w_tpc  = m_kaon_beam_flag && n_detected_track >= n_detected_track_threshold && !hit_kvc_anyseg;
-	G4bool trig_wo_tpc = m_kaon_beam_flag && !hit_kvc_anyseg;
-	G4bool trig_use    = m_require_tpc_mp ? trig_w_tpc : trig_wo_tpc;
-      
-	if ( trig_use ) {
-	  if (htof_multi >= htof_multi_threshold && is_proton_forward_htof) {
-	    m_trig_flag_int = 3; // HTOF Mp2 && Forward Proton
-	  } else if (htof_multi >= htof_multi_threshold) {
-	    m_trig_flag_int = 1; // HTOF Mp2
-	  } else if (is_proton_forward_htof) {
-	    m_trig_flag_int = 2; // Forward Proton
-	  }
-	}
-      
+	if (m_kaon_beam_flag)
+	  m_trig_flag_int |= kBeamBit;
+
+	if(hit_kvc_anyseg)
+	  m_trig_flag_int |= kKVCBit;
+
+	if (htof_multi >= htof_multi_threshold)
+	  m_trig_flag_int |= kHTOFMp2Bit;
+
+	if (is_proton_forward_htof)
+	  m_trig_flag_int |= kHTOFFwdBit;
+
+	if (n_detected_track >= n_detected_track_threshold)
+	  m_trig_flag_int |= kTPCBit;
       }
+    }
+
+    else if(!m_do_combine){
+      if (m_next_generator == m_first_generator) {
+	// -- BH2 -----
+	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
+	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
+	std::set<G4int> bh2_seg_unique;
+	for (const auto &it : event.hits.at("BH2")){
+	  G4int seg = it.GetMother(1);
+	  if(selected_bh2_seg.count(seg) == 0)continue;
+	  if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
+	    bh2_seg_unique.insert(it.GetMother(1));
+	}
+	G4int bh2_multi = bh2_seg_unique.size();
+
+	// -- BAC -----
+	G4bool is_kaon_at_bac = false;
+	for (const auto &it : event.hits.at("BAC")) {
+	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
+	  // -- calc beta -----
+	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
+	  G4double mass = particle->GetPDGMass(); // MeV/c^2
+	  G4double mom  = it.P();                 // MeV/c
+	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
+	  if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
+	}
+	G4bool is_beam_at_tgt = false;
+	if(event.hits.at("TGT").size() > 0)is_beam_at_tgt = true;
+	if (bh2_multi != 0 && is_kaon_at_bac && is_beam_at_tgt) m_kaon_beam_flag = true;
+      }
+      m_tree_light->Fill();
     }
   }
   

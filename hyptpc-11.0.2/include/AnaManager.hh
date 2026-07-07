@@ -313,7 +313,11 @@ private:
     {7205, "lambda"},
     {7206, "sigma+"},
     {7207, "kaon-"},
-    {7208, "kaon0S"}
+    {7208, "kaon0S"},
+    {7212, "lambda"},
+    {7213, "lambda"},
+    {7214, "sigma+"},
+    {7215, "sigma-"}
   };
   G4int m_decay_particle_code;
   G4ThreeVector m_decay_position;
@@ -331,6 +335,10 @@ private:
     { 7206, {0, -211, +211, 2212} }, // pi- Sigma+
     { 7207, {0, -321, 2212} }, // K p
     { 7208, {1, +211, -211} }, // k0 n
+    { 7212, {0, 2212, -211, +211} }, // pi- pi+ Lambda
+    { 7213, {0, 2212, -211, +211} }, // pi+ pi- Sigma0
+    { 7214, {0, 2212, -211} }, // pi- pi0 Sigma+
+    { 7215, {0, -211, +211} }, // pi+ pi0 Sigma-
     
     { 10402, {1, +321, -321, +321, -321}} //Phi Phi
   };
