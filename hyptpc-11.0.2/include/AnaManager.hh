@@ -32,10 +32,6 @@ static const G4int MaxPrimaryParticle = 10;
 //const int MaxTrack = 78*4;
 const G4int MaxTrack = 54*20;
 
-const G4int MaxNthLay = 40;
-const G4int MaxNthPad = 250;
-
-
 void initTrack(Track* aTrack);
 void initTrack_ku(Track* aTrack);
 int setInitialPara(Track* aTrack, double* initPara);
@@ -119,108 +115,130 @@ struct Event
 
   std::map<TString, std::vector<TParticle>> hits;
 
-  /* number of ntrks in TPC by shhwang*/
-  Int_t ntrtpc;
-  Double_t trpptpc[MaxHitsTPC];
-  Double_t trpxtpc[MaxHitsTPC];
-  Double_t trpytpc[MaxHitsTPC];
-  Double_t trpztpc[MaxHitsTPC];
-  Double_t trpttpc[MaxHitsTPC];
+  // TPCPad hit branches
+  Int_t nhittpc;                    // Number of TPC pad hits stored in this event
 
-  Double_t trpptpcfit[MaxHitsTPC];
-  Double_t trpxtpcfit[MaxHitsTPC];
-  Double_t trpytpcfit[MaxHitsTPC];
-  Double_t trpztpcfit[MaxHitsTPC];
-  Double_t trpttpcfit[MaxHitsTPC];
+  // Track and particle IDs
+  std::vector<Int_t> ntrk;          // Track multiplicity/index value passed from the TPCPad hit
+  std::vector<Int_t> trackidtpc;    // Geant4 track ID
+  std::vector<Int_t> pidtpc;        // Particle PDG ID
+  std::vector<Int_t> parentidtpc;   // Parent Geant4 track ID
+  std::vector<Int_t> parentpidtpc;  // Parent particle PDG ID
 
-  Int_t trqqtpc[MaxHitsTPC];
-  Int_t trpidtpc[MaxHitsTPC];
-  Int_t trparentidtpc[MaxHitsTPC];
-  Int_t trparentid_pid_tpc[MaxHitsTPC];
-  Double_t trpmtpc[MaxHitsTPC];
-  Double_t trdetpc[MaxHitsTPC];
-  Double_t trlentpc[MaxHitsTPC];
-  Double_t trdedxtpc[MaxHitsTPC];
-  Double_t trdedxtrtpc[MaxHitsTPC]; //trancated mean, but now just mean
+  // Hit positions
+  std::vector<Double_t> xtpc;       // Smeared hit x position [mm]
+  std::vector<Double_t> ytpc;       // Smeared hit y position [mm]
+  std::vector<Double_t> ztpc;       // Smeared hit z position [mm]
+  std::vector<Double_t> x0tpc;      // True Geant4 hit x position before smearing [mm]
+  std::vector<Double_t> y0tpc;      // True Geant4 hit y position before smearing [mm]
+  std::vector<Double_t> z0tpc;      // True Geant4 hit z position before smearing [mm]
+  std::vector<Double_t> xtpc_pad;   // Pad-center x position from padtpc [mm]
+  std::vector<Double_t> ytpc_pad;   // Pad-center y placeholder [mm]; currently copied from ytpc
+  std::vector<Double_t> ztpc_pad;   // Pad-center z position from padtpc [mm]
+  std::vector<Double_t> dxtpc_pad;  // True hit x minus pad-center x: x0tpc - xtpc_pad [mm]
+  std::vector<Double_t> dytpc_pad;  // True hit y minus ytpc_pad: y0tpc - ytpc_pad; ytpc_pad currently equals ytpc [mm]
+  std::vector<Double_t> dztpc_pad;  // True hit z minus pad-center z: z0tpc - ztpc_pad [mm]
 
-  Int_t trlaytpc[MaxHitsTPC];
+  // Position resolution parameters
+  std::vector<Double_t> resoX;      // Resolution scale used for smearing: transverse sigma in Simple mode, |ResVector| in Exp mode [mm]
+  std::vector<Double_t> resxtpc;    // X component of the position resolution from GetResVector, not xtpc - x0tpc [mm]
+  std::vector<Double_t> resytpc;    // Y component of the position resolution from GetResVector, not ytpc - y0tpc [mm]
+  std::vector<Double_t> resztpc;    // Z component of the position resolution from GetResVector, not ztpc - z0tpc [mm]
 
-  Double_t vtpxtpc[MaxHitsTPC];
-  Double_t vtpytpc[MaxHitsTPC];
-  Double_t vtpztpc[MaxHitsTPC];
-  Double_t vtpptpc[MaxHitsTPC];
+  // Momentum and timing
+  std::vector<Double_t> pxtpc;      // Particle momentum x at the hit [GeV/c]
+  std::vector<Double_t> pytpc;      // Particle momentum y at the hit [GeV/c]
+  std::vector<Double_t> pztpc;      // Particle momentum z at the hit [GeV/c]
+  std::vector<Double_t> pptpc;      // Particle total momentum at the hit [GeV/c]
+  std::vector<Double_t> timetpc;    // Global hit time [ns]
+  std::vector<Double_t> tlengthtpc; // Geant4 track length at the hit [mm]
+  std::vector<Double_t> betatpc;    // Particle beta at the hit
 
-  Double_t vtxtpc[MaxHitsTPC];
-  Double_t vtytpc[MaxHitsTPC];
-  Double_t vtztpc[MaxHitsTPC];
+  // Energy loss and pad IDs
+  std::vector<Double_t> edeptpc;    // Energy deposit in the pad (same as cluster de)
+  std::vector<Double_t> dedxtpc;    // Energy deposit per pad path length
+  std::vector<Double_t> slengthtpc; // Geant4 step length in the pad hit [mm]
+  std::vector<Int_t> padtpc;       // Global pad ID calculated from layertpc and rowtpc
+  std::vector<Int_t> layertpc;    // Pad layer ID
+  std::vector<Int_t> rowtpc;      // Pad row ID
 
-  Double_t vtxtpcfit[MaxHitsTPC];
-  Double_t vtytpcfit[MaxHitsTPC];
-  Double_t vtztpcfit[MaxHitsTPC];
+  void ClearTPCPadHits()
+  {
+    nhittpc = 0;
+    ntrk.clear();
+    trackidtpc.clear();
+    pidtpc.clear();
+    xtpc.clear();
+    ytpc.clear();
+    ztpc.clear();
+    xtpc_pad.clear();
+    ytpc_pad.clear();
+    ztpc_pad.clear();
+    dxtpc_pad.clear();
+    dytpc_pad.clear();
+    dztpc_pad.clear();
+    x0tpc.clear();
+    y0tpc.clear();
+    z0tpc.clear();
+    resoX.clear();
+    resxtpc.clear();
+    resytpc.clear();
+    resztpc.clear();
+    pxtpc.clear();
+    pytpc.clear();
+    pztpc.clear();
+    pptpc.clear();
+    timetpc.clear();
+    tlengthtpc.clear();
+    betatpc.clear();
+    edeptpc.clear();
+    dedxtpc.clear();
+    slengthtpc.clear();
+    padtpc.clear();
+    layertpc.clear();
+    rowtpc.clear();
+    parentidtpc.clear();
+    parentpidtpc.clear();
+  }
 
-  /////PAD multiplicity & ASAD multiplicy
-  Int_t nthlay[MaxTrack];
-  Int_t nthpad[MaxTrack];
-  Int_t laypad[MaxTrack][MaxNthLay][MaxNthPad]; //[layer][pad number]
-
-
-  ///////////////
-  Int_t nhittpc;                 // Number of Hit in Pads
-  Int_t ntrk[MaxTrack];        // Number of Track
-
-  Int_t ititpc[MaxTrack];      // Track ID
-  Int_t idtpc[MaxTrack];       // Particle ID
-  Double_t xtpc[MaxTrack];     // coordinates
-  Double_t ytpc[MaxTrack];     // coordinates
-  Double_t ztpc[MaxTrack];     // coordinates
-
-  Double_t xtpc_pad[MaxTrack];     // coordinates
-  Double_t ytpc_pad[MaxTrack];     // coordinates
-  Double_t ztpc_pad[MaxTrack];     // coordinates
-
-  Double_t dxtpc_pad[MaxTrack];     // coordinates
-  Double_t dytpc_pad[MaxTrack];     // coordinates
-  Double_t dztpc_pad[MaxTrack];     // coordinates
-
-  Double_t x0tpc[MaxTrack];    // coordinates
-  Double_t y0tpc[MaxTrack];    // coordinates
-  Double_t z0tpc[MaxTrack];    // coordinates
-
-  Double_t resoX[MaxTrack];    // coordinates
-  Double_t resxtpc[MaxTrack];  // coordinates 
-  Double_t resytpc[MaxTrack];  // coordinates 
-  Double_t resztpc[MaxTrack];  // coordinates 
-
-
-  Double_t pxtpc[MaxTrack];    // momentum
-  Double_t pytpc[MaxTrack];    // momentum
-  Double_t pztpc[MaxTrack];    // momentum
-  Double_t pptpc[MaxTrack];    // momentum
-  Double_t masstpc[MaxTrack];    // mass
-
-
-  Double_t timetpc[MaxTrack];    // global time
-  Double_t tlengthtpc[MaxTrack];    // global time
-
-  Double_t betatpc[MaxTrack];    // beta
-
-  Double_t edeptpc[MaxTrack];    // Energy deposit
-  Double_t dedxtpc[MaxTrack];    // Energy deposit/dx
-  Double_t slengthtpc[MaxTrack];    // Energy deposit/dx
-
-  Int_t iPadtpc[MaxTrack];      // number of pad
-  Int_t laytpc[MaxTrack];      // number of pad layer
-  Int_t rowtpc[MaxTrack];      // number of pad raw
-  Double_t toftpc[MaxTrack];   // tof
-  Int_t parentID[MaxTrack];      // parent id
-  Int_t parentPID[MaxTrack];      // parent id
-  Double_t cir_r[MaxTrack];   // fit radius
-  Double_t cir_x[MaxTrack];   // fit center x
-  Double_t cir_z[MaxTrack];   // fit center z
-  Double_t cir_fit[MaxTrack];   // fit center fit
-  Int_t vtx_flag[MaxTrack]; // flag, how to estimate vtx
-  Double_t a_fory[MaxTrack]; // co-efficient a for linear track (y, theta)
-  Double_t b_fory[MaxTrack]; // co-efficient b for linear track (y, theta)
+  void ResizeTPCPadHits(Int_t nhits)
+  {
+    nhittpc = nhits;
+    ntrk.resize(nhits);
+    trackidtpc.resize(nhits);
+    pidtpc.resize(nhits);
+    xtpc.resize(nhits);
+    ytpc.resize(nhits);
+    ztpc.resize(nhits);
+    xtpc_pad.resize(nhits);
+    ytpc_pad.resize(nhits);
+    ztpc_pad.resize(nhits);
+    dxtpc_pad.resize(nhits);
+    dytpc_pad.resize(nhits);
+    dztpc_pad.resize(nhits);
+    x0tpc.resize(nhits);
+    y0tpc.resize(nhits);
+    z0tpc.resize(nhits);
+    resoX.resize(nhits);
+    resxtpc.resize(nhits);
+    resytpc.resize(nhits);
+    resztpc.resize(nhits);
+    pxtpc.resize(nhits);
+    pytpc.resize(nhits);
+    pztpc.resize(nhits);
+    pptpc.resize(nhits);
+    timetpc.resize(nhits);
+    tlengthtpc.resize(nhits);
+    betatpc.resize(nhits);
+    edeptpc.resize(nhits);
+    dedxtpc.resize(nhits);
+    slengthtpc.resize(nhits);
+    padtpc.resize(nhits);
+    layertpc.resize(nhits);
+    rowtpc.resize(nhits);
+    parentidtpc.resize(nhits);
+    parentpidtpc.resize(nhits);
+  }
 };
 
 //_____________________________________________________________________________
@@ -327,7 +345,7 @@ private:
   // for acceptance study
   const G4double m_edep_threshold = 0.2; // MeV/cm
   const std::unordered_map<G4int, std::vector<G4int>> m_tpc_check_list = {
-  //  gen   { check parentID, PDG codes of check list }
+  //  gen   { check parentidtpc, PDG codes of check list }
     { 7202, {1, 2212, -211} }, // eta Lambda
     { 7203, {1, 2212, -211} }, // pi0 Lambda
     { 7204, {0, +211, -211} }, // pi+ Sigma-

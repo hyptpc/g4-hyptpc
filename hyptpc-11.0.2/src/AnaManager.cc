@@ -166,42 +166,41 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   
   //for TPC tracking
   if(gConf.Get<G4bool>("TPCPadOn")){
-    m_tree->Branch("nhittpc",&event.nhittpc,"nhittpc/I");
-    m_tree->Branch("ntrk",event.ntrk,"ntrk[nhittpc]/I");
-    m_tree->Branch("ititpc",event.ititpc,"ititpc[nhittpc]/I");
-    m_tree->Branch("idtpc",event.idtpc,"idtpc[nhittpc]/I");
-    m_tree->Branch("xtpc",event.xtpc,"xtpc[nhittpc]/D");//after smeared by resolution
-    m_tree->Branch("ytpc",event.ytpc,"ytpc[nhittpc]/D");//after smeared by resolution
-    m_tree->Branch("ztpc",event.ztpc,"ztpc[nhittpc]/D");//after smeared by resolution
-    m_tree->Branch("x0tpc",event.x0tpc,"x0tpc[nhittpc]/D");
-    m_tree->Branch("y0tpc",event.y0tpc,"y0tpc[nhittpc]/D");
-    m_tree->Branch("z0tpc",event.z0tpc,"z0tpc[nhittpc]/D");
-    m_tree->Branch("resoX",event.resoX,"resoX[nhittpc]/D");
-    m_tree->Branch("resxtpc",event.resxtpc,"resxtpc[nhittpc]/D");
-    m_tree->Branch("resytpc",event.resytpc,"resytpc[nhittpc]/D");
-    m_tree->Branch("resztpc",event.resztpc,"resztpc[nhittpc]/D");
-    m_tree->Branch("pxtpc",event.pxtpc,"pxtpc[nhittpc]/D");
-    m_tree->Branch("pytpc",event.pytpc,"pytpc[nhittpc]/D");
-    m_tree->Branch("pztpc",event.pztpc,"pztpc[nhittpc]/D");
-    m_tree->Branch("pptpc",event.pptpc,"pptpc[nhittpc]/D");   // total mometum 
-    //m_tree->Branch("masstpc",event.masstpc,"masstpc[nhittpc]/D");   // mass TPC
-    m_tree->Branch("timetpc",event.timetpc,"timetpc[nhittpc]/D");
-    m_tree->Branch("betatpc",event.betatpc,"betatpc[nhittpc]/D");
-    m_tree->Branch("edeptpc",event.edeptpc,"edeptpc[nhittpc]/D");
-    m_tree->Branch("dedxtpc",event.dedxtpc,"dedxtpc[nhittpc]/D");
-    m_tree->Branch("slengthtpc",event.slengthtpc,"slengthtpc[nhittpc]/D");
-    m_tree->Branch("tlengthtpc",event.tlengthtpc,"tlengthtpc[nhittpc]/D");
-    m_tree->Branch("iPadtpc",event.iPadtpc,"iPadtpc[nhittpc]/I");
-    m_tree->Branch("laytpc",event.laytpc,"laytpc[nhittpc]/I");
-    m_tree->Branch("rowtpc",event.rowtpc,"rowtpc[nhittpc]/I");
-    m_tree->Branch("parentID",event.parentID,"parentID[nhittpc]/I");
-    m_tree->Branch("parentPID",event.parentPID,"parentPID[nhittpc]/I");
-    m_tree->Branch("xtpc_pad",event.xtpc_pad,"xtpc_pad[nhittpc]/D");//pad center position
-    m_tree->Branch("ytpc_pad",event.ytpc_pad,"ytpc_pad[nhittpc]/D");//pad center position (dummy = ytpc)
-    m_tree->Branch("ztpc_pad",event.ztpc_pad,"ztpc_pad[nhittpc]/D");//pad center position
-    m_tree->Branch("dxtpc_pad",event.dxtpc_pad,"dxtpc_pad[nhittpc]/D");//x0tpc - xtpc_pad
-    m_tree->Branch("dytpc_pad",event.dytpc_pad,"dytpc_pad[nhittpc]/D");//y0tpc - ytpc_pad (dummy = 0)
-    m_tree->Branch("dztpc_pad",event.dztpc_pad,"dztpc_pad[nhittpc]/D");//z0tpc - ztpc_pad
+    m_tree->Branch("nhittpc", &event.nhittpc);
+    m_tree->Branch("ntrk", &event.ntrk);
+    m_tree->Branch("trackidtpc", &event.trackidtpc);
+    m_tree->Branch("pidtpc", &event.pidtpc);
+    m_tree->Branch("xtpc", &event.xtpc);
+    m_tree->Branch("ytpc", &event.ytpc);
+    m_tree->Branch("ztpc", &event.ztpc);
+    m_tree->Branch("x0tpc", &event.x0tpc);
+    m_tree->Branch("y0tpc", &event.y0tpc);
+    m_tree->Branch("z0tpc", &event.z0tpc);
+    m_tree->Branch("resoX", &event.resoX);
+    m_tree->Branch("resxtpc", &event.resxtpc);
+    m_tree->Branch("resytpc", &event.resytpc);
+    m_tree->Branch("resztpc", &event.resztpc);
+    m_tree->Branch("pxtpc", &event.pxtpc);
+    m_tree->Branch("pytpc", &event.pytpc);
+    m_tree->Branch("pztpc", &event.pztpc);
+    m_tree->Branch("pptpc", &event.pptpc);
+    m_tree->Branch("timetpc", &event.timetpc);
+    m_tree->Branch("betatpc", &event.betatpc);
+    m_tree->Branch("edeptpc", &event.edeptpc);
+    m_tree->Branch("dedxtpc", &event.dedxtpc);
+    m_tree->Branch("slengthtpc", &event.slengthtpc);
+    m_tree->Branch("tlengthtpc", &event.tlengthtpc);
+    m_tree->Branch("padtpc", &event.padtpc);
+    m_tree->Branch("layertpc", &event.layertpc);
+    m_tree->Branch("rowtpc", &event.rowtpc);
+    m_tree->Branch("parentidtpc", &event.parentidtpc);
+    m_tree->Branch("parentpidtpc", &event.parentpidtpc);
+    m_tree->Branch("xtpc_pad", &event.xtpc_pad);//pad center position
+    m_tree->Branch("ytpc_pad", &event.ytpc_pad);//pad center position (dummy = ytpc)
+    m_tree->Branch("ztpc_pad", &event.ztpc_pad);//pad center position
+    m_tree->Branch("dxtpc_pad", &event.dxtpc_pad);//x0tpc - xtpc_pad
+    m_tree->Branch("dytpc_pad", &event.dytpc_pad);//y0tpc - ytpc_pad (dummy = 0)
+    m_tree->Branch("dztpc_pad", &event.dztpc_pad);//z0tpc - ztpc_pad
   }
 
   for(auto& h: hmap){
@@ -386,9 +385,7 @@ AnaManager::BeginOfEventAction()
   HitNum_p=0;
   //  tpctrNum_K=0;
 
-  event.nhittpc = 0;
-  event.ntrtpc = 0;
-
+  event.ClearTPCPadHits();
   event.HitNum_K=-1;
 
   event.HitNum_p=-1;
@@ -403,105 +400,6 @@ AnaManager::BeginOfEventAction()
   m_decay_position = G4ThreeVector(-9999.0, -9999.0, -9999.0);
   
   
-  /* ntrtpc initialization */
-  for(G4int i=0; i<MaxHitsTPC;++i){
-    event.trpidtpc[i]  = -1;
-    event.trparentidtpc[i]  = -1;
-    event.trparentid_pid_tpc[i]  = -1;
-
-
-    event.trpptpc[i]  = -9999.9999;
-    event.trpttpc[i]  = -9999.9999;
-    event.trpxtpc[i]  = -9999.9999;
-    event.trpytpc[i]  = -9999.9999;
-    event.trpztpc[i]  = -9999.9999;
-
-    event.vtpxtpc[i]  = -9999.9999;
-    event.vtpytpc[i]  = -9999.9999;
-    event.vtpztpc[i]  = -9999.9999;
-
-    event.vtxtpc[i]  = -9999.9999;
-    event.vtytpc[i]  = -9999.9999;
-    event.vtztpc[i]  = -9999.9999;
-
-    event.trpttpcfit[i]  = -9999.9999;
-
-    event.trpptpcfit[i]  = -9999.9999;
-    event.trpxtpcfit[i]  = -9999.9999;
-    event.trpytpcfit[i]  = -9999.9999;
-    event.trpztpcfit[i]  = -9999.9999;
-
-    event.trpmtpc[i]  = -9999.9999;
-    event.trqqtpc[i]  = -9999;
-
-    event.trdetpc[i]  = -9999.9999;
-    event.trlentpc[i]  = -9999.9999;
-    event.trdedxtpc[i]  = -9999.9999;
-    event.trdedxtrtpc[i]  = -9999.9999;
-    event.trlaytpc[i]  = -9999;
-
-    event.cir_r[i]  = -9999.9999;
-    event.cir_x[i]  = -9999.9999;
-    event.cir_z[i]  = -9999.9999;
-    event.cir_fit[i]  = -9999.9999;
-
-    event.vtx_flag[i]  = -1;
-    event.a_fory[i]  = -9999.9999;
-    event.b_fory[i]  = -9999.9999;
-  }
-
-
-  for(int i=0;i<MaxTrack;i++){
-
-    /// initialization pad multiplicity
-    event.nthlay[i]=-9999.;
-    event.nthpad[i]=-9999.;
-    for(int j = 0; j< MaxNthLay;j++){
-      for(int k = 0; k< MaxNthPad;k++){
-	event.laypad[i][j][k]  = 0.;
-      }
-    }
-    //////////////
-
-
-    event.xtpc[i] = -9999.9;
-    event.ytpc[i] = -9999.9;
-    event.ztpc[i] = -9999.9;
-
-    event.xtpc_pad[i] = -9999.9;
-    event.ytpc_pad[i] = -9999.9;
-    event.ztpc_pad[i] = -9999.9;
-    event.dxtpc_pad[i] = -9999.9;
-    event.dytpc_pad[i] = -9999.9;
-    event.dztpc_pad[i] = -9999.9;
-
-
-
-    event.x0tpc[i] = -9999.9;
-    event.y0tpc[i] = -9999.9;
-    event.z0tpc[i] = -9999.9;
-    event.resoX[i] = -9999.9;
-
-    event.pxtpc[i] = -9999.9;
-    event.pytpc[i] = -9999.9;
-    event.pztpc[i] = -9999.9;
-    event.pptpc[i] = -9999.9;
-
-    event.masstpc[i] = -9999.9;
-
-    event.timetpc[i] = -9999.9;
-    event.betatpc[i] = -9999.9;
-
-    event.edeptpc[i] = -9999.9;
-
-    event.ititpc[i] = -1;
-    event.idtpc[i] = -1;
-    event.iPadtpc[i] = -1;
-    event.laytpc[i] = -1;
-    event.rowtpc[i] = -1;
-    event.parentID[i] = -1;
-    event.parentPID[i] = -1;
-  }
 }
 
 //_____________________________________________________________________________
@@ -513,91 +411,57 @@ AnaManager::EndOfEventAction()
     if(HitNum >= MaxHitsTPC){
       G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
     }else{
+      event.ResizeTPCPadHits(HitNum);
       for(G4int i=0; i<HitNum; i++){
+	const G4int ihit = i;
 
-	event.ntrk[event.nhittpc] = counterData[i].ntrk;
+	event.ntrk[ihit] = counterData[i].ntrk;
 	
-	/*
-	hmap["Time"]->Fill(counterData[i].time);
-	for(G4int j=0; j<G4ThreeVector::SIZE; ++j){
-	  hmap[Form("Pos%d", j)]->Fill(counterData[i].pos[j]/CLHEP::mm);
-	  hmap[Form("Mom%d", j)]->Fill(counterData[i].mom[j]/CLHEP::GeV);
-	}
-	*/
-	
-	event.xtpc[event.nhittpc] = counterData[i].pos[0]/CLHEP::mm;
-	event.ytpc[event.nhittpc] = counterData[i].pos[1]/CLHEP::mm;
-	event.ztpc[event.nhittpc] = counterData[i].pos[2]/CLHEP::mm;
+	event.xtpc[ihit] = counterData[i].pos[0]/CLHEP::mm;
+	event.ytpc[ihit] = counterData[i].pos[1]/CLHEP::mm;
+	event.ztpc[ihit] = counterData[i].pos[2]/CLHEP::mm;
 
-	event.x0tpc[event.nhittpc] = counterData[i].pos0[0]/CLHEP::mm;
-	event.y0tpc[event.nhittpc] = counterData[i].pos0[1]/CLHEP::mm;
-	event.z0tpc[event.nhittpc] = counterData[i].pos0[2]/CLHEP::mm;
+	event.x0tpc[ihit] = counterData[i].pos0[0]/CLHEP::mm;
+	event.y0tpc[ihit] = counterData[i].pos0[1]/CLHEP::mm;
+	event.z0tpc[ihit] = counterData[i].pos0[2]/CLHEP::mm;
 
-	event.resoX[event.nhittpc] = counterData[i].resoX;
-	event.resxtpc[event.nhittpc] = counterData[i].res[0]/CLHEP::mm;
-	event.resytpc[event.nhittpc] = counterData[i].res[1]/CLHEP::mm;
-	event.resztpc[event.nhittpc] = counterData[i].res[2]/CLHEP::mm;
+	event.resoX[ihit] = counterData[i].resoX;
+	event.resxtpc[ihit] = counterData[i].res[0]/CLHEP::mm;
+	event.resytpc[ihit] = counterData[i].res[1]/CLHEP::mm;
+	event.resztpc[ihit] = counterData[i].res[2]/CLHEP::mm;
 
-	event.pxtpc[event.nhittpc] = counterData[i].mom[0]/CLHEP::GeV;
-	event.pytpc[event.nhittpc] = counterData[i].mom[1]/CLHEP::GeV;
-	event.pztpc[event.nhittpc] = counterData[i].mom[2]/CLHEP::GeV;
-	event.pptpc[event.nhittpc] = sqrt(pow(counterData[i].mom[0], 2) +
+	event.pxtpc[ihit] = counterData[i].mom[0]/CLHEP::GeV;
+	event.pytpc[ihit] = counterData[i].mom[1]/CLHEP::GeV;
+	event.pztpc[ihit] = counterData[i].mom[2]/CLHEP::GeV;
+	event.pptpc[ihit] = sqrt(pow(counterData[i].mom[0], 2) +
                                           pow(counterData[i].mom[1], 2) +
                                           pow(counterData[i].mom[2], 2))/CLHEP::GeV;
-	event.ititpc[event.nhittpc] = counterData[i].trackID;
-	event.idtpc[event.nhittpc] = counterData[i].particleID;
-	event.laytpc[event.nhittpc] = counterData[i].iLay;
+	event.trackidtpc[ihit] = counterData[i].trackID;
+	event.pidtpc[ihit] = counterData[i].particleID;
+	event.layertpc[ihit] = counterData[i].iLay;
 
-	event.rowtpc[event.nhittpc] = counterData[i].iRow;
-	event.iPadtpc[event.nhittpc] = padHelper::getPadID(event.laytpc[event.nhittpc], event.rowtpc[event.nhittpc]);
-	TVector3 Point = padHelper::getPoint(event.iPadtpc[event.nhittpc]);
-	event.xtpc_pad[event.nhittpc] = Point.x();
-	event.ytpc_pad[event.nhittpc] = event.ytpc[event.nhittpc];
-	event.ztpc_pad[event.nhittpc] = Point.z();
+	event.rowtpc[ihit] = counterData[i].iRow;
+	event.padtpc[ihit] = padHelper::getPadID(event.layertpc[ihit], event.rowtpc[ihit]);
+	TVector3 Point = padHelper::getPoint(event.padtpc[ihit]);
+	event.xtpc_pad[ihit] = Point.x();
+	event.ytpc_pad[ihit] = event.ytpc[ihit];
+	event.ztpc_pad[ihit] = Point.z();
 
-	event.dxtpc_pad[event.nhittpc] = event.x0tpc[event.nhittpc] - event.xtpc_pad[event.nhittpc];
-	event.dytpc_pad[event.nhittpc] = event.y0tpc[event.nhittpc] - event.ytpc_pad[event.nhittpc];
-	event.dztpc_pad[event.nhittpc] = event.z0tpc[event.nhittpc] - event.ztpc_pad[event.nhittpc];
+	event.dxtpc_pad[ihit] = event.x0tpc[ihit] - event.xtpc_pad[ihit];
+	event.dytpc_pad[ihit] = event.y0tpc[ihit] - event.ytpc_pad[ihit];
+	event.dztpc_pad[ihit] = event.z0tpc[ihit] - event.ztpc_pad[ihit];
 
 
-	event.timetpc[event.nhittpc] = counterData[i].time/CLHEP::ns;
-	event.betatpc[event.nhittpc] = counterData[i].beta;
-	event.edeptpc[event.nhittpc] = counterData[i].edep/(CLHEP::MeV/CLHEP::mm);
-	event.dedxtpc[event.nhittpc] = counterData[i].dedx;
-	event.slengthtpc[event.nhittpc] = counterData[i].slength/CLHEP::mm;
-	event.tlengthtpc[event.nhittpc] = counterData[i].tlength/CLHEP::mm;
-	event.nthlay[event.nhittpc] = counterData[i].iLay;
-	event.nthpad[event.nhittpc] = counterData[i].iPad;
-	event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]
-	  = event.laypad[event.nhittpc][event.nthlay[event.nhittpc]][event.nthpad[event.nhittpc]]+1.;
-	event.parentID[event.nhittpc] = counterData[i].parentID;
-	event.parentPID[event.nhittpc] = counterData[i].parentPID;
-	event.nhittpc += 1;
+	event.timetpc[ihit] = counterData[i].time/CLHEP::ns;
+	event.betatpc[ihit] = counterData[i].beta;
+	event.edeptpc[ihit] = counterData[i].edep/(CLHEP::MeV/CLHEP::mm);
+	event.dedxtpc[ihit] = counterData[i].dedx;
+	event.slengthtpc[ihit] = counterData[i].slength/CLHEP::mm;
+	event.tlengthtpc[ihit] = counterData[i].tlength/CLHEP::mm;
+	event.parentidtpc[ihit] = counterData[i].parentID;
+	event.parentpidtpc[ihit] = counterData[i].parentPID;
 
       }
-    }
-
-    //
-    // TPC
-    //
-    for(G4int i=0; i<tpctrNum; i++){
-      //      G4cout<<"abs"<<abs(env_helm_field)<<G4endl;
-      //      G4cout<<"fabs"<<fabs(env_helm_field)<<G4endl;
-      // anaRoot.FillTPCData(tpcData[i].tpcpx,
-      // 			  tpcData[i].tpcpy,tpcData[i].tpcpz,
-      // 			  tpcData[i].tpcpp,
-      // 			  tpcData[i].tpcpid, tpcData[i].tpcparentid, tpcData[i].tpcparentid_pid,
-      // 			  tpcData[i].tpcqq,
-      // 			  tpcData[i].tpcpm,tpcData[i].tpcde,
-      // 			  tpcData[i].tpclen,mean[i],trmean[i],
-      // 			  tpcData[i].tpclay,
-      // 			  tpcData[i].tpcvtxpx,tpcData[i].tpcvtxpy,tpcData[i].tpcvtxpz,
-      // 			  tpcData[i].tpcvtxx,tpcData[i].tpcvtxy,tpcData[i].tpcvtxz,
-      // 			  vtxxfit[i],vtxyfit[i],vtxzfit[i],
-      // 			  vtxpxfit[i],Pz[i],vtxpzfit[i],cir_r[i]*(0.299792458)*fabs(env_helm_field),
-      // 			  cir_r[i],cir_x[i],cir_z[i],test[i],
-      // 			  vtx_flag[i], a_fory[i], b_fory[i]
-      // 			 );
     }
   }//trigger parts
 
