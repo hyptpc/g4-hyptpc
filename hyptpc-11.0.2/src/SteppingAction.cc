@@ -112,11 +112,14 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 	      G4String secProcessName = secTrack->GetCreatorProcess()->GetProcessName();
 	      G4int motherPdgCode = particlePdgCode;
 	      G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
+              G4int motherTrackID = theTrack->GetTrackID();
+              G4int daughterTrackID = secTrack->GetTrackID();
 	      G4ThreeVector mom_se = secTrack->GetMomentum();
 	      G4LorentzVector v_se(secTrack->GetPosition(), 0);
 	      G4LorentzVector p_se(mom_se, std::sqrt(std::pow(particleMass,2)+std::pow(mom_se.mag(),2)));
 	      
-	      gAnaMan.SetSecondaryVertex(daughterPdgCode,motherPdgCode,p_se,v_se);
+	      gAnaMan.SetSecondaryVertex(daughterPdgCode,motherPdgCode,p_se,v_se,
+                                      daughterTrackID,motherTrackID);
 	      
             } else {
 	      G4cout << "Secondary particle has no creator process!" << G4endl;

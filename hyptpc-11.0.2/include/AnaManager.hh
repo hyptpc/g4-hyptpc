@@ -4,6 +4,7 @@
 #define ANA_MANAGER_HH
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <set>
 #include <algorithm>
@@ -162,6 +163,20 @@ struct Event
   std::vector<Int_t> layertpc;    // Pad layer ID
   std::vector<Int_t> rowtpc;      // Pad row ID
 
+  Int_t ntrack;
+  std::vector<Int_t> trackid;
+  std::vector<Int_t> trackpid;
+  std::vector<Int_t> trackparentid;
+
+  Int_t nvtx;
+  std::vector<Int_t> vtx_type;       // 0: reaction, 1: decay
+  std::vector<Int_t> vtx_motherpid;   // reaction: generator ID, decay: mother PDG
+  std::vector<Double_t> vtx_x;
+  std::vector<Double_t> vtx_y;
+  std::vector<Double_t> vtx_z;
+  std::vector<std::vector<Int_t>> vtx_trackid;
+  std::vector<std::vector<Int_t>> vtx_trackpid;
+
   void ClearTPCPadHits()
   {
     nhittpc = 0;
@@ -199,6 +214,18 @@ struct Event
     rowtpc.clear();
     parentidtpc.clear();
     parentpidtpc.clear();
+    ntrack = 0;
+    trackid.clear();
+    trackpid.clear();
+    trackparentid.clear();
+    nvtx = 0;
+    vtx_type.clear();
+    vtx_motherpid.clear();
+    vtx_x.clear();
+    vtx_y.clear();
+    vtx_z.clear();
+    vtx_trackid.clear();
+    vtx_trackpid.clear();
   }
 
   void ResizeTPCPadHits(Int_t nhits)
@@ -406,7 +433,9 @@ public:
                           G4bool is_virtual_beam=false);
   void SetSecondaryVertex(G4int pdg, G4int motherPdg,
 			  const G4LorentzVector& p,
-			   const G4LorentzVector& v);
+			  const G4LorentzVector& v,
+			  G4int daughterTrackID=0,
+			  G4int motherTrackID=0);
   void SetBeamInfo(G4int pdg,
 		   const G4LorentzVector& p,
 		   const G4LorentzVector& v);
@@ -464,6 +493,8 @@ public:
   // for trigger
   void SetFocusParentID(G4int focus_parent_id);
   // --------------------------------
+
+  void BuildVtxInfo();
 
   
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,

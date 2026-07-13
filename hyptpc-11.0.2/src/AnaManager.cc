@@ -8,6 +8,9 @@
 #include <G4ThreeVector.hh>
 #include <Randomize.hh>
 
+#include <map>
+#include <tuple>
+
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -66,7 +69,7 @@ AnaManager::AnaManager()
     m_do_generate_beam(true),
     m_do_combine(false),
     m_require_tpc_mp(false),
-    m_effective_evnum(1),
+    m_effective_evnum(0),
     m_next_generator(-1),
     m_first_generator(-1),
     m_second_generator(-1),
@@ -201,13 +204,26 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("dxtpc_pad", &event.dxtpc_pad);//x0tpc - xtpc_pad
     m_tree->Branch("dytpc_pad", &event.dytpc_pad);//y0tpc - ytpc_pad (dummy = 0)
     m_tree->Branch("dztpc_pad", &event.dztpc_pad);//z0tpc - ztpc_pad
+    m_tree->Branch("ntrack", &event.ntrack, "ntrack/I");
+    m_tree->Branch("trackid", &event.trackid);
+    m_tree->Branch("trackpid", &event.trackpid);
+    m_tree->Branch("trackparentid", &event.trackparentid);
+    m_tree->Branch("nvtx", &event.nvtx, "nvtx/I");
+    m_tree->Branch("vtx_type", &event.vtx_type);
+    m_tree->Branch("vtx_motherpid", &event.vtx_motherpid);
+    m_tree->Branch("vtx_x", &event.vtx_x);
+    m_tree->Branch("vtx_y", &event.vtx_y);
+    m_tree->Branch("vtx_z", &event.vtx_z);
+    m_tree->Branch("vtx_trackid", &event.vtx_trackid);
+    m_tree->Branch("vtx_trackpid", &event.vtx_trackpid);
   }
 
   for(auto& h: hmap){
     h.second->Reset();
   }
 
-  event.evnum = 0;
+  event.evnum = -1;
+  m_effective_evnum = 0;
   m_vertex_pos = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
 
   // -- initialize combination generator -----
@@ -465,6 +481,10 @@ AnaManager::EndOfEventAction()
     }
   }//trigger parts
 
+  if(gConf.Get<G4bool>("TPCPadOn")){
+    BuildVtxInfo();
+  }
+
   G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
   // -- trigger check -----
   if(m_do_accep_study){
@@ -707,6 +727,98 @@ AnaManager::SetHitData(const VHitInfo* hit)
     hmap[name + "V%U"]->Fill(p->Px()/p->Pz(), p->Py()/p->Pz());
     hmap[name + "U%X"]->Fill(p->Vx(), p->Px()/p->Pz());
     hmap[name + "V%Y"]->Fill(p->Vy(), p->Py()/p->Pz());
+  }
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::BuildVtxInfo()
+{
+  event.ntrack = 0;
+  event.trackid.clear();
+  event.trackpid.clear();
+  event.trackparentid.clear();
+  event.nvtx = 0;
+  event.vtx_type.clear();
+  event.vtx_motherpid.clear();
+  event.vtx_x.clear();
+  event.vtx_y.clear();
+  event.vtx_z.clear();
+  event.vtx_trackid.clear();
+  event.vtx_trackpid.clear();
+
+  for (G4int i=0; i<event.nhittpc; ++i) {
+    const G4int id = event.trackidtpc[i];
+    if (std::find(event.trackid.begin(), event.trackid.end(), id) != event.trackid.end()) continue;
+    event.ntrack++;
+    event.trackid.push_back(id);
+    event.trackpid.push_back(event.pidtpc[i]);
+    event.trackparentid.push_back(event.parentidtpc[i]);
+  }
+
+  auto append_vtx = [&](G4int type, G4int motherpid, G4double x, G4double y, G4double z,
+                        const std::vector<G4int>& member_trackid,
+                        const std::vector<G4int>& member_pdg) {
+    event.vtx_type.push_back(type);
+    event.vtx_motherpid.push_back(motherpid);
+    event.vtx_x.push_back(x);
+    event.vtx_y.push_back(y);
+    event.vtx_z.push_back(z);
+    event.vtx_trackid.push_back(member_trackid);
+    event.vtx_trackpid.push_back(member_pdg);
+
+    event.nvtx = event.vtx_type.size();
+  };
+
+  if (m_tpc_check_list.count(m_next_generator) == 0) return;
+
+  if (!event.hits.at("PRM").empty()) {
+    const auto& primary = event.hits.at("PRM");
+    std::vector<G4int> pdg;
+    std::vector<G4int> trackid;
+    pdg.reserve(primary.size());
+    trackid.reserve(primary.size());
+    for (const auto& p: primary) {
+      pdg.push_back(p.GetPdgCode());
+      trackid.push_back(-1);
+    }
+    append_vtx(0, m_next_generator, primary.front().Vx(), primary.front().Vy(), primary.front().Vz(),
+               trackid, pdg);
+  }
+
+  auto find_daughter_trackids = [&](G4int mother_trackid, G4int daughter_pdg) {
+    std::vector<G4int> matched_trackid;
+    for (G4int i=0; i<event.nhittpc; ++i) {
+      if (event.parentidtpc[i] != mother_trackid) continue;
+      if (event.pidtpc[i] != daughter_pdg) continue;
+      const G4int id = event.trackidtpc[i];
+      if (std::find(matched_trackid.begin(), matched_trackid.end(), id) == matched_trackid.end()) {
+        matched_trackid.push_back(id);
+      }
+    }
+    if (matched_trackid.empty()) matched_trackid.push_back(-1);
+    return matched_trackid;
+  };
+
+  std::map<std::tuple<G4int, G4int, G4double, G4double, G4double>, G4int> decay_vtx_index;
+  for (const auto& p: event.hits.at("SEC")) {
+    const G4int mother_pdg = p.GetMother(0);
+    const G4int mother_trackid = p.GetMother(1);
+    const G4int daughter_pdg = p.GetPdgCode();
+    const auto daughter_trackids = find_daughter_trackids(mother_trackid, daughter_pdg);
+    auto key = std::make_tuple(mother_pdg, mother_trackid, p.Vx(), p.Vy(), p.Vz());
+    auto it = decay_vtx_index.find(key);
+    if (it == decay_vtx_index.end()) {
+      std::vector<G4int> daughter_pdgs(daughter_trackids.size(), daughter_pdg);
+      append_vtx(1, mother_pdg, p.Vx(), p.Vy(), p.Vz(), daughter_trackids, daughter_pdgs);
+      decay_vtx_index[key] = event.nvtx - 1;
+    } else {
+      const G4int ivtx = it->second;
+      for (const auto daughter_trackid: daughter_trackids) {
+        event.vtx_trackid[ivtx].push_back(daughter_trackid);
+        event.vtx_trackpid[ivtx].push_back(daughter_pdg);
+      }
+    }
   }
 }
 
@@ -1089,13 +1201,15 @@ AnaManager::SetPrimaryParticle(G4int id, G4int pdg,
 void
 AnaManager::SetSecondaryVertex(G4int pdg, G4int motherPdg,
                                const G4LorentzVector& p,
-			       const G4LorentzVector& v)
+			       const G4LorentzVector& v,
+                               G4int daughterTrackID,
+                               G4int motherTrackID)
 {
   TParticle particle(pdg,
                      0, // fStatus
                      motherPdg, // fMother[0]
-                     0, // fMother[1]
-                     0, // fDaughter[0]
+                     motherTrackID, // fMother[1]
+                     daughterTrackID, // fDaughter[0]
                      0, // fDaughter[1]
                      TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
                      TLorentzVector(v.x(), v.y(), v.z(), v.t()));
