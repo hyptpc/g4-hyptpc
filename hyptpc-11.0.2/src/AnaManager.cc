@@ -648,7 +648,7 @@ AnaManager::EndOfEventAction()
 	G4LorentzVector v_beam(m_next_pos);
 	G4ThreeVector p3_beam(p.Px()/CLHEP::MeV,p.Py()/CLHEP::MeV,p.Pz()/CLHEP::MeV);
 	G4LorentzVector p_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(mass,2)));
-	SetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
+	if (event.hits.at("BEAM").empty()) SetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
 	m_do_hit_tgt = true;
       }
     }

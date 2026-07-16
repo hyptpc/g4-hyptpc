@@ -3720,6 +3720,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   static const auto mass = KaonMinus->GetPDGMass();
   G4LorentzVector p(m_beam->mom, std::sqrt(m_beam->mom.mag()*m_beam->mom.mag() + mass*mass)); 
   G4LorentzVector v(m_beam->pos, 0.);
+  gAnaMan.SetBeamInfo(pdg, p, v);
   gAnaMan.SetMomKaonLab(0.0);
   m_beam->mom.mag();
   Double_t mom_kaon_lab = m_beam->mom.mag()/CLHEP::MeV;
