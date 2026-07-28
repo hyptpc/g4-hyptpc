@@ -203,7 +203,7 @@ namespace TPCPadHelper
 G4int 
 GetPadID(const G4int layerID, const G4int rowID)
 {
-  G4int padID=1;
+  G4int padID=0;
   for(G4int layi = 0 ; layi<layerID; layi++) padID += padParameter[layi][1];
   padID+=rowID;
   return padID;
@@ -213,11 +213,10 @@ GetPadID(const G4int layerID, const G4int rowID)
 G4int 
 GetLayerID(G4int padID)
 {
-  padID-=1;
   G4int layer;
   G4int sum = 0;
 
-  for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
+  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
   {
     sum += padParameter[layer][1];
   }
@@ -228,11 +227,10 @@ GetLayerID(G4int padID)
 G4int
 GetRowID(G4int padID)
 {
-  padID-=1;
   G4int layer, row;
   G4int sum = 0;
 
-  for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
+  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
   {
     sum += padParameter[layer][1];
   }
@@ -244,11 +242,10 @@ GetRowID(G4int padID)
 G4double
 GetTheta(G4int padID)
 {
-  padID-=1;
   G4int layer, row;
   G4int sum = 0;
 
-  for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
+  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
   {
     sum += padParameter[layer][1];
   }
@@ -292,11 +289,10 @@ GetRadius(const G4int layerID)
 G4double
 GetR(G4int padID)
 {
-  padID-=1;
   G4int layer;
   G4int sum = 0;
 
-  for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
+  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
   {
     sum += padParameter[layer][1];
   }
@@ -308,11 +304,10 @@ GetR(G4int padID)
 G4ThreeVector 
 GetPosition(G4int padID)
 {
-  padID-=1;
   G4int layer, row;
   G4int sum = 0;
 
-  for (layer = 0; layer <= 30 && sum + padParameter[layer][1] <= padID; layer++)
+  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
   {
     sum += padParameter[layer][1];
   }
@@ -400,10 +395,14 @@ ArcLength(const G4int layerID, const G4double row1, const G4double row2)
 G4bool
 GetDeadCon(const G4int padID)
 {
-  G4bool centerframe = std::find(std::begin(padOnCenterFrame), std::end(padOnCenterFrame), padID) != std::end(padOnCenterFrame);
+  // The mask tables were recorded with the previous 1-based pad IDs.
+  // Keep their contents unchanged while exposing the 0-based convention used
+  // by the analysis TPCPadHelper.
+  const G4int legacyPadID = padID + 1;
+  G4bool centerframe = std::find(std::begin(padOnCenterFrame), std::end(padOnCenterFrame), legacyPadID) != std::end(padOnCenterFrame);
   G4int layer = GetLayerID(padID);
-  G4bool dead = std::find(std::begin(deadChannel[layer]), std::end(deadChannel[layer]), padID) != std::end(deadChannel[layer]);
-  G4bool noisy = std::find(std::begin(noisypad), std::end(noisypad), padID) != std::end(noisypad);
+  G4bool dead = std::find(std::begin(deadChannel[layer]), std::end(deadChannel[layer]), legacyPadID) != std::end(deadChannel[layer]);
+  G4bool noisy = std::find(std::begin(noisypad), std::end(noisypad), legacyPadID) != std::end(noisypad);
   if(centerframe||dead||noisy) return true;
   else return false;
 }

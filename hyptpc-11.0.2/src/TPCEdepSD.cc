@@ -139,7 +139,7 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 	if(edep <0.1* edepMean)edep = 0.1*edepMean;
 	*/
 
-	G4double conversion_factor = 11073.3; //MeV/cm -> ADC/mm 
+	G4double conversion_factor = 7388.11; //MeV/cm -> ADC/mm 
 	G4double cmTomm = 10;
 	G4double edep = aStep->GetTotalEnergyDeposit() * conversion_factor * cmTomm; 
 
