@@ -145,6 +145,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("decay_particle_code", &m_decay_particle_code, "decay_particle_code/I");
   m_tree->Branch("mode",&event.mode,"mode/I");
   m_tree->Branch("inc",&event.inc,"inc/I");
+  m_tree->Branch("trig_flag", &m_trig_flag_int, "trig_flag/I");
 
   // -- for trigger study ---
   m_tree_light->Reset();
@@ -207,6 +208,9 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("ntrack", &event.ntrack, "ntrack/I");
     m_tree->Branch("trackid", &event.trackid);
     m_tree->Branch("trackpid", &event.trackpid);
+    m_tree->Branch("charge_track", &event.charge_track);
+    m_tree->Branch("mom0_track", &event.mom0_track);
+    m_tree->Branch("dedx_track", &event.dedx_track);
     m_tree->Branch("trackparentid", &event.trackparentid);
     m_tree->Branch("nvtx", &event.nvtx, "nvtx/I");
     m_tree->Branch("vtx_type", &event.vtx_type);
@@ -454,6 +458,7 @@ AnaManager::EndOfEventAction()
                                           pow(counterData[i].mom[2], 2))/CLHEP::GeV;
 	event.trackidtpc[ihit] = counterData[i].trackID;
 	event.pidtpc[ihit] = counterData[i].particleID;
+	event.charge_tpc_hit[ihit] = counterData[i].charge;
 	event.layertpc[ihit] = counterData[i].iLay;
 
 	event.rowtpc[ihit] = counterData[i].iRow;
@@ -487,11 +492,15 @@ AnaManager::EndOfEventAction()
 
   G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
   // -- trigger check -----
-  if(m_do_accep_study){
+  // The main g4hyptpc tree also stores trig_flag.  For combined beam/event
+  // production its bits must therefore be evaluated even when the optional
+  // acceptance-study output is disabled.
+  if(m_do_accep_study || m_do_combine){
     
     if (m_do_combine) {  // combine beam and event
       // -- beam ---
       if (m_next_generator == m_first_generator) {
+	m_kaon_beam_flag = false;
 	// -- BH2 -----
 	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
 	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
@@ -505,7 +514,7 @@ AnaManager::EndOfEventAction()
 	G4int bh2_multi = bh2_seg_unique.size();
 
 	// -- BAC -----
-	G4bool is_kaon_at_bac = false;
+	G4bool bac_veto_passed = true;
 	for (const auto &it : event.hits.at("BAC")) {
 	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
 	  // -- calc beta -----
@@ -513,13 +522,14 @@ AnaManager::EndOfEventAction()
 	  G4double mass = particle->GetPDGMass(); // MeV/c^2
 	  G4double mom  = it.P();                 // MeV/c
 	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	  if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
+	  if (beta > 1.0/m_refractive_index_bac) bac_veto_passed = false;
 	}
-	if (bh2_multi != 0 && is_kaon_at_bac) m_kaon_beam_flag = true;
+	if (bh2_multi != 0 && bac_veto_passed) m_kaon_beam_flag = true;
+	m_trig_flag_int = m_kaon_beam_flag ? kBeamBit : 0;
       }
 
       // -- event ---
-      else {
+      else if (m_tpc_check_list.count(m_next_generator) != 0) {
 	// -- trigger condition -----
 	//G4int tpc_multi_threshold = 6;
 	G4int tpc_multi_threshold = 5;
@@ -595,6 +605,7 @@ AnaManager::EndOfEventAction()
 
     else if(!m_do_combine){
       if (m_next_generator == m_first_generator) {
+	m_kaon_beam_flag = false;
 	// -- BH2 -----
 	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
 	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
@@ -608,7 +619,7 @@ AnaManager::EndOfEventAction()
 	G4int bh2_multi = bh2_seg_unique.size();
 
 	// -- BAC -----
-	G4bool is_kaon_at_bac = false;
+	G4bool bac_veto_passed = true;
 	for (const auto &it : event.hits.at("BAC")) {
 	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
 	  // -- calc beta -----
@@ -616,11 +627,12 @@ AnaManager::EndOfEventAction()
 	  G4double mass = particle->GetPDGMass(); // MeV/c^2
 	  G4double mom  = it.P();                 // MeV/c
 	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	  if (beta < 1.0/m_refractive_index_bac) is_kaon_at_bac = true;
+	  if (beta > 1.0/m_refractive_index_bac) bac_veto_passed = false;
 	}
 	G4bool is_beam_at_tgt = false;
 	if(event.hits.at("TGT").size() > 0)is_beam_at_tgt = true;
-	if (bh2_multi != 0 && is_kaon_at_bac && is_beam_at_tgt) m_kaon_beam_flag = true;
+	if (bh2_multi != 0 && bac_veto_passed && is_beam_at_tgt) m_kaon_beam_flag = true;
+	m_trig_flag_int = m_kaon_beam_flag ? kBeamBit : 0;
       }
       m_tree_light->Fill();
     }
@@ -737,6 +749,9 @@ AnaManager::BuildVtxInfo()
   event.ntrack = 0;
   event.trackid.clear();
   event.trackpid.clear();
+  event.charge_track.clear();
+  event.mom0_track.clear();
+  event.dedx_track.clear();
   event.trackparentid.clear();
   event.nvtx = 0;
   event.vtx_type.clear();
@@ -753,6 +768,24 @@ AnaManager::BuildVtxInfo()
     event.ntrack++;
     event.trackid.push_back(id);
     event.trackpid.push_back(event.pidtpc[i]);
+    event.charge_track.push_back(event.charge_tpc_hit[i]);
+    G4double mom0 = 0.;
+    G4double min_abs_y = 1.e99;
+    std::vector<G4double> track_dedx;
+    for (G4int j=0; j<event.nhittpc; ++j) {
+      if (event.trackidtpc[j] != id) continue;
+      if (std::abs(event.y0tpc[j]) < min_abs_y) {
+        min_abs_y = std::abs(event.y0tpc[j]);
+        mom0 = event.pptpc[j];
+      }
+      track_dedx.push_back(event.dedxtpc[j]);
+    }
+    event.mom0_track.push_back(mom0);
+    std::sort(track_dedx.begin(), track_dedx.end());
+    const G4int n_trunc = static_cast<G4int>(0.8*track_dedx.size());
+    G4double dedx_sum = 0.;
+    for (G4int j=0; j<n_trunc; ++j) dedx_sum += track_dedx[j];
+    event.dedx_track.push_back(n_trunc > 0 ? dedx_sum/n_trunc : 0.);
     event.trackparentid.push_back(event.parentidtpc[i]);
   }
 
@@ -829,7 +862,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4ThreeVector mom,
                            G4int track, G4int particle,
                            G4int iLay,  G4int iRow, G4double beta,
-			   G4double edep, G4int parentid, G4int parentpid,
+			   G4double edep, G4int parentid, G4int parentpid, G4int charge,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
@@ -853,6 +886,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
   G4double sh_z = sh_r*cos(sh_theta);
 
   counterData[hitnum].particleID = particle;
+    counterData[hitnum].charge = charge > 0 ? 1 : -1;
 
   for(G4int i=0;i<hitnum;i++){
     if((counterData[i].iLay == iLay &&
@@ -904,6 +938,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].trackID = track;
     counterData[hitnum].particleID = particle;
+    counterData[hitnum].charge = charge > 0 ? 1 : -1;
     counterData[hitnum].iLay = iLay;
     G4int iPad=0.;
 
@@ -950,7 +985,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4ThreeVector mom,
                            G4int track, G4int particle,
                            G4int iLay,  G4int iRow, G4double beta,
-			   G4double edep, G4int parentid, G4int parentpid,
+			   G4double edep, G4int parentid, G4int parentpid, G4int charge,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
@@ -974,6 +1009,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
   G4double sh_z = sh_r*cos(sh_theta);
 
   counterData[hitnum].particleID = particle;
+    counterData[hitnum].charge = charge > 0 ? 1 : -1;
 
   for(G4int i=0;i<hitnum;i++){
     if((counterData[i].iLay == iLay &&
@@ -1062,6 +1098,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].trackID = track;
     counterData[hitnum].particleID = particle;
+    counterData[hitnum].charge = charge > 0 ? 1 : -1;
     counterData[hitnum].iLay = iLay;
 
     G4int iPad=0.;

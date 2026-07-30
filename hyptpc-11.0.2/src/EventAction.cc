@@ -719,15 +719,15 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	  switch(restype){
 	  case 0:
 	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
+					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    break;
 	  case 1:
 	    gAnaMan.SetCounterDataExp( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-				       irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
+				       irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    break;
 	  default:
 	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
-					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, tlength,slength );
+					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    G4cout<<"TPC Resolution type is not determined. Now using constant resolution"<<G4endl;
 	    break;
 	  }

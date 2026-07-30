@@ -49,6 +49,7 @@ struct CounterData
   G4double resoX;
   G4int trackID;
   G4int particleID;
+  G4int charge;
   G4double time;
   G4double beta;
   G4double edep;
@@ -123,6 +124,7 @@ struct Event
   std::vector<Int_t> ntrk;          // Track multiplicity/index value passed from the TPCPad hit
   std::vector<Int_t> trackidtpc;    // Geant4 track ID
   std::vector<Int_t> pidtpc;        // Particle PDG ID
+  std::vector<Int_t> charge_tpc_hit; // Internal: Geant4 charge aligned with accepted pad hits
   std::vector<Int_t> parentidtpc;   // Parent Geant4 track ID
   std::vector<Int_t> parentpidtpc;  // Parent particle PDG ID
 
@@ -166,6 +168,9 @@ struct Event
   Int_t ntrack;
   std::vector<Int_t> trackid;
   std::vector<Int_t> trackpid;
+  std::vector<Int_t> charge_track;
+  std::vector<Double_t> mom0_track;
+  std::vector<Double_t> dedx_track;
   std::vector<Int_t> trackparentid;
 
   Int_t nvtx;
@@ -183,6 +188,7 @@ struct Event
     ntrk.clear();
     trackidtpc.clear();
     pidtpc.clear();
+    charge_tpc_hit.clear();
     xtpc.clear();
     ytpc.clear();
     ztpc.clear();
@@ -217,6 +223,9 @@ struct Event
     ntrack = 0;
     trackid.clear();
     trackpid.clear();
+    charge_track.clear();
+    mom0_track.clear();
+    dedx_track.clear();
     trackparentid.clear();
     nvtx = 0;
     vtx_type.clear();
@@ -234,6 +243,7 @@ struct Event
     ntrk.resize(nhits);
     trackidtpc.resize(nhits);
     pidtpc.resize(nhits);
+    charge_tpc_hit.resize(nhits);
     xtpc.resize(nhits);
     ytpc.resize(nhits);
     ztpc.resize(nhits);
@@ -418,11 +428,11 @@ public:
   void SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-			    G4int parentid, G4int parentpid, G4double tlength, G4double slength);
+			    G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
   void SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-			 G4int parentid, G4int parentpid, G4double tlength, G4double slength);
+			 G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
   void SetFermiMomentum(const G4ThreeVector& p);
   void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);
