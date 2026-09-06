@@ -3,11 +3,13 @@
 #include "ConfMan.hh"
 
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <libgen.h>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -50,6 +52,30 @@ ConfMan::Contains(const G4String& key) const
 }
 
 //_____________________________________________________________________________
+std::set<G4int>
+ConfMan::GetIntList(const G4String& key) const
+{
+  std::set<G4int> out;
+  auto it = m_string.find(key);
+  if (it == m_string.end()) return out;
+
+  std::stringstream ss(it->second.data());
+  G4int v = 0;
+  while (ss >> v) {
+    out.insert(v);
+  }
+  return out;
+}
+
+//_____________________________________________________________________________
+std::set<G4int>
+ConfMan::GetOrDefaultIntList(const G4String& key,
+                             const std::set<G4int>& default_value) const
+{
+  return Contains(key) ? GetIntList(key) : default_value;
+}
+
+//_____________________________________________________________________________
 G4bool
 ConfMan::Initialize()
 {
@@ -80,12 +106,27 @@ ConfMan::Initialize()
     if (line[0]=='#')
       continue;
     std::istringstream iss(line);
-    G4String key, val;
-    iss >> key >> val;
-    if(key.empty() || val.empty())
+    G4String key;
+    iss >> key;
+    if (key.empty())
       continue;
     if (key.back() == ':')
       key.pop_back();
+
+    // Rest of the line is the value (allows space/tab-separated lists).
+    std::string rest;
+    std::getline(iss >> std::ws, rest);
+    // Drop inline comment.
+    const auto hash = rest.find('#');
+    if (hash != std::string::npos)
+      rest.erase(hash);
+    // Trim trailing whitespace.
+    while (!rest.empty() && std::isspace(static_cast<unsigned char>(rest.back())))
+      rest.pop_back();
+    G4String val = rest;
+    if (val.empty())
+      continue;
+
     G4cout << " key = "   << std::setw(20) << std::left << key
 	   << " value = " << std::setw(30) << std::left << val
 	   << G4endl;

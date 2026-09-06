@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 #include <vector>
 
 #include <globals.hh>
@@ -46,6 +47,12 @@ public:
   G4bool    Contains(const G4String& key) const;
   template <typename T>
   static const T& Get(const G4String& key);
+  template <typename T>
+  static T GetOrDefault(const G4String& key, const T& default_value);
+  // Space/tab-separated integers from the conf value string.
+  std::set<G4int> GetIntList(const G4String& key) const;
+  std::set<G4int> GetOrDefaultIntList(const G4String& key,
+                                      const std::set<G4int>& default_value) const;
   const G4String& ConfBuf() const { return m_conf_buf; }
   G4bool    Initialize();
   G4bool    Initialize(const G4String& file_name);
@@ -112,6 +119,38 @@ inline const G4bool&
 ConfMan::Get<G4bool>(const G4String& key)
 {
   return GetInstance().m_bool[key];
+}
+
+//_____________________________________________________________________________
+template <>
+inline G4String
+ConfMan::GetOrDefault<G4String>(const G4String& key, const G4String& default_value)
+{
+  return GetInstance().Contains(key) ? GetInstance().m_string.at(key) : default_value;
+}
+
+//_____________________________________________________________________________
+template <>
+inline G4double
+ConfMan::GetOrDefault<G4double>(const G4String& key, const G4double& default_value)
+{
+  return GetInstance().Contains(key) ? GetInstance().m_double.at(key) : default_value;
+}
+
+//_____________________________________________________________________________
+template <>
+inline G4int
+ConfMan::GetOrDefault<G4int>(const G4String& key, const G4int& default_value)
+{
+  return GetInstance().Contains(key) ? GetInstance().m_int.at(key) : default_value;
+}
+
+//_____________________________________________________________________________
+template <>
+inline G4bool
+ConfMan::GetOrDefault<G4bool>(const G4String& key, const G4bool& default_value)
+{
+  return GetInstance().Contains(key) ? GetInstance().m_bool.at(key) : default_value;
 }
 
 //_____________________________________________________________________________

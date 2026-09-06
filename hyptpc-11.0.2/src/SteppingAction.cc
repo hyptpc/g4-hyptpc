@@ -43,20 +43,19 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
 {
   static const G4bool KillStepInIron = gConf.Get<G4bool>("KillStepInIron");
 
-  auto theTrack = theStep->GetTrack();
-  auto theParticle = theTrack->GetParticleDefinition();
-  auto parentID = theTrack->GetParentID();
-  auto particleName = theParticle->GetParticleName();
+  auto theTrack        = theStep->GetTrack();
+  auto theParticle     = theTrack->GetParticleDefinition();
+  auto particleName    = theParticle->GetParticleName();
   auto particlePdgCode = theParticle->GetPDGEncoding();
-  auto particleMass = theParticle->GetPDGMass();
-  auto prePoint = theStep->GetPreStepPoint();
-  auto prePV = prePoint->GetPhysicalVolume();
-  auto prePVName = prePV->GetName();
-  auto postPoint = theStep->GetPostStepPoint();
-  auto theProcess = postPoint->GetProcessDefinedStep()->GetProcessName();
-  auto stepLength = theTrack->GetStepLength();
+  auto particleMass    = theParticle->GetPDGMass();
+  auto prePoint        = theStep->GetPreStepPoint();
+  auto prePV           = prePoint->GetPhysicalVolume();
+  auto prePVName       = prePV->GetName();
+  auto postPoint       = theStep->GetPostStepPoint();
+  auto theProcess      = postPoint->GetProcessDefinedStep()->GetProcessName();
+  auto stepLength      = theTrack->GetStepLength();
   G4ThreeVector stepMiddlePosition = (prePoint->GetPosition() + postPoint->GetPosition())/2.0;
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleTable* particleTable   = G4ParticleTable::GetParticleTable();
 
   // for debug
   // if (prePoint->GetStepStatus() == fGeomBoundary) {
@@ -84,52 +83,57 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
       }
     }
   }
-  
-  // -- check decay particle -----
-  std::pair<G4String, G4String> previous_particle = gAnaMan.GetPreviousParticle();
-  G4ThreeVector previous_step_pos = gAnaMan.GetDecayPosition();
-  G4int generator = gAnaMan.GetNextGenerator();
-  if (previous_particle.second == "Decay" && previous_particle.first == gAnaMan.GetFocusParticle(generator) ){
-    if ( gAnaMan.IsInsideHtof(previous_step_pos) ) gAnaMan.SetDecayParticleCode( particlePdgCode );
-    gAnaMan.SetFocusParentID( parentID );
-  }
-  
-  gAnaMan.SetPreviousParticle(particleName, theProcess);
-  gAnaMan.SetDecayPosition(stepMiddlePosition);
-  
-  // -- Get Seconday Vertex info --
-  PrimaryGeneratorAction* generatorAction = (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
-  
-  for(int i=0;i<10;i++){
-    if(particlePdgCode != generatorAction->m_primary_pdg[i]){
-      continue;
-    }else if(particlePdgCode == generatorAction->m_primary_pdg[i]){
-      if(theTrack->GetTrackStatus() == fStopAndKill){
-	const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
-	if (!secTracks->empty()) {
-	  for (const auto& secTrack : *secTracks) {
-            if (secTrack->GetCreatorProcess()) {
-	      G4String secProcessName = secTrack->GetCreatorProcess()->GetProcessName();
-	      G4int motherPdgCode = particlePdgCode;
-	      G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
-              G4int motherTrackID = theTrack->GetTrackID();
-              G4int daughterTrackID = secTrack->GetTrackID();
-	      G4ThreeVector mom_se = secTrack->GetMomentum();
-	      G4LorentzVector v_se(secTrack->GetPosition(), 0);
-	      G4LorentzVector p_se(mom_se, std::sqrt(std::pow(particleMass,2)+std::pow(mom_se.mag(),2)));
-	      
-	      gAnaMan.SetSecondaryVertex(daughterPdgCode,motherPdgCode,p_se,v_se,
-                                      daughterTrackID,motherTrackID);
-	      
-            } else {
-	      G4cout << "Secondary particle has no creator process!" << G4endl;
-            }
-	  }
-	}
+
+  // Tag focus-particle Decay: mother TrackID is the focus parent for TPC matching.
+  // If the decay vertex is inside HTOF, record the first secondary PDG as decay_particle_code.
+  {
+    G4int generator = gAnaMan.GetNextGenerator();
+    G4String focus_name = gAnaMan.GetFocusParticle(generator);
+    if (theProcess == "Decay" && focus_name != "none" && particleName == focus_name) {
+      gAnaMan.SetFocusParentID(theTrack->GetTrackID());
+      if (gAnaMan.IsInsideHtof(stepMiddlePosition)) {
+        const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
+        if (secTracks && !secTracks->empty() && (*secTracks)[0]->GetDefinition()) {
+          gAnaMan.SetDecayParticleCode(
+            (*secTracks)[0]->GetDefinition()->GetPDGEncoding());
+        }
       }
     }
   }
-  
+
+  // -- Get Seconday Vertex info --
+  PrimaryGeneratorAction* generatorAction =
+    (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+
+  for (int i = 0; i < 10; ++i) {
+    if (particlePdgCode != generatorAction->m_primary_pdg[i]) continue;
+
+    if (theTrack->GetTrackStatus() == fStopAndKill) {
+      const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
+      if (!secTracks->empty()) {
+        for (const auto& secTrack : *secTracks) {
+          if (secTrack->GetCreatorProcess()) {
+            G4String secProcessName = secTrack->GetCreatorProcess()->GetProcessName();
+            G4int motherPdgCode = particlePdgCode;
+            G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
+            G4int motherTrackID = theTrack->GetTrackID();
+            G4int daughterTrackID = secTrack->GetTrackID();
+            G4ThreeVector mom_se = secTrack->GetMomentum();
+            G4LorentzVector v_se(secTrack->GetPosition(), 0);
+            G4LorentzVector p_se(mom_se,
+                                 std::sqrt(std::pow(particleMass, 2)
+                                           + std::pow(mom_se.mag(), 2)));
+
+            gAnaMan.SetSecondaryVertex(daughterPdgCode, motherPdgCode, p_se, v_se,
+                                       daughterTrackID, motherTrackID);
+          } else {
+            G4cout << "Secondary particle has no creator process!" << G4endl;
+          }
+        }
+      }
+    }
+  }
+
 #ifdef DEBUG
   PrintHelper helper(3, std::ios::fixed, G4cout);
   auto time = prePoint->GetGlobalTime();

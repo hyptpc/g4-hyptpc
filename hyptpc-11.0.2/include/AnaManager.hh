@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <set>
 #include <algorithm>
+#include <utility>
 
 #include <G4LorentzVector.hh>
 #include <G4ThreeVector.hh>
@@ -41,6 +42,37 @@ void minuitInit(double printLevel);
 
 static const int MAXtpctrNum=30;
 static const int MAXtpctrhitNum=500;
+
+// Acceptance-study / trigger channel for one generator ID.
+// focus_name: Geant4 particle name used when tagging the Decay step ("none" if unused).
+// require_focus_parent: if true, TPC hits must belong to m_focus_parent_id.
+// tpc_pdg: PDG codes that must each satisfy the TPC layer-multiplicity cut for kTPCBit.
+struct TrigChannel
+{
+  G4String focus_name;
+  G4bool require_focus_parent;
+  std::vector<G4int> tpc_pdg;
+};
+
+// Fixed edep cut: 0.2 MeV/cm (= 1/10 MIP).
+static const G4double kTrigEdepThreshold = 0.2;
+static const G4int    kTrigTpcLayerMultiDefault = 5;
+static const G4double kTrigHtofFwdEdepDefault = 3.0; // MeV
+static const G4int    kTrigHtofMultiDefault = 2;
+
+static const G4double kRefractiveIndexKvc = 1.46;
+static const G4double kRefractiveIndexBac = 1.115;
+
+static const std::set<G4int> kSelectedBh2Seg{3, 4, 5, 6, 7, 8, 9};
+static const std::set<G4int> kHtofMpOffSegments{0, 5};
+static const std::vector<std::pair<G4int, G4int>> kHtofMpMergePairs{
+  {1, 2},
+  {3, 4}
+};
+// HTOF copy numbers (0-origin, Mother(1)) for the forward-proton bit.
+static const std::set<G4int> kHtofFwdProtonSegments{
+  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29
+};
 
 //_____________________________________________________________________________
 struct CounterData
@@ -344,7 +376,6 @@ private:
   G4bool m_do_hit_tgt;
   G4bool m_do_generate_beam;
   G4bool m_do_combine;
-  G4bool m_require_tpc_mp;
   G4bool m_threshold_con;
   G4int m_effective_evnum;
   G4int m_next_generator;
@@ -357,54 +388,34 @@ private:
   // --------------------------------
 
   // --------------------------------
-  // for checking decay particle
-  std::pair<G4String, G4String> m_previous_particle; // particle name, process name
-  const std::unordered_map<G4int, G4String> m_focus_particle = {
-    // generator id, particle name
-    {7201, "kaon-"},
-    {7202, "lambda"},
-    {7203, "lambda"},
-    {7204, "sigma-"},
-    {7205, "lambda"},
-    {7206, "sigma+"},
-    {7207, "kaon-"},
-    {7208, "kaon0S"},
-    {7212, "lambda"},
-    {7213, "lambda"},
-    {7214, "sigma+"},
-    {7215, "sigma-"}
+  // decay / acceptance-study trigger
+  const std::unordered_map<G4int, TrigChannel> m_trig_channel = {
+    // generator id -> { focus Geant4 name, require focus parent, TPC PDG list }
+    { 7201,  { "kaon-",  false, {} } },
+    { 7202,  { "lambda", true,  { 2212, -211 } } },          // eta Lambda
+    { 7203,  { "lambda", true,  { 2212, -211 } } },          // pi0 Lambda
+    { 7204,  { "sigma-", false, { +211, -211 } } },          // pi+ Sigma-
+    { 7205,  { "lambda", true,  { 2212, -211 } } },          // pi0 Sigma0
+    { 7206,  { "sigma+", false, { -211, +211, 2212 } } },    // pi- Sigma+
+    { 7207,  { "kaon-",  false, { -321, 2212 } } },          // K p
+    { 7208,  { "kaon0S", true,  { +211, -211 } } },          // k0 n
+    { 7212,  { "lambda", false, { 2212, -211, +211 } } },    // pi- pi+ Lambda
+    { 7213,  { "lambda", false, { 2212, -211, +211 } } },    // pi+ pi- Sigma0
+    { 7214,  { "sigma+", false, { 2212, -211 } } },          // pi- pi0 Sigma+
+    { 7215,  { "sigma-", false, { -211, +211 } } },          // pi+ pi0 Sigma-
+    { 10402, { "none",   true,  { +321, -321, +321, -321 } } } // Phi Phi
   };
+
+  G4int m_trig_tpc_layer_multi;
+  G4double m_trig_htof_fwd_edep;
+  G4int m_trig_htof_multi;
+  std::set<G4int> m_selected_bh2_seg;
+  std::set<G4int> m_htof_mp_off_segments;
+  std::set<G4int> m_htof_fwd_proton_segments;
+
   G4int m_decay_particle_code;
-  G4ThreeVector m_decay_position;
-  // --------------------------------
-
-  // --------------------------------
-  // for acceptance study
-  const G4double m_edep_threshold = 0.2; // MeV/cm
-  const std::unordered_map<G4int, std::vector<G4int>> m_tpc_check_list = {
-  //  gen   { check parentidtpc, PDG codes of check list }
-    { 7202, {1, 2212, -211} }, // eta Lambda
-    { 7203, {1, 2212, -211} }, // pi0 Lambda
-    { 7204, {0, +211, -211} }, // pi+ Sigma-
-    { 7205, {1, 2212, -211} }, // pi0 Sigma0
-    { 7206, {0, -211, +211, 2212} }, // pi- Sigma+
-    { 7207, {0, -321, 2212} }, // K p
-    { 7208, {1, +211, -211} }, // k0 n
-    { 7212, {0, 2212, -211, +211} }, // pi- pi+ Lambda
-    { 7213, {0, 2212, -211, +211} }, // pi+ pi- Sigma0
-    { 7214, {0, 2212, -211} }, // pi- pi0 Sigma+
-    { 7215, {0, -211, +211} }, // pi+ pi0 Sigma-
-    
-    { 10402, {1, +321, -321, +321, -321}} //Phi Phi
-  };
-  const std::vector<G4int> m_forward_seg_narrow{16, 17, 18, 19, 20, 21, 22};
-  const std::vector<G4int> m_forward_seg_wide{10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
-  const std::vector<G4int> m_forward_seg_all{6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
-  const G4double m_refractive_index_kvc = 1.46;
-  const G4double m_refractive_index_bac = 1.115;
-
   G4int m_trig_flag_int;
-  G4int m_focus_parent_id;  
+  G4int m_focus_parent_id;
   G4bool m_kaon_beam_flag;
   // --------------------------------
 
@@ -456,7 +467,6 @@ public:
   void SetMomKaonLab(G4double mom_kaon_lab);
   void SetCosTheta(G4double cos_theta);
   void SetCosThetaLambda(G4double cos_theta_lambda);
-  void SetPreviousParticle(G4String particle_name, G4String process_name);
   
   // --------------------------------
   // combine beam and reaction generator
@@ -466,8 +476,6 @@ public:
   G4bool GetDoGenerateBeam();
   void   SetDoCombine(G4bool do_combine);
   G4bool GetDoCombine();
-  void   SetRequireTpcMp(G4bool require_tpc_mp);
-  G4bool GetRequireTpcMp();
   void   SetThresholdCondition(G4bool threshold_con);
   G4bool GetThresholdCondition();
   void  SetEffectiveEvnum(G4int effective_evnum);
@@ -489,24 +497,16 @@ public:
   // --------------------------------
 
   // --------------------------------
-  // for checking decay particle
-  std::pair<G4String, G4String> GetPreviousParticle();
-  G4String GetFocusParticle(G4int generator_id);
+  // decay / trigger
+  G4String GetFocusParticle(G4int generator_id) const;
   void  SetDecayParticleCode(G4int decay_particle_code);
   G4int GetDecayParticleCode();
-  void SetDecayPosition(G4ThreeVector decay_position);
-  G4ThreeVector GetDecayPosition();
-  G4bool IsInsideHtof(G4ThreeVector position);
-  // --------------------------------
-
-  // --------------------------------
-  // for trigger
+  G4bool IsInsideHtof(G4ThreeVector position) const;
   void SetFocusParentID(G4int focus_parent_id);
   // --------------------------------
 
   void BuildVtxInfo();
 
-  
   int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
 		      double ca1, double cb1, double ct01, int qq1,
 		      double ca2, double cb2, double ct02, int qq2,
@@ -620,6 +620,14 @@ public:
 
     return 1.;
   }
+
+private:
+  G4bool HasTpcChecklist(G4int generator_id) const;
+  G4bool BetaAboveCherenkovThreshold(G4int pdg, G4double mom,
+                                     G4double refractive_index) const;
+  G4int MapHtofMpPairSeg(G4int seg) const;
+  void EvaluateBeamTrigger(G4bool require_tgt);
+  void EvaluateReactionTrigger();
 };
 
 //_____________________________________________________________________________

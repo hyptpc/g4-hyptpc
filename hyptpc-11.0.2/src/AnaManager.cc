@@ -2,14 +2,16 @@
 
 #include "AnaManager.hh"
 
+#include <algorithm>
+#include <cmath>
+#include <map>
+#include <tuple>
+
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ThreeVector.hh>
 #include <Randomize.hh>
-
-#include <map>
-#include <tuple>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -47,16 +49,15 @@ Event event;
 std::map<TString, TH1*> hmap;
 
 enum TriggerBit {
-    kBeamBit    = 1 << 4,   // 10000 : 1 when kBeam
-    kKVCBit     = 1 << 3,   // 01000 : 1 when KVC Hit
-    kHTOFMp2Bit = 1 << 2,   // 00100 : 1 when HTOF Mp >= 2
-    kHTOFFwdBit = 1 << 1,   // 00010 : 1 when HTOF Fwd On
-    kTPCBit     = 1 << 0    // 00001 : 1 when Satisfy TPC cond
+  kBeamBit    = 1 << 4, // beam condition satisfied
+  kKVCBit     = 1 << 3, // Cherenkov above threshold in KVC
+  kHTOFMpBit  = 1 << 2, // HTOF segment multiplicity above cut
+  kHTOFFwdBit = 1 << 1, // HTOF forward-segment edep above cut
+  kTPCBit     = 1 << 0  // all TPC checklist species above layer-multiplicity cut
 };
 }
 
 //_____________________________________________________________________________
-// maybe can not get param using gConf initialize part. (set generator in BeginOfRunAction)
 AnaManager::AnaManager()
   : m_file(),
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
@@ -68,20 +69,23 @@ AnaManager::AnaManager()
     m_do_hit_tgt(false),
     m_do_generate_beam(true),
     m_do_combine(false),
-    m_require_tpc_mp(false),
     m_effective_evnum(0),
     m_next_generator(-1),
     m_first_generator(-1),
     m_second_generator(-1),
     m_next_pos(0.0, 0.0, 0.0),
-    m_next_mom(0.0, 0.0, 0.0),  
+    m_next_mom(0.0, 0.0, 0.0),
     m_threshold_con(true),
-    m_previous_particle("init", "init"),
+    m_trig_tpc_layer_multi(kTrigTpcLayerMultiDefault),
+    m_trig_htof_fwd_edep(kTrigHtofFwdEdepDefault),
+    m_trig_htof_multi(kTrigHtofMultiDefault),
+    m_selected_bh2_seg(kSelectedBh2Seg),
+    m_htof_mp_off_segments(kHtofMpOffSegments),
+    m_htof_fwd_proton_segments(kHtofFwdProtonSegments),
     m_decay_particle_code(0),
-    m_decay_position(-9999.0, -9999.0, -9999.0),
     m_trig_flag_int(0),
-    m_kaon_beam_flag(false),
-    m_focus_parent_id(-1)
+    m_focus_parent_id(-1),
+    m_kaon_beam_flag(false)
 {
 }
 
@@ -160,13 +164,13 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   MakeBranch("SEC");
 
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
-    if(sd_name != "TPCPad" && sd_name != "TPCEdep" || (sd_name=="CVC"&&gConf.Get<G4bool>("TPCPadOn")) ){
+    if ((sd_name != "TPCPad" && sd_name != "TPCEdep") ||
+        (sd_name == "CVC" && gConf.Get<G4bool>("TPCPadOn"))) {
       G4cout << "   make branch : " << sd_name << G4endl;
       MakeBranch(sd_name);
       MakeHistogram(sd_name);
     }
   }
-
   
   //for TPC tracking
   if(gConf.Get<G4bool>("TPCPadOn")){
@@ -232,12 +236,25 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
 
   // -- initialize combination generator -----
   m_do_combine       = gConf.Get<G4bool>("Combine");
-  m_require_tpc_mp   = gConf.Get<G4bool>("RequireTPCMp");
   m_next_generator   = gConf.Get<G4int>("FirstGenerator");
   m_first_generator  = gConf.Get<G4int>("FirstGenerator");
   m_second_generator = gConf.Get<G4int>("SecondGenerator");
   m_experiment       = gConf.Get<G4int>("Experiment");
   m_do_accep_study   = gConf.Get<G4bool>("AcceptanceStudy");
+
+  m_trig_tpc_layer_multi = gConf.GetOrDefault<G4int>(
+    "TrigTpcLayerMulti", kTrigTpcLayerMultiDefault);
+  m_trig_htof_fwd_edep = gConf.GetOrDefault<G4double>(
+    "TrigHtofFwdEdep", kTrigHtofFwdEdepDefault);
+  m_trig_htof_multi = gConf.GetOrDefault<G4int>(
+    "TrigHtofMulti", kTrigHtofMultiDefault);
+
+  m_selected_bh2_seg = gConf.GetOrDefaultIntList(
+    "TrigBh2Seg", kSelectedBh2Seg);
+  m_htof_mp_off_segments = gConf.GetOrDefaultIntList(
+    "TrigHtofMpOffSeg", kHtofMpOffSegments);
+  m_htof_fwd_proton_segments = gConf.GetOrDefaultIntList(
+    "TrigHtofFwdSeg", kHtofFwdProtonSegments);
  
 #if 0
   G4double target_pos_z=-143.;
@@ -410,15 +427,12 @@ AnaManager::BeginOfEventAction()
 
   event.HitNum_p=-1;
 
-  // -- initialize -----
   // for trigger check
   m_focus_parent_id = -1;
-    
+  m_trig_flag_int = 0;
+
   // for checking decay particle
-  m_previous_particle = std::make_pair("init", "init");
   m_decay_particle_code = 0;
-  m_decay_position = G4ThreeVector(-9999.0, -9999.0, -9999.0);
-  
   
 }
 
@@ -491,151 +505,16 @@ AnaManager::EndOfEventAction()
   }
 
   G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
-  // -- trigger check -----
-  // The main g4hyptpc tree also stores trig_flag.  For combined beam/event
-  // production its bits must therefore be evaluated even when the optional
-  // acceptance-study output is disabled.
-  if(m_do_accep_study || m_do_combine){
-    
-    if (m_do_combine) {  // combine beam and event
-      // -- beam ---
-      if (m_next_generator == m_first_generator) {
-	m_kaon_beam_flag = false;
-	// -- BH2 -----
-	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
-	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
-	std::set<G4int> bh2_seg_unique;
-	for (const auto &it : event.hits.at("BH2")){
-	  G4int seg = it.GetMother(1);
-	  if(selected_bh2_seg.count(seg) == 0)continue;
-	  if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
-	    bh2_seg_unique.insert(it.GetMother(1));
-	}
-	G4int bh2_multi = bh2_seg_unique.size();
 
-	// -- BAC -----
-	G4bool bac_veto_passed = true;
-	for (const auto &it : event.hits.at("BAC")) {
-	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
-	  // -- calc beta -----
-	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
-	  G4double mass = particle->GetPDGMass(); // MeV/c^2
-	  G4double mom  = it.P();                 // MeV/c
-	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	  if (beta > 1.0/m_refractive_index_bac) bac_veto_passed = false;
-	}
-	if (bh2_multi != 0 && bac_veto_passed) m_kaon_beam_flag = true;
-	m_trig_flag_int = m_kaon_beam_flag ? kBeamBit : 0;
-      }
+  // trig_flag: always evaluate (independent of AcceptanceStudy / Combine).
+  if (m_next_generator == m_first_generator) {
+    EvaluateBeamTrigger(/*require_tgt=*/ !m_do_combine);
+  } else if (m_do_combine && HasTpcChecklist(m_next_generator)) {
+    EvaluateReactionTrigger();
+  }
 
-      // -- event ---
-      else if (m_tpc_check_list.count(m_next_generator) != 0) {
-	// -- trigger condition -----
-	//G4int tpc_multi_threshold = 6;
-	G4int tpc_multi_threshold = 5;
-	G4double htof_threshold = 3.0; // MeV
-	const std::vector<G4int> &forward_seg = m_forward_seg_wide;
-	G4int htof_multi_threshold = 2;
-	G4int n_detected_track_threshold = 2;
-	// -- TPC -----
-	G4int n_check_list = m_tpc_check_list.at(m_next_generator).size() - 1;
-	std::vector<std::set<G4int>> layer_id_unique(n_check_list);
-	for (const auto &it : event.hits.at("TPC")) {
-	  for (G4int i = 0; i < n_check_list; i++) {
-	    if (it.GetPdgCode() == m_tpc_check_list.at(m_next_generator)[i+1] 
-		&& (m_tpc_check_list.at(m_next_generator)[0] == 0 || it.GetMother(0) == m_focus_parent_id) 
-		&& (0 <= it.GetMother(1) && it.GetMother(1) < 32)
-		) layer_id_unique[i].insert(it.GetMother(1));
-	  }
-	}
-
-	G4int n_detected_track = 0;
-	for (G4int i = 0; i < n_check_list; i++) {
-	  if ((G4int) layer_id_unique[i].size() >= tpc_multi_threshold) n_detected_track++;
-	}
-
-	// -- HTOF -----
-	const auto& htof_size = gSize.GetSize("HtofSeg")*CLHEP::mm;
-	std::set<G4int> htof_seg_unique;
-	std::set<G4int> exclude_htof_multi_seg = {0,5};
-	
-	G4bool is_proton_forward_htof = false;
-	for (const auto &it : event.hits.at("HTOF")) {
-	  G4int seg = it.GetMother(1);
-	  // HTOF Mp2
-	  if (!exclude_htof_multi_seg.count(seg)) {
-	    if (it.GetWeight() > m_edep_threshold * htof_size.z()/10.0) {
-	      htof_seg_unique.insert(seg);
-	    }
-	  }
-	  //HTOF Fwd
-	  if (it.GetWeight() > htof_threshold && std::binary_search(forward_seg.begin(), forward_seg.end(), seg)) is_proton_forward_htof =true;
-	}
-	G4int htof_multi = htof_seg_unique.size();
-	// -- Cherenkov radiation at KVC -----
-	G4bool hit_kvc_anyseg = false;
-	for (const auto &it : event.hits.at("KVC")) {
-	  // -- calc beta -----
-	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
-	  G4double mass = particle->GetPDGMass(); // MeV/c^2
-	  G4double mom  = it.P();                 // MeV/c
-	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	  if (beta > 1.0/m_refractive_index_kvc) hit_kvc_anyseg = true;
-
-	}
-	// -- check trigger -------
-	m_trig_flag_int = 0;
-
-	if (m_kaon_beam_flag)
-	  m_trig_flag_int |= kBeamBit;
-
-	if(hit_kvc_anyseg)
-	  m_trig_flag_int |= kKVCBit;
-
-	if (htof_multi >= htof_multi_threshold)
-	  m_trig_flag_int |= kHTOFMp2Bit;
-
-	if (is_proton_forward_htof)
-	  m_trig_flag_int |= kHTOFFwdBit;
-
-	if (n_detected_track >= n_detected_track_threshold)
-	  m_trig_flag_int |= kTPCBit;
-      }
-    }
-
-    else if(!m_do_combine){
-      if (m_next_generator == m_first_generator) {
-	m_kaon_beam_flag = false;
-	// -- BH2 -----
-	const auto& bh2_size = gSize.GetSize("Bh2Seg")*CLHEP::mm;
-	std::set<G4int> selected_bh2_seg = {3,4,5,6,7,8,9};
-	std::set<G4int> bh2_seg_unique;
-	for (const auto &it : event.hits.at("BH2")){
-	  G4int seg = it.GetMother(1);
-	  if(selected_bh2_seg.count(seg) == 0)continue;
-	  if (it.GetWeight() >= m_edep_threshold*bh2_size.z()/10.0)
-	    bh2_seg_unique.insert(it.GetMother(1));
-	}
-	G4int bh2_multi = bh2_seg_unique.size();
-
-	// -- BAC -----
-	G4bool bac_veto_passed = true;
-	for (const auto &it : event.hits.at("BAC")) {
-	  // if (it.GetPdgCode() == -321) is_kaon_at_bac = true;
-	  // -- calc beta -----
-	  G4ParticleDefinition *particle = particle_table->FindParticle(it.GetPdgCode());
-	  G4double mass = particle->GetPDGMass(); // MeV/c^2
-	  G4double mom  = it.P();                 // MeV/c
-	  G4double beta = mom / std::sqrt( mass*mass + mom*mom );
-	  if (beta > 1.0/m_refractive_index_bac) bac_veto_passed = false;
-	}
-	G4bool is_beam_at_tgt = false;
-	if(event.hits.at("TGT").size() > 0)is_beam_at_tgt = true;
-	if (bh2_multi != 0 && bac_veto_passed && is_beam_at_tgt) m_kaon_beam_flag = true;
-	m_trig_flag_int = m_kaon_beam_flag ? kBeamBit : 0;
-      }
-      m_tree_light->Fill();
-    }
+  if (m_do_accep_study && !m_do_combine) {
+    m_tree_light->Fill();
   }
   
 
@@ -803,7 +682,7 @@ AnaManager::BuildVtxInfo()
     event.nvtx = event.vtx_type.size();
   };
 
-  if (m_tpc_check_list.count(m_next_generator) == 0) return;
+  if (!HasTpcChecklist(m_next_generator)) return;
 
   if (!event.hits.at("PRM").empty()) {
     const auto& primary = event.hits.at("PRM");
@@ -1370,18 +1249,6 @@ AnaManager::GetDoCombine()
 
 //_____________________________________________________________________________
 void
-AnaManager::SetRequireTpcMp(G4bool require_tpc_mp)
-{
-  m_require_tpc_mp = require_tpc_mp;
-}
-G4bool
-AnaManager::GetRequireTpcMp()
-{
-  return m_require_tpc_mp;
-}
-
-//_____________________________________________________________________________
-void
 AnaManager::SetThresholdCondition(G4bool threshold_con)
 {
   m_threshold_con = threshold_con;
@@ -1490,28 +1357,148 @@ AnaManager::GetDebugPos()
 }
 
 //  +-------------------------+
-//  | checking decay particle |
+//  | decay / trigger helpers  |
 //  +-------------------------+
 //_____________________________________________________________________________
-void
-AnaManager::SetPreviousParticle(G4String particle_name, G4String process_name)
+G4bool
+AnaManager::HasTpcChecklist(G4int generator_id) const
 {
-  m_previous_particle = std::make_pair(particle_name, process_name);
+  auto it = m_trig_channel.find(generator_id);
+  return it != m_trig_channel.end() && !it->second.tpc_pdg.empty();
 }
 
 //_____________________________________________________________________________
-std::pair<G4String, G4String>
-AnaManager::GetPreviousParticle()
+G4bool
+AnaManager::BetaAboveCherenkovThreshold(G4int pdg, G4double mom,
+                                        G4double refractive_index) const
 {
-  return m_previous_particle;
+  G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle = particle_table->FindParticle(pdg);
+  if (!particle) return false;
+  G4double mass = particle->GetPDGMass(); // MeV/c^2
+  G4double beta = mom / std::sqrt(mass * mass + mom * mom);
+  return beta > 1.0 / refractive_index;
+}
+
+//_____________________________________________________________________________
+// Map beam-window upper/lower pair members to the representative (lo) segment id.
+G4int
+AnaManager::MapHtofMpPairSeg(G4int seg) const
+{
+  for (const auto& pair : kHtofMpMergePairs) {
+    const G4int lo = pair.first;
+    const G4int hi = pair.second;
+    if (seg == lo || seg == hi) return lo;
+  }
+  return seg;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::EvaluateBeamTrigger(G4bool require_tgt)
+{
+  m_kaon_beam_flag = false;
+
+  // BH2: unique selected segments with edep above kTrigEdepThreshold.
+  // Size z is in mm; divide by 10 to convert path length to cm.
+  const auto& bh2_size = gSize.GetSize("Bh2Seg") * CLHEP::mm;
+  std::set<G4int> bh2_seg_unique;
+  for (const auto& it : event.hits.at("BH2")) {
+    G4int seg = it.GetMother(1);
+    if (m_selected_bh2_seg.count(seg) == 0) continue;
+    if (it.GetWeight() >= kTrigEdepThreshold * bh2_size.z() / 10.0) {
+      bh2_seg_unique.insert(seg);
+    }
+  }
+  const G4int bh2_multi = static_cast<G4int>(bh2_seg_unique.size());
+
+  // BAC: veto if any hit has beta above Cherenkov threshold.
+  G4bool bac_veto_passed = true;
+  for (const auto& it : event.hits.at("BAC")) {
+    if (BetaAboveCherenkovThreshold(it.GetPdgCode(), it.P(), kRefractiveIndexBac)) {
+      bac_veto_passed = false;
+      break;
+    }
+  }
+
+  G4bool beam_ok = (bh2_multi != 0) && bac_veto_passed;
+  if (require_tgt) {
+    beam_ok = beam_ok && !event.hits.at("TGT").empty();
+  }
+
+  m_kaon_beam_flag = beam_ok;
+  m_trig_flag_int = m_kaon_beam_flag ? kBeamBit : 0;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::EvaluateReactionTrigger()
+{
+  const TrigChannel& channel = m_trig_channel.at(m_next_generator);
+
+  // TPC: for each checklist PDG, count unique layers in [0, 32).
+  const G4int n_species = static_cast<G4int>(channel.tpc_pdg.size());
+  std::vector<std::set<G4int>> layer_id_unique(n_species);
+  for (const auto& it : event.hits.at("TPC")) {
+    for (G4int i = 0; i < n_species; ++i) {
+      if (it.GetPdgCode() != channel.tpc_pdg[i]) continue;
+      if (channel.require_focus_parent && it.GetMother(0) != m_focus_parent_id) continue;
+      const G4int layer = it.GetMother(1);
+      if (layer < 0 || layer >= 32) continue;
+      layer_id_unique[i].insert(layer);
+    }
+  }
+
+  G4int n_detected_track = 0;
+  for (G4int i = 0; i < n_species; ++i) {
+    if (static_cast<G4int>(layer_id_unique[i].size()) >= m_trig_tpc_layer_multi) {
+      ++n_detected_track;
+    }
+  }
+
+  // HTOF Mp: unique segments after MpOff skip and beam-window pair merge.
+  // Size z is in mm; /10 converts thickness to cm for the density cut.
+  // HTOF Fwd: any segment in m_htof_fwd_proton_segments above m_trig_htof_fwd_edep.
+  const auto& htof_size = gSize.GetSize("HtofSeg") * CLHEP::mm;
+  std::set<G4int> htof_seg_unique;
+  G4bool is_forward_htof = false;
+  for (const auto& it : event.hits.at("HTOF")) {
+    const G4int seg = it.GetMother(1);
+    if (it.GetWeight() > kTrigEdepThreshold * htof_size.z() / 10.0) {
+      if (m_htof_mp_off_segments.count(seg) == 0) {
+        htof_seg_unique.insert(MapHtofMpPairSeg(seg));
+      }
+    }
+    if (it.GetWeight() > m_trig_htof_fwd_edep &&
+        m_htof_fwd_proton_segments.count(seg) != 0) {
+      is_forward_htof = true;
+    }
+  }
+  const G4int htof_multi = static_cast<G4int>(htof_seg_unique.size());
+
+  G4bool hit_kvc_anyseg = false;
+  for (const auto& it : event.hits.at("KVC")) {
+    if (BetaAboveCherenkovThreshold(it.GetPdgCode(), it.P(), kRefractiveIndexKvc)) {
+      hit_kvc_anyseg = true;
+      break;
+    }
+  }
+
+  m_trig_flag_int = 0;
+  if (m_kaon_beam_flag) m_trig_flag_int |= kBeamBit;
+  if (hit_kvc_anyseg) m_trig_flag_int |= kKVCBit;
+  if (htof_multi >= m_trig_htof_multi) m_trig_flag_int |= kHTOFMpBit;
+  if (is_forward_htof) m_trig_flag_int |= kHTOFFwdBit;
+  // kTPCBit requires every checklist species to pass the layer-multiplicity cut.
+  if (n_detected_track >= n_species) m_trig_flag_int |= kTPCBit;
 }
 
 //_____________________________________________________________________________
 G4String
-AnaManager::GetFocusParticle(G4int generator_id)
+AnaManager::GetFocusParticle(G4int generator_id) const
 {
-  auto it = m_focus_particle.find(generator_id);
-  return it != m_focus_particle.end() ? it->second : "none";
+  auto it = m_trig_channel.find(generator_id);
+  return it != m_trig_channel.end() ? it->second.focus_name : G4String("none");
 }
 
 //_____________________________________________________________________________
@@ -1529,41 +1516,24 @@ AnaManager::GetDecayParticleCode()
 }
 
 //_____________________________________________________________________________
-void
-AnaManager::SetDecayPosition(G4ThreeVector decay_position)
-{
-  m_decay_position = decay_position;
-}
-
-//_____________________________________________________________________________
-G4ThreeVector
-AnaManager::GetDecayPosition()
-{
-  return m_decay_position;
-}
-
-//_____________________________________________________________________________
 G4bool
-AnaManager::IsInsideHtof(G4ThreeVector position)
+AnaManager::IsInsideHtof(G4ThreeVector position) const
 {
   G4double pos_x = std::abs(position.getX());
   G4double pos_y = std::abs(position.getY());
   G4double pos_z = std::abs(position.getZ());
-  
-  G4double l = 332.0;  // cordinate origin to HTOF surface distance
-  G4double h = 400.0;  // HTOF half height
+
+  G4double l = 332.0; // origin to HTOF surface distance [mm]
+  G4double h = 400.0; // HTOF half height [mm]
   G4double tan_pi_over_8 = std::tan(CLHEP::pi / 8.0);
 
-  if ( pos_x > l || pos_z > l || pos_y > h ) return false;
+  if (pos_x > l || pos_z > l || pos_y > h) return false;
 
-  if ( pos_x < l * tan_pi_over_8) return true;
-  else if ( pos_z < -pos_x + l * (1.0 + tan_pi_over_8)) return true;
+  if (pos_x < l * tan_pi_over_8) return true;
+  else if (pos_z < -pos_x + l * (1.0 + tan_pi_over_8)) return true;
   else return false;
 }
 
-//  +--------------------------------+
-//  | For trigger (acceptance study) |
-//  +--------------------------------+
 //_____________________________________________________________________________
 void
 AnaManager::SetFocusParentID(G4int focus_parent_id)
