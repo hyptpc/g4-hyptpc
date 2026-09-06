@@ -2,10 +2,13 @@
 
 #include "DetectorConstruction.hh"
 
+#include <algorithm>
+
 #include <G4Box.hh>
 #include <G4ChordFinder.hh>
 #include <G4Element.hh>
 #include <G4FieldManager.hh>
+#include <G4GenericTrap.hh>
 #include <G4IntersectionSolid.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
@@ -14,16 +17,17 @@
 #include <G4PVReplica.hh>
 #include <G4SDManager.hh>
 #include <G4SubtractionSolid.hh>
+#include <G4TessellatedSolid.hh>
+#include <G4ThreeVector.hh>
 #include <G4Transform3D.hh>
 #include <G4TransportationManager.hh>
 #include <G4Trd.hh>
-#include <G4ThreeVector.hh>
+#include <G4TriangularFacet.hh>
 #include <G4Tubs.hh>
+#include <G4TwoVector.hh>
 #include <G4UnionSolid.hh>
 #include <G4UserLimits.hh>
 #include <G4VisAttributes.hh>
-#include <G4TwoVector.hh>
-#include <G4GenericTrap.hh>
 
 #include "BeamMan.hh"
 #include "ConfMan.hh"
@@ -59,6 +63,91 @@ const G4Colour ORANGE(1.0, 0.55, 0.0);
 const G4Colour LAVENDER(0.901, 0.901, 0.98);
 const G4Colour MAROON(0.5, 0.0, 0.0);
 const G4Colour PINK(1.0, 0.753, 0.796);
+
+// Scale CAD corner half-width (35 mm) to HtofSeg half-width (34 mm).
+constexpr G4double kHtofCadHalfWidth = 35.0;
+constexpr G4double kHtofParamHalfWidth = 34.0;
+
+// Build tessellated HTOF corner scintillator.
+// mirror_tangential=false: bevel on local -X; true: bevel on local +X.
+G4TessellatedSolid*
+BuildHTOFScintCornerTess(G4bool mirror_tangential, const char* solid_name)
+{
+  using CLHEP::mm;
+  const G4double sx = kHtofParamHalfWidth / kHtofCadHalfWidth;
+  const G4double mx = mirror_tangential ? -1.0 : 1.0;
+
+  // CAD vertices {x, y, z} [mm].
+  const G4double v[24][3] = {
+    {-500.000,  -17.5000,  0.0000},
+    {-500.000,  -17.5000,  4.0000},
+    {-500.000,  +17.5000,  0.0000},
+    {-500.000,  +17.5000,  4.0000},
+    {-466.667,  -24.2538,  2.0000},
+    {-466.667,  -23.7936,  4.0000},
+    {-433.333,  -31.0076,  2.6667},
+    {-433.333,  -30.0871,  5.3333},
+    {-400.000,  -39.1421,  0.0000},
+    {-400.000,  -35.0000, 10.0000},
+    {-400.000,  +35.0000,  0.0000},
+    {-400.000,  +35.0000, 10.0000},
+    {+400.000,  -39.1421,  0.0000},
+    {+400.000,  -35.0000, 10.0000},
+    {+400.000,  +35.0000,  0.0000},
+    {+400.000,  +35.0000, 10.0000},
+    {+433.333,  -31.0076,  2.6667},
+    {+433.333,  -30.0871,  5.3333},
+    {+466.667,  -24.2538,  2.0000},
+    {+466.667,  -23.7936,  4.0000},
+    {+500.000,  -17.5000,  0.0000},
+    {+500.000,  -17.5000,  4.0000},
+    {+500.000,  +17.5000,  0.0000},
+    {+500.000,  +17.5000,  4.0000},
+  };
+
+  const G4int tri[44][3] = {
+    {23,22,21},{21,22,20},{22,23,14},{14,23,15},
+    {20,18,21},{21,19,13},{18,19,21},{12,16,20},{20,16,18},
+    {13,17,12},{19,17,13},{16,17,18},{18,17,19},{12,17,16},
+    {15,23,13},{13,23,21},
+    { 3, 1, 0},{ 2, 3, 0},
+    { 8, 7, 9},{ 6, 7, 8},{ 0, 4, 8},{ 8, 4, 6},
+    { 9, 5, 1},{ 1, 5, 0},{ 4, 5, 6},{ 0, 5, 4},
+    { 7, 5, 9},{ 6, 5, 7},
+    { 3,11, 1},{ 1,11, 9},{ 2,10, 3},{10,11, 3},
+    { 9,12, 8},{13,12, 9},{14,15,10},{15,11,10},
+    {10, 2, 0},{ 0,10, 8},{14, 8,12},{14,10, 8},
+    {20,14,12},{22,14,20},{11,15, 9},{ 9,15,13},
+  };
+
+  auto* ts = new G4TessellatedSolid(solid_name);
+
+  // G4(x,y,z) = (cad_y * sx * mx, cad_x, cad_z - 5) * mm
+  G4ThreeVector p[24];
+  G4ThreeVector c(0., 0., 0.);
+  for(G4int i = 0; i < 24; ++i){
+    p[i] = G4ThreeVector(v[i][1] * sx * mx * mm,
+                         v[i][0] * mm,
+                         (v[i][2] - 5.) * mm);
+    c += p[i];
+  }
+  c /= 24.;
+
+  // Make each facet normal point outward from the centroid.
+  for(const auto& t : tri){
+    G4ThreeVector a = p[t[0]];
+    G4ThreeVector b = p[t[1]];
+    G4ThreeVector d = p[t[2]];
+    const G4ThreeVector n = (b - a).cross(d - a);
+    const G4ThreeVector mid = (a + b + d) / 3.0;
+    if(n.dot(mid - c) < 0.){
+      std::swap(b, d);
+    }
+    ts->AddFacet(new G4TriangularFacet(a, b, d, ABSOLUTE));
+  }
+  ts->SetSolidClosed(true);
+  return ts;
+}
 }
 
 std::vector<G4String> DetectorConstruction::s_detector_list;
@@ -602,6 +691,16 @@ DetectorConstruction::ConstructHTOF()
   auto htof_lv = new G4LogicalVolume(htof_solid, m_material_map["Scintillator"],
                                      "HtofLV");
 
+  // Corner bars: j=3 uses -X bevel, j=0 uses +X bevel (mirrored).
+  auto htof_corner_m_solid = BuildHTOFScintCornerTess(false, "HtofScintCornerTessM");
+  auto htof_corner_p_solid = BuildHTOFScintCornerTess(true,  "HtofScintCornerTessP");
+  auto htof_corner_m_lv = new G4LogicalVolume(htof_corner_m_solid,
+                                              m_material_map["Scintillator"],
+                                              "HtofCornerMLV");
+  auto htof_corner_p_lv = new G4LogicalVolume(htof_corner_p_solid,
+                                              m_material_map["Scintillator"],
+                                              "HtofCornerPLV");
+
   //HTOF beam-through part
   G4double HTOF_window=112.*mm;
   G4double HTOF_upper_lower_y_diff = 12.0*mm;
@@ -638,10 +737,20 @@ DetectorConstruction::ConstructHTOF()
       G4int copy_no = seg+2;
 
       G4ThreeVector window_pos(0.*mm, half_size.y()/2. + HTOF_window/4., 0.*mm);
-      //common slats
-      if(i!=0)	new G4PVPlacement(rotMOutP, seg_pos, htof_lv, Form("HtofPV%d", copy_no), m_world_lv, false, copy_no, m_check_overlaps);
-      else if(j==0) new G4PVPlacement(rotMOutP, seg_pos, htof_lv, Form("HtofPV%d", 0), m_world_lv, false, 0, m_check_overlaps);
-      else if(j==3) new G4PVPlacement(rotMOutP, seg_pos, htof_lv, Form("HtofPV%d", 5), m_world_lv, false, 5, m_check_overlaps);
+
+      // Corner segments (j=0,3)
+      if(j==0 || j==3){
+        auto* corner_lv = (j==0) ? htof_corner_p_lv : htof_corner_m_lv;
+        G4int cn = (i==0 && j==0) ? 0 : (i==0 && j==3) ? 5 : copy_no;
+        new G4PVPlacement(rotMOutP, seg_pos, corner_lv,
+                          Form("HtofPV%d", cn), m_world_lv, false, cn,
+                          m_check_overlaps);
+      }
+      // common (non-corner) slats
+      else if(i!=0){
+        new G4PVPlacement(rotMOutP, seg_pos, htof_lv, Form("HtofPV%d", copy_no),
+                          m_world_lv, false, copy_no, m_check_overlaps);
+      }
       //Beam-through slats
       else if(j==1){
 	new G4PVPlacement(rotMOutP, seg_pos + window_pos, htof_upper_lv, Form("HtofPV%d", 1), m_world_lv, false, 1, m_check_overlaps);
@@ -655,9 +764,13 @@ DetectorConstruction::ConstructHTOF()
   }
 
   htof_lv->SetSensitiveDetector(htof_sd);
+  htof_corner_m_lv->SetSensitiveDetector(htof_sd);
+  htof_corner_p_lv->SetSensitiveDetector(htof_sd);
   htof_upper_lv->SetSensitiveDetector(htof_sd);
   htof_lower_lv->SetSensitiveDetector(htof_sd);
   htof_lv->SetVisAttributes(G4Colour::Cyan());
+  htof_corner_m_lv->SetVisAttributes(G4Colour::Cyan());
+  htof_corner_p_lv->SetVisAttributes(G4Colour::Cyan());
   htof_upper_lv->SetVisAttributes(G4Colour::Cyan());
   htof_lower_lv->SetVisAttributes(G4Colour::Cyan());
 
