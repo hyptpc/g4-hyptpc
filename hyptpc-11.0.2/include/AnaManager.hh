@@ -638,6 +638,7 @@ private:
   G4bool PassCombineThicknessGate();
   void SwitchToReactionGenerator();
   void ReturnToBeamGenerator();
+  G4String FormatTrigParamJson() const;
 };
 
 //_____________________________________________________________________________

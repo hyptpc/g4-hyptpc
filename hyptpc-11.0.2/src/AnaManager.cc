@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <sstream>
 #include <tuple>
 #include <vector>
 
@@ -17,6 +18,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TNamed.h>
 #include <TParticle.h>
 #include <TString.h>
 #include <TSystem.h>
@@ -257,6 +259,10 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_htof_fwd_proton_segments = gConf.GetOrDefaultIntList(
     "TrigHtofFwdSeg", kHtofFwdProtonSegments);
 
+  // Effective trigger settings (JSON text) for offline / Python readers.
+  auto* trig_param = new TNamed("trig_param", FormatTrigParamJson().data());
+  trig_param->Write();
+ 
 #if 0
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
@@ -1526,6 +1532,176 @@ AnaManager::ReturnToBeamGenerator()
   m_do_generate_beam = true;
   m_effective_evnum++;
   m_effective_thickness = -1.0;
+}
+
+namespace
+{
+std::string
+JsonEscape(const std::string& s)
+{
+  std::string out;
+  out.reserve(s.size() + 8);
+  for (char c : s) {
+    switch (c) {
+    case '\\': out += "\\\\"; break;
+    case '"':  out += "\\\""; break;
+    case '\n': out += "\\n"; break;
+    case '\r': out += "\\r"; break;
+    case '\t': out += "\\t"; break;
+    default:   out += c; break;
+    }
+  }
+  return out;
+}
+
+void
+JsonComma(std::ostringstream& os, G4bool& first)
+{
+  if (!first) os << ',';
+  first = false;
+}
+
+void
+JsonKey(std::ostringstream& os, G4bool& first, const char* key)
+{
+  JsonComma(os, first);
+  os << '"' << key << "\":";
+}
+
+void
+JsonBool(std::ostringstream& os, G4bool& first, const char* key, G4bool value)
+{
+  JsonKey(os, first, key);
+  os << (value ? "true" : "false");
+}
+
+void
+JsonInt(std::ostringstream& os, G4bool& first, const char* key, G4int value)
+{
+  JsonKey(os, first, key);
+  os << value;
+}
+
+void
+JsonDouble(std::ostringstream& os, G4bool& first, const char* key, G4double value)
+{
+  JsonKey(os, first, key);
+  os << value;
+}
+
+void
+JsonString(std::ostringstream& os, G4bool& first, const char* key,
+           const std::string& value)
+{
+  JsonKey(os, first, key);
+  os << '"' << JsonEscape(value) << '"';
+}
+
+void
+JsonIntArray(std::ostringstream& os, G4bool& first, const char* key,
+             const std::vector<G4int>& values)
+{
+  JsonKey(os, first, key);
+  os << '[';
+  for (std::size_t i = 0; i < values.size(); ++i) {
+    if (i > 0) os << ',';
+    os << values[i];
+  }
+  os << ']';
+}
+
+std::vector<G4int>
+SortedInts(const std::set<G4int>& values)
+{
+  return std::vector<G4int>(values.begin(), values.end());
+}
+}
+
+// Effective trigger configuration as JSON (written to TNamed "trig_param").
+//_____________________________________________________________________________
+G4String
+AnaManager::FormatTrigParamJson() const
+{
+  std::ostringstream os;
+  os << '{';
+
+  G4bool top_first = true;
+  JsonKey(os, top_first, "run");
+  {
+    os << '{';
+    G4bool first = true;
+    JsonBool(os, first, "Combine", m_do_combine);
+    JsonBool(os, first, "AcceptanceStudy", m_do_accep_study);
+    JsonInt(os, first, "FirstGenerator", m_first_generator);
+    JsonInt(os, first, "SecondGenerator", m_second_generator);
+    JsonInt(os, first, "Experiment", m_experiment);
+    os << '}';
+  }
+
+  JsonKey(os, top_first, "cuts");
+  {
+    os << '{';
+    G4bool first = true;
+    JsonInt(os, first, "TrigTpcLayerMulti", m_trig_tpc_layer_multi);
+    JsonDouble(os, first, "TrigHtofFwdEdep", m_trig_htof_fwd_edep);
+    JsonInt(os, first, "TrigHtofMulti", m_trig_htof_multi);
+    JsonDouble(os, first, "TrigEdepThreshold", kTrigEdepThreshold);
+    os << '}';
+  }
+
+  JsonKey(os, top_first, "segments");
+  {
+    os << '{';
+    G4bool first = true;
+    JsonIntArray(os, first, "TrigBh2Seg", SortedInts(m_selected_bh2_seg));
+    JsonIntArray(os, first, "TrigHtofMpOffSeg",
+                 SortedInts(m_htof_mp_off_segments));
+    JsonIntArray(os, first, "TrigHtofFwdSeg",
+                 SortedInts(m_htof_fwd_proton_segments));
+    os << '}';
+  }
+
+  JsonKey(os, top_first, "fixed");
+  {
+    os << '{';
+    G4bool first = true;
+    JsonKey(os, first, "HtofMpMergePairs");
+    os << '[';
+    for (std::size_t i = 0; i < kHtofMpMergePairs.size(); ++i) {
+      if (i > 0) os << ',';
+      os << '[' << kHtofMpMergePairs[i].first << ','
+         << kHtofMpMergePairs[i].second << ']';
+    }
+    os << ']';
+    os << '}';
+  }
+
+  JsonKey(os, top_first, "channels");
+  {
+    os << '[';
+    G4bool chan_first = true;
+    std::vector<G4int> used_generators{m_first_generator};
+    if (m_do_combine && m_second_generator != m_first_generator) {
+      used_generators.push_back(m_second_generator);
+    }
+    for (G4int gen : used_generators) {
+      auto it = m_trig_channel.find(gen);
+      if (it == m_trig_channel.end()) continue;
+      const TrigChannel& ch = it->second;
+      JsonComma(os, chan_first);
+      os << '{';
+      G4bool first = true;
+      JsonInt(os, first, "generator", gen);
+      JsonString(os, first, "focus", std::string(ch.focus_name.data()));
+      JsonBool(os, first, "require_focus_parent", ch.require_focus_parent);
+      JsonIntArray(os, first, "tpc_pdg", ch.tpc_pdg);
+      os << '}';
+    }
+    os << ']';
+  }
+
+  os << '}';
+  return G4String(os.str().c_str());
 }
 
 //_____________________________________________________________________________
