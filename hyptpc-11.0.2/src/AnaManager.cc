@@ -6,6 +6,7 @@
 #include <cmath>
 #include <map>
 #include <tuple>
+#include <vector>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
@@ -255,7 +256,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     "TrigHtofMpOffSeg", kHtofMpOffSegments);
   m_htof_fwd_proton_segments = gConf.GetOrDefaultIntList(
     "TrigHtofFwdSeg", kHtofFwdProtonSegments);
- 
+
 #if 0
   G4double target_pos_z=-143.;
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
@@ -504,8 +505,6 @@ AnaManager::EndOfEventAction()
     BuildVtxInfo();
   }
 
-  G4ParticleTable *particle_table = G4ParticleTable::GetParticleTable();
-
   // trig_flag: always evaluate (independent of AcceptanceStudy / Combine).
   if (m_next_generator == m_first_generator) {
     EvaluateBeamTrigger(/*require_tgt=*/ !m_do_combine);
@@ -513,68 +512,35 @@ AnaManager::EndOfEventAction()
     EvaluateReactionTrigger();
   }
 
-  if (m_do_accep_study && !m_do_combine) {
-    m_tree_light->Fill();
-  }
-  
-
-  // -- check hitting tgt and set next position -----
+  // Combine beam step: accept TGT PDG and store kinematics for the next reaction.
   if (m_do_combine && m_next_generator == m_first_generator) {
-    m_do_hit_tgt = false;
-    G4int nhit_tgt = event.hits.at("TGT").size();
-    if (nhit_tgt > 0) {
-      auto p = event.hits.at("TGT")[0];
-      bool particle_pass = false;
-      if(m_experiment == 72){
-	if (p.GetPdgCode() == -321 )particle_pass = true;// select K^-
-      }
-      else if(m_experiment == 104){
-	if (p.GetPdgCode() == -2212 )particle_pass = true;// select anti-proton
-      }
-      if ( particle_pass ) { 
-	m_next_pos.set(p.Vx()/CLHEP::mm,  p.Vy()/CLHEP::mm,  p.Vz()/CLHEP::mm);
-	m_next_mom.set(p.Px()/CLHEP::GeV, p.Py()/CLHEP::GeV, p.Pz()/CLHEP::GeV);
-	G4ParticleDefinition *particle = particle_table->FindParticle(p.GetPdgCode());
-	G4double mass = particle->GetPDGMass()/CLHEP::MeV;
-	G4LorentzVector v_beam(m_next_pos);
-	G4ThreeVector p3_beam(p.Px()/CLHEP::MeV,p.Py()/CLHEP::MeV,p.Pz()/CLHEP::MeV);
-	G4LorentzVector p_beam(p3_beam,std::sqrt(pow(p3_beam.mag(),2)+pow(mass,2)));
-	if (event.hits.at("BEAM").empty()) SetBeamInfo(p.GetPdgCode(),p_beam,v_beam);
-	m_do_hit_tgt = true;
-      }
-    }
+    StoreTgtBeamForCombine();
   }
 
-  // -- Fill branch -----  
-  if (m_do_combine) {  // combine beam and event
-    // -- beam ---
+  // Tree Fill + Combine state transitions (all Fill() calls are here).
+  // Modes differ: Combine beam / Combine reaction / non-Combine.
+  if (m_do_combine) {
+    // Beam event: thickness gate → optional BeamEventSave Fill → switch to reaction.
     if (m_next_generator == m_first_generator && m_do_hit_tgt) {
-      const auto target_pos  = gGeom.GetGlobalPosition("SHSTarget")*CLHEP::mm;
-      const auto target_size = gSize.GetSize("Target")*CLHEP::mm;
-      G4double rand_thickness = G4RandFlat::shoot(0.0, target_size.getY()+5.0); // calc. thickness in 3D, sometimes thickness > target diameter. we need offset
-      if (0 < m_effective_thickness && rand_thickness <= m_effective_thickness) {
-	if (gConf.Get<G4bool>("BeamEventSave")) m_tree->Fill();
-	m_vertex_pos = Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
-        m_next_generator   = m_second_generator;
-	m_do_generate_beam = false;
-      } else {
-	m_effective_thickness = -1.0;
+      if (PassCombineThicknessGate()) {
+        if (gConf.Get<G4bool>("BeamEventSave")) {
+          m_tree->Fill();
+        }
+        SwitchToReactionGenerator();
       }
-    }
-    // -- event ---
-    else if (m_next_generator == m_second_generator) {
+    } else if (m_next_generator == m_second_generator) {
+      // Reaction event: Fill if above threshold, then back to beam.
+      // Light only when AcceptanceStudy (same rule as non-Combine).
       if (GetThresholdCondition()) {
-	m_tree->Fill();
-	m_tree_light->Fill();
+        m_tree->Fill();
+        if (m_do_accep_study) m_tree_light->Fill();
       }
-      m_next_generator = m_first_generator;
-      m_do_generate_beam = true;
-      m_effective_evnum++;
-      m_effective_thickness = -1.0;
+      ReturnToBeamGenerator();
     }
-  }
-  else {  //  NOT combine
+  } else {
+    // Single-generator: Fill only above threshold; light only when AcceptanceStudy.
     if (GetThresholdCondition()) {
+      if (m_do_accep_study) m_tree_light->Fill();
       m_tree->Fill();
       m_effective_evnum++;
       m_effective_thickness = -1.0;
@@ -1491,6 +1457,75 @@ AnaManager::EvaluateReactionTrigger()
   if (is_forward_htof) m_trig_flag_int |= kHTOFFwdBit;
   // kTPCBit requires every checklist species to pass the layer-multiplicity cut.
   if (n_detected_track >= n_species) m_trig_flag_int |= kTPCBit;
+}
+
+// Store accepted TGT beam kinematics for Combine (sets m_do_hit_tgt).
+//_____________________________________________________________________________
+void
+AnaManager::StoreTgtBeamForCombine()
+{
+  m_do_hit_tgt = false;
+  if (event.hits.at("TGT").empty()) return;
+
+  const auto& p = event.hits.at("TGT")[0];
+  auto pdg_it = kCombineTgtBeamPdg.find(m_experiment);
+  const G4bool particle_pass =
+    (pdg_it != kCombineTgtBeamPdg.end() && p.GetPdgCode() == pdg_it->second);
+  if (!particle_pass) return;
+
+  m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
+  m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
+  G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle = particle_table->FindParticle(p.GetPdgCode());
+  G4double mass = particle->GetPDGMass() / CLHEP::MeV;
+  G4LorentzVector v_beam(m_next_pos);
+  G4ThreeVector p3_beam(p.Px() / CLHEP::MeV, p.Py() / CLHEP::MeV, p.Pz() / CLHEP::MeV);
+  G4LorentzVector p_beam(p3_beam,
+                         std::sqrt(pow(p3_beam.mag(), 2) + pow(mass, 2)));
+  if (event.hits.at("BEAM").empty()) {
+    SetBeamInfo(p.GetPdgCode(), p_beam, v_beam);
+  }
+  m_do_hit_tgt = true;
+}
+
+// Random accept using m_effective_thickness; false resets thickness to -1.
+//_____________________________________________________________________________
+G4bool
+AnaManager::PassCombineThicknessGate()
+{
+  const auto target_size = gSize.GetSize("Target") * CLHEP::mm;
+  // Thickness is 3D path length; allow a small offset above target diameter.
+  G4double rand_thickness =
+    G4RandFlat::shoot(0.0, target_size.getY() + 5.0);
+  if (0 < m_effective_thickness && rand_thickness <= m_effective_thickness) {
+    return true;
+  }
+  m_effective_thickness = -1.0;
+  return false;
+}
+
+// Set reaction vertex and switch generator first -> second.
+//_____________________________________________________________________________
+void
+AnaManager::SwitchToReactionGenerator()
+{
+  const auto target_pos = gGeom.GetGlobalPosition("SHSTarget") * CLHEP::mm;
+  const auto target_size = gSize.GetSize("Target") * CLHEP::mm;
+  m_vertex_pos =
+    Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
+  m_next_generator = m_second_generator;
+  m_do_generate_beam = false;
+}
+
+// After reaction event: switch second -> first and reset thickness / evnum.
+//_____________________________________________________________________________
+void
+AnaManager::ReturnToBeamGenerator()
+{
+  m_next_generator = m_first_generator;
+  m_do_generate_beam = true;
+  m_effective_evnum++;
+  m_effective_thickness = -1.0;
 }
 
 //_____________________________________________________________________________
