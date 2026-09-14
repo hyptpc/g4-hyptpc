@@ -1,12 +1,30 @@
 // -*- C++ -*-
 
 #include "TPCPadHelper.hh"
-#include "AnaManager.hh"
+
+#include <algorithm>
+#include <cmath>
+
 #include "DCGeomMan.hh"
 
 namespace
 {
   auto& gGeom = DCGeomMan::GetInstance();
+
+  // padParameter column indices
+  constexpr G4int kNumOfPad = 1;
+  constexpr G4int kRadius = 2;
+  constexpr G4int kNumOfDivision = 3;
+  constexpr G4int kLength = 5;
+
+  constexpr G4double DegToRad = CLHEP::pi / 180.;
+
+  // Cached after first use (DCGeomMan must already be initialized).
+  G4double ZTarget()
+  {
+    static const G4double z = gGeom.GetGlobalPosition("SHSTarget").z();
+    return z;
+  }
 }
 
 static const G4int MaxRowDifTPC = 2;
@@ -356,30 +374,46 @@ static const G4int FrameHighEdge[NumOfLayersTPC][5] =
   {0,-100,-100,-100,-100}
 };
 
+namespace
+{
+  // Resolve padID -> (layer, row). Returns false if out of range.
+  G4bool FindLayerRow(G4int padID, G4int& layer, G4int& row)
+  {
+    G4int sum = 0;
+    for (layer = 0; layer < NumOfLayersTPC; ++layer) {
+      const G4int n_pad = static_cast<G4int>(padParameter[layer][kNumOfPad]);
+      if (padID < sum + n_pad) {
+        row = padID - sum;
+        return true;
+      }
+      sum += n_pad;
+    }
+    return false;
+  }
+}
+
 namespace TPCPadHelper
 {
 
 //______________________________________________________________________________
-G4int 
+G4int
 GetPadID(const G4int layerID, const G4int rowID)
 {
-  G4int padID=0;
-  for(G4int layi = 0 ; layi<layerID; layi++) padID += padParameter[layi][1];
-  padID+=rowID;
+  G4int padID = 0;
+  for (G4int layer = 0; layer < layerID; ++layer)
+    padID += static_cast<G4int>(padParameter[layer][kNumOfPad]);
+  padID += rowID;
   return padID;
 }
 
 //______________________________________________________________________________
-G4int 
+G4int
 GetLayerID(G4int padID)
 {
-  G4int layer;
-  G4int sum = 0;
-
-  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
-  {
-    sum += padParameter[layer][1];
-  }
+  G4int layer = 0;
+  G4int row = 0;
+  if (!FindLayerRow(padID, layer, row))
+    return NumOfLayersTPC; // out of range (same sentinel style as before)
   return layer;
 }
 
@@ -387,14 +421,10 @@ GetLayerID(G4int padID)
 G4int
 GetRowID(G4int padID)
 {
-  G4int layer, row;
-  G4int sum = 0;
-
-  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
-  {
-    sum += padParameter[layer][1];
-  }
-  row = padID - sum;
+  G4int layer = 0;
+  G4int row = 0;
+  if (!FindLayerRow(padID, layer, row))
+    return -1;
   return row;
 }
 
@@ -402,39 +432,37 @@ GetRowID(G4int padID)
 G4double
 GetTheta(G4int padID)
 {
-  G4int layer, row;
-  G4int sum = 0;
+  G4int layer = 0;
+  G4int row = 0;
+  if (!FindLayerRow(padID, layer, row))
+    return 0.;
 
-  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
-  {
-    sum += padParameter[layer][1];
-  }
-  row = padID - sum;
-
-  G4double sTheta = 180.-(360./padParameter[layer][3])*padParameter[layer][1]/2.;
-  G4double theta = sTheta+(row+0.5)*360./padParameter[layer][3]-180;
-
-  return theta;
+  const G4double n_pad = padParameter[layer][kNumOfPad];
+  const G4double n_div = padParameter[layer][kNumOfDivision];
+  const G4double s_theta = 180. - (360. / n_div) * n_pad / 2.;
+  return s_theta + (row + 0.5) * 360. / n_div - 180.;
 }
 
 //______________________________________________________________________________
 G4double
 GetTheta(const G4int layerID, const G4double m_row)
 {
-  G4double sTheta = 180.-(360./padParameter[layerID][3])*padParameter[layerID][1]/2.;
-  G4double theta = sTheta+(m_row+0.5)*360./padParameter[layerID][3]-180;
-
-  return theta;
+  const G4double n_pad = padParameter[layerID][kNumOfPad];
+  const G4double n_div = padParameter[layerID][kNumOfDivision];
+  const G4double s_theta = 180. - (360. / n_div) * n_pad / 2.;
+  return s_theta + (m_row + 0.5) * 360. / n_div - 180.;
 }
 
 //______________________________________________________________________________
 G4double
 GetMrow(const G4int layerID, const G4double m_phi)
 {
-  G4double mrow = 0.5*(padParameter[layerID][1]-1.) + (90.-m_phi)*padParameter[layerID][3]/360.;
-  if(mrow<-0.0001){
-    mrow = 0.5*(padParameter[layerID][1]-1.) + (450.-m_phi)*padParameter[layerID][3]/360.;
-  }
+  constexpr G4double wrap_epsilon = 1.e-4;
+  const G4double n_pad = padParameter[layerID][kNumOfPad];
+  const G4double n_div = padParameter[layerID][kNumOfDivision];
+  G4double mrow = 0.5 * (n_pad - 1.) + (90. - m_phi) * n_div / 360.;
+  if (mrow < -wrap_epsilon)
+    mrow = 0.5 * (n_pad - 1.) + (450. - m_phi) * n_div / 360.;
   return mrow;
 }
 
@@ -442,132 +470,167 @@ GetMrow(const G4int layerID, const G4double m_phi)
 G4double
 GetRadius(const G4int layerID)
 {
-  return padParameter[layerID][2];
+  return padParameter[layerID][kRadius];
 }
 
 //______________________________________________________________________________
 G4double
 GetR(G4int padID)
 {
-  G4int layer;
-  G4int sum = 0;
-
-  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
-  {
-    sum += padParameter[layer][1];
-  }
-  G4double R = padParameter[layer][2];
-  return R;
+  G4int layer = 0;
+  G4int row = 0;
+  if (!FindLayerRow(padID, layer, row))
+    return 0.;
+  return padParameter[layer][kRadius];
 }
 
 //______________________________________________________________________________
-G4ThreeVector 
+G4ThreeVector
 GetPosition(G4int padID)
 {
-  G4int layer, row;
-  G4int sum = 0;
+  G4int layer = 0;
+  G4int row = 0;
+  if (!FindLayerRow(padID, layer, row))
+    return G4ThreeVector(0., -1., 0.);
 
-  for (layer = 0; layer < NumOfLayersTPC && sum + padParameter[layer][1] <= padID; layer++)
-  {
-    sum += padParameter[layer][1];
-  }
-  row = padID - sum;
+  const G4int n_pad = static_cast<G4int>(padParameter[layer][kNumOfPad]);
+  if (row > n_pad) // out of range (legacy check)
+    return G4ThreeVector(0., -1., 0.);
 
-  G4ThreeVector result;
-  if (row > padParameter[layer][1]){ // out of range
-    result.set(0,-1,0);
-
-  }
-  else{
-    G4double x, z;
-    x = padParameter[layer][2] * sin(GetTheta(layer,row)*TMath::Pi()/180.);
-    G4double ZTarget = gGeom.GetGlobalPosition("SHSTarget").z();
-    z = padParameter[layer][2] * cos(GetTheta(layer,row)*TMath::Pi()/180.) + ZTarget;
-
-    result.set(x,0,z);
-  }
-  return result;
+  const G4double theta = GetTheta(layer, static_cast<G4double>(row)) * DegToRad;
+  const G4double radius = padParameter[layer][kRadius];
+  const G4double x = radius * std::sin(theta);
+  const G4double z = radius * std::cos(theta) + ZTarget();
+  return G4ThreeVector(x, 0., z);
 }
 
 //______________________________________________________________________________
+G4ThreeVector
+GetPosition(const G4int layerID, const G4double m_row)
+{
+  const G4double theta = GetTheta(layerID, m_row) * DegToRad;
+  const G4double radius = padParameter[layerID][kRadius];
+  const G4double x = radius * std::sin(theta);
+  const G4double z = radius * std::cos(theta) + ZTarget();
+  return G4ThreeVector(x, 0., z);
+}
+
+//______________________________________________________________________________
+// Find PadID from global position (z, x)
+// Returns:
+//    0 or positive : Valid PadID
+//    -layer        : Hit inside the gap between layer and layer-1
+//    -1000         : Not found (outside detector volume)
 G4int
 FindPadID(G4double z, G4double x)
 {
-  G4double ZTarget = gGeom.GetGlobalPosition("SHSTarget").z();
-  z -= ZTarget;
-  G4double radius = sqrt(x*x + z*z);
-  G4double angle;
-  if (z == 0)
-  {
-    if (x > 0)   angle = 1.5*TMath::Pi();
-    else if (x < 0)   angle = 0.5*TMath::Pi();
-    else return -1000; // no padID if (0,0)
-  }
-  else{
-		if (z > 0) angle = TMath::Pi()+atan(x / z);
-	  else if( z < 0&&x<0) angle = atan(x / z);
-		  else angle = 2*TMath::Pi()+ atan(x / z);//angle of z<0&&x>0 plane should be [1.5Pi,2Pi], not [-0.5Pi , 0].
-	}
+  const G4double z_target = ZTarget();
 
+  // 0 <= angle < 360 (degrees)
+  const G4double radius = std::hypot(x, z - z_target);
+  G4double angle = 180. + std::atan2(x, z - z_target) / DegToRad;
+  if (angle >= 360.) angle -= 360.;
+  if (angle < 0.)    angle += 360.;
 
-  G4int layer, row;
-  // find layer_num.
-  for (layer = 0; layer<NumOfLayersTPC;layer++)
-  {
-    if (layer != 0)
-    {
-      if (padParameter[layer][2] - padParameter[layer][5] * 0.5 >= radius &&
-          padParameter[layer - 1][2] + padParameter[layer - 1][5] * 0.5 <= radius) return -layer;
+  G4int hit_layer = -1;
+  for (G4int layer = 0; layer < NumOfLayersTPC; ++layer) {
+    const G4double r_pad = padParameter[layer][kRadius];
+    const G4double l_pad = padParameter[layer][kLength];
+    const G4double r_in  = r_pad - l_pad * 0.5;
+    const G4double r_out = r_pad + l_pad * 0.5;
+
+    if (r_in <= radius && radius <= r_out) {
+      hit_layer = layer;
+      break;
     }
-		double rad_in= padParameter[layer][2]-padParameter[layer][5]*0.5;
-		double rad_out= padParameter[layer][2]+padParameter[layer][5]*0.5;
-  	if(rad_in<=radius and rad_out>=radius){
-			break;
-		}
-		if(layer==NumOfLayersTPC-1 && rad_out<radius) return -1000;
-	}
 
-  G4double sTheta = 180.-(360./padParameter[layer][3])*padParameter[layer][1]/2.;
+    // Gap between previous and current layer
+    if (layer > 0) {
+      const G4double r_prev_out =
+        padParameter[layer - 1][kRadius] + padParameter[layer - 1][kLength] * 0.5;
+      if (r_prev_out < radius && radius < r_in)
+        return -layer;
+    }
+  }
+  if (hit_layer < 0)
+    return -1000;
 
-  // find row_num
-  if (angle - (sTheta*TMath::Pi()/180.) < 0) return -1000;
+  const G4double n_pad = padParameter[hit_layer][kNumOfPad];
+  const G4double n_div = padParameter[hit_layer][kNumOfDivision];
+  const G4double s_theta = 180. - (360. / n_div) * n_pad / 2.;
+  const G4double d_theta = 360. / n_div;
 
-  //G4double a, b, c;
-  row = (int)((angle-(sTheta*TMath::Pi()/180.))/(360./padParameter[layer][3]*TMath::Pi()/180.));
-  if (row > padParameter[layer][1]) return -1000;
+  const G4double diff = angle - s_theta;
+  if (std::isnan(diff) || diff < 0.)
+    return -1000;
 
-  return GetPadID(layer, row);
+  const G4int row = static_cast<G4int>(diff / d_theta);
+  if (row < 0 || static_cast<G4int>(n_pad) <= row)
+    return -1000;
+
+  return GetPadID(hit_layer, row);
 }
 
-//_____________________________________________________________________________
+//______________________________________________________________________________
 G4double
 ArcLength(const G4int layerID, const G4double row1, const G4double row2)
 {
-  const G4int R = padParameter[layerID][2];
-  G4double theta = GetTheta(layerID, row1) - GetTheta(layerID, row2);
-  theta = std::fmod(theta, 2*TMath::Pi());
-  if(theta < 0) theta += 2*TMath::Pi();
-  theta = TMath::Min(theta, 2*TMath::Pi() - theta);
-  return R*theta;
+  const G4double radius = padParameter[layerID][kRadius];
+
+  // Unit: degree
+  G4double diff = std::abs(GetTheta(layerID, row1) - GetTheta(layerID, row2));
+  diff = std::fmod(diff, 360.);
+  // Always use the minor arc (shortest distance)
+  if (diff > 180.)
+    diff = 360. - diff;
+
+  return radius * diff * DegToRad;
 }
 
-//_____________________________________________________________________________
+//______________________________________________________________________________
+G4bool
+IsDead(const G4int padID)
+{
+  return std::find(std::begin(padOnCenterFrame),
+                   std::end(padOnCenterFrame), padID)
+         != std::end(padOnCenterFrame);
+}
+
+//______________________________________________________________________________
+G4bool
+IsDead(const G4int layerID, const G4int rowID)
+{
+  return IsDead(GetPadID(layerID, rowID));
+}
+
+//______________________________________________________________________________
+G4bool
+Noise(const G4int padID)
+{
+  return std::find(std::begin(padAbnormalWaveform_E72),
+                   std::end(padAbnormalWaveform_E72), padID)
+         != std::end(padAbnormalWaveform_E72);
+}
+
+//______________________________________________________________________________
+G4bool
+Noise(const G4int layerID, const G4int rowID)
+{
+  return Noise(GetPadID(layerID, rowID));
+}
+
+//______________________________________________________________________________
 G4bool
 GetDeadCon(const G4int padID)
 {
-
-  G4bool centerframe = std::find(std::begin(padOnCenterFrame), std::end(padOnCenterFrame), padID) != std::end(padOnCenterFrame);
-  G4bool noisy = std::find(std::begin(padAbnormalWaveform_E72), std::end(padAbnormalWaveform_E72), padID) != std::end(padAbnormalWaveform_E72);
-  if(centerframe||noisy) return true;
-  else return false;
+  return IsDead(padID) || Noise(padID);
 }
 
-//_____________________________________________________________________________
+//______________________________________________________________________________
 G4bool
 GetDeadCon(const G4int layerID, const G4int rowID)
 {
-    G4int padID = GetPadID(layerID, rowID);
-    return GetDeadCon(padID);
+  return GetDeadCon(GetPadID(layerID, rowID));
 }
 
-} //namespace TPCPadHelper
+} // namespace TPCPadHelper
