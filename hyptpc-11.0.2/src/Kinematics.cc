@@ -2,16 +2,11 @@
 
 #include "Kinematics.hh"
 
-#include <G4ParticleTable.hh>
+#include <cmath>
+
 #include <Randomize.hh>
 
-#include "AnaManager.hh"
 #include "FuncName.hh"
-
-namespace
-{
-auto& gAnaMan = AnaManager::GetInstance();
-}
 
 namespace Kinematics
 {
@@ -194,7 +189,7 @@ EffectiveThickness(const G4ThreeVector pos, const G4ThreeVector mom, const G4Thr
   G4double y1 = pos.getY();
   G4double z1 = pos.getZ();
   G4double  w = x1 - u*z1;
-  G4double  r = target_size.getY()/2; 
+  G4double  r = target_size.getY()/2.; 
   G4double sqrt_term = std::sqrt( r*r*(u*u+1) - (u*z0+w-x0)*(u*z0+w-x0) );
   G4double z2 = ( u*(x0-w) + z0 + sqrt_term )/(u*u+1);
   G4double x2 = u*z2 + w;
@@ -218,8 +213,8 @@ RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVect
   G4double y1 = pos.getY();
   G4double z1 = pos.getZ();
   G4double  w = x1 - u*z1;
-  G4double  r = target_size.getY()/2; 
-  G4double  h = target_size.getZ()/2; 
+  G4double  r = target_size.getY()/2.; 
+  G4double  h = target_size.getZ()/2.; 
   G4double sqrt_term = std::sqrt( r*r*(u*u+1) - (u*z0+w-x0)*(u*z0+w-x0) );
   G4double z2_minus  = ( u*(x0-w) + z0 - sqrt_term )/(u*u+1);
   G4double z2_plus   = ( u*(x0-w) + z0 + sqrt_term )/(u*u+1);
@@ -238,34 +233,36 @@ RandomVertex(const G4ThreeVector pos, const G4ThreeVector mom, const G4ThreeVect
 }
 
 G4bool
-WThresholdTwoBody(const G4double m1, const G4double p1,  const G4double m2, const G4double p2, const G4double Dm1, const G4double Dm2)
-{ //m1+m2 -> Dm1 + Dm2 
-  G4double E1 = TMath::Sqrt(m1*m1 + p1*p1);
-  G4double E2 = TMath::Sqrt(m2*m2 + p2*p2);
-  G4double totalE = E1+E2;
+WThresholdTwoBody(const G4double m1, const G4double p1, const G4double m2,
+                  const G4double p2, const G4double Dm1, const G4double Dm2)
+{ // m1+m2 -> Dm1 + Dm2
+  G4double E1 = std::hypot(m1, p1);
+  G4double E2 = std::hypot(m2, p2);
+  G4double totalE = E1 + E2;
   G4double totalp = p1 + p2;
 
-  G4double totalW = TMath::Sqrt(totalE*totalE-totalp*totalp);
+  G4double totalW = std::sqrt(totalE * totalE - totalp * totalp);
 
   return totalW >= (Dm1 + Dm2);
 }
 
-
-G4bool WThresholdThreeBody(const G4double m1,  const G4double p1,
-                           const G4double m2,  const G4double p2,
-                           const G4double Dm1, const G4double Dm2,
-                           const G4double Dm3)
-{  // m1 + m2 -> Dm1 + Dm2 + Dm3
-  G4double E1 = TMath::Sqrt(m1*m1 + p1*p1);
-  G4double E2 = TMath::Sqrt(m2*m2 + p2*p2);
+G4bool
+WThresholdThreeBody(const G4double m1, const G4double p1,
+                    const G4double m2, const G4double p2,
+                    const G4double Dm1, const G4double Dm2,
+                    const G4double Dm3)
+{ // m1 + m2 -> Dm1 + Dm2 + Dm3
+  G4double E1 = std::hypot(m1, p1);
+  G4double E2 = std::hypot(m2, p2);
 
   G4double totalE = E1 + E2;
   G4double totalp = p1 + p2;
 
-  G4double totalW2 = totalE*totalE - totalp*totalp;
-  if (totalW2 < 0.) return false;
+  G4double totalW2 = totalE * totalE - totalp * totalp;
+  if (totalW2 < 0.)
+    return false;
 
-  G4double totalW = TMath::Sqrt(totalW2);
+  G4double totalW = std::sqrt(totalW2);
 
   return totalW >= (Dm1 + Dm2 + Dm3);
 }
