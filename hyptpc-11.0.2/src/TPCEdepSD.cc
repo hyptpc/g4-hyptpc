@@ -132,16 +132,6 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4double Path = PathT * std::sqrt(1+Pitch*Pitch);
   slength = Path;
 
-	/*
-	G4double edepMean =TPCdEdx(mass,beta)*Path; 
-	//	G4double IonEn = (0.9 * 188 + 0.1 * 41.7)*eV;
-//	G4double edepSig = sqrt(edepMean / IonEn ) * IonEn;
-	G4double edepSig =TPCdEdxSig(mass,mom.mag())*Path;
-	if(edepSig / edepMean < 0.01 or edepSig/edepMean > 0.5)edepSig = 0.2*edepMean;
-	G4double edep = G4RandGauss::shoot(edepMean,edepSig);
-	if(edep <0.1* edepMean)edep = 0.1*edepMean;
-	*/
-
 	static const G4double conversion_factor =
 	  gConf.GetOrDefault<G4double>("TpcConversionFactor",
 				       TPCPadHelper::kDefaultConversionFactor);
@@ -224,74 +214,6 @@ TPCEdepSD::DrawAll( void )
 {
 }
 
-G4double
-TPCEdepSD::TPCdEdx(G4double mass/*MeV/c2*/, G4double beta){
-
-  G4double rho=0.; //[g cm-3]
-  G4double ZoverA=0.; //[mol g-1]
-  G4double I=0.; //[eV]
-  G4double density_effect_par[6]={0.}; //Sternheimer’s parameterization
-  //P10  
-	rho = std::pow(10.,-3)*(0.9*1.662 + 0.1*0.6672);
-	ZoverA = 17.2/37.6;
-	I = 0.9*188.0 + 0.1*41.7;
-	density_effect_par[0] = 0.9*0.19714 + 0.1*0.09253;
-	density_effect_par[1] = 0.9*2.9618 + 0.1*3.6257;
-	density_effect_par[2] = 0.9*1.7635 + 0.1*1.6263;
-	density_effect_par[3] = 0.9*4.4855 + 0.1*3.9716;
-	density_effect_par[4] = 0.9*11.9480 + 0.1*9.5243;
-	density_effect_par[5] = 0.;
-
-  G4double Z = 1.;
-  G4double me = 0.5109989461; //[MeV]
-  G4double K = 0.307075; //[MeV cm2 mol-1]
-  G4double constant = rho*K*ZoverA; //[MeV cm-1]
-  constant = constant;
-  G4double I2 = I*I; //Mean excitaion energy [eV]
-  G4double beta2 = beta*beta;
-  G4double gamma2 = 1./(1.-beta2);
-  G4double MeVToeV = std::pow(10.,6);
-  G4double Wmax = 2*me*beta2*gamma2/((me/mass+1.)*(me/mass+1.)+2*(me/mass)*(std::sqrt(gamma2)-1));
-  G4double delta = DensityEffectCorrection(std::sqrt(beta2*gamma2), density_effect_par);
-  G4double dedx = constant*Z*Z/beta2*(0.5*std::log(2*me*beta2*gamma2*Wmax*MeVToeV*MeVToeV/I2) - beta2 - 0.5*delta);
-
-  static const G4double conversion_factor =
-    gConf.GetOrDefault<G4double>("TpcConversionFactor",
-				 TPCPadHelper::kDefaultConversionFactor);
-  return conversion_factor*dedx;
-
-}
-G4double
-TPCEdepSD::TPCdEdxSig(G4double mass/*MeV/c2*/, G4double mom){
-	G4double par[3]={0,0,0} ;
-	if(mass < 0.2){//pion;
-		par[0] = 7.792;
-		par[1] =	-8.704;
-		par[2] = 4.477;
-	}
-	else if(mass > 0.7){//proton;
-		par[0] = 33.92;
-		par[1] = -26.24;
-		par[2] = 6.259; 
-	}
-	G4double value = par[0]+par[1]*mom+par[2]*mom*mom;
-	return value;
-}
-G4double
-TPCEdepSD::DensityEffectCorrection(G4double betagamma, G4double *par){
-
-    //reference : Sternheimer’s parameterizatio(PDG)
-    //notation : par[0] : a, par[1] : k, par[2] : x0, par[3] : x1, par[4] : _C, par[5] : delta0
-    G4double constant = 2*std::log(10.);
-    G4double delta = 0.;
-    G4double X = std::log10(betagamma);
-    if(X<=par[2]) delta = par[5]*std::pow(10., 2*(X - par[2]));
-    else if(par[2]<X && X<par[3]) delta = constant*X - par[4] + par[0]*std::pow((par[3] - X), par[1]);
-    else if(X>=par[3]) delta = constant*X - par[4];
-
-  return delta;
-
-}
 //_____________________________________________________________________________
 void
 TPCEdepSD::PrintAll( void )
