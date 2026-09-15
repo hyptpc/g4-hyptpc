@@ -736,7 +736,8 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
   G4double sh_z = sh_r*cos(sh_theta);
 
   counterData[hitnum].particleID = particle;
-    counterData[hitnum].charge = charge > 0 ? 1 : -1;
+  // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
+  counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
 
   for(G4int i=0;i<hitnum;i++){
     if((counterData[i].iLay == iLay &&
@@ -787,7 +788,8 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].trackID = track;
     counterData[hitnum].particleID = particle;
-    counterData[hitnum].charge = charge > 0 ? 1 : -1;
+    // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
+    counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
     counterData[hitnum].iLay = iLay;
     G4int iPad=0.;
 
@@ -858,7 +860,8 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
   G4double sh_z = sh_r*cos(sh_theta);
 
   counterData[hitnum].particleID = particle;
-    counterData[hitnum].charge = charge > 0 ? 1 : -1;
+    // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
+    counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
 
   for(G4int i=0;i<hitnum;i++){
     if((counterData[i].iLay == iLay &&
@@ -946,7 +949,8 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
 
     counterData[hitnum].trackID = track;
     counterData[hitnum].particleID = particle;
-    counterData[hitnum].charge = charge > 0 ? 1 : -1;
+    // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
+    counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
     counterData[hitnum].iLay = iLay;
 
     G4int iPad=0.;
