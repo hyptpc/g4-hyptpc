@@ -1735,9 +1735,15 @@ AnaManager::IsInsideHtof(G4ThreeVector position) const
   G4double pos_y = std::abs(position.getY());
   G4double pos_z = std::abs(position.getZ());
 
-  G4double l = 332.0; // origin to HTOF surface distance [mm]
-  G4double h = 400.0; // HTOF half height [mm]
-  G4double tan_pi_over_8 = std::tan(CLHEP::pi / 8.0);
+  // Same sources as ConstructHTOF: inner face l = LocalZ - half thickness,
+  // half height h = HtofSeg.y/2 (E72: 337-5=332, 800/2=400). Cached once
+  // (DetSize/DCGeom do not change after init).
+  static const G4ThreeVector half =
+    gSize.GetSize("HtofSeg") * 0.5 * CLHEP::mm;
+  static const G4double l =
+    gGeom.GetLocalZ("HTOF") * CLHEP::mm - half.z();
+  static const G4double h = half.y();
+  static const G4double tan_pi_over_8 = std::tan(CLHEP::pi / 8.0);
 
   if (pos_x > l || pos_z > l || pos_y > h) return false;
 
