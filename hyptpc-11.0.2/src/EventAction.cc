@@ -494,17 +494,17 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	//test edep info save
 	G4double edep;
 
-
 	//test end
 
 	if(pad_configure==3){
-	  //const G4int edep_configure =  gSize.Get("TpcEdep");
+	  edep = (*HC)[i]->GetEdep();
+#if 0
+	  // Legacy momentum-diff edep (unreachable; OOB on HC[i+1] if re-enabled).
+	  // const G4int edep_configure = gSize.Get("TpcEdep");
 	  int edep_configure=0;
 	  if(edep_configure==0)
 	    edep = (*HC)[i]-> GetEdep();
-
 	  else if(edep_configure==1){
-
 	    if(i==0){
 	      G4ThreeVector mom_pre = (*HC)[i+1]-> GetMomentum();
 	      G4double beta_pre = (*HC)[i+1]-> GetBeta();
@@ -542,7 +542,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	      }
 	    }
 	  }
-
+#endif
 	}
 
 	G4bool find_track = false;

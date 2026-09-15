@@ -88,7 +88,8 @@ AnaManager::AnaManager()
     m_decay_particle_code(0),
     m_trig_flag_int(0),
     m_focus_parent_id(-1),
-    m_kaon_beam_flag(false)
+    m_kaon_beam_flag(false),
+    m_pad_config(0)
 {
 }
 
@@ -791,8 +792,10 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
     // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
     counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
     counterData[hitnum].iLay = iLay;
-    G4int iPad=0.;
 
+    // Unreachable: m_pad_config is only assigned inside #if 0 in BeginOfRunAction.
+#if 0
+    G4int iPad=0.;
     if(m_pad_config == 2){
       G4bool pass_check=true;
       G4double cur_angle= (acos(-1.)-atan2(sh_x,sh_z))*180./acos(-1.);
@@ -813,6 +816,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
         G4cout<<"wrong:"<<iLay<<G4endl;
       }
     }
+#endif
 
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
@@ -953,8 +957,9 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
     counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
     counterData[hitnum].iLay = iLay;
 
+    // Unreachable: m_pad_config is only assigned inside #if 0 in BeginOfRunAction.
+#if 0
     G4int iPad=0.;
-
     if( m_pad_config == 2 ){
       G4bool pass_check=true;
       G4double cur_angle= (acos(-1.)-atan2(sh_x,sh_z))*180./acos(-1.);
@@ -975,6 +980,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
 	G4cout<<"wrong:"<<iLay<<G4endl;
       }
     }
+#endif
 
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
