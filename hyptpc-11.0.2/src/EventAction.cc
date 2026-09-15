@@ -198,7 +198,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
   {
     static const auto id = SDManager->GetCollectionID("TPC/hit");
-    if(id > 0){
+    if(id >= 0){
       auto HC = dynamic_cast<G4THitsCollection<TPCHit>*>(HCTE->GetHC(id));
       for (G4int i=0, n=HC->entries(); i<n; ++i) {
 	gAnaMan.SetHitData((*HC)[i]);
@@ -210,7 +210,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
   {
     static const G4int id = SDManager->GetCollectionID("TPCPad/hit");
     static const G4int id_edep = SDManager->GetCollectionID("TPCEdep/hit");
-    if( id > 0 ){
+    if( id >= 0 && id_edep >= 0 ){
       //test
       G4int tid_check;
       auto HC = (G4THitsCollection<TPCPadHit>*)(HCTE->GetHC(id));
