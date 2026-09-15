@@ -71,15 +71,13 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   
   //if(preStepPoint-> GetStepStatus() != fGeomBoundary) return false;
   //  if(preStepPoint-> GetStepStatus() == fGeomBoundary){
-  G4String particleName;
-  
-	if(aStep-> GetTrack()-> GetDefinition()-> GetPDGCharge() == 0.)
-    return false;
-	
-  particleName = aStep-> GetTrack()-> GetDefinition()-> GetParticleName();
 
-  G4String particleType;
-  particleType = aTrack->GetDefinition()->GetParticleType();
+  if(aStep-> GetTrack()-> GetDefinition()-> GetPDGCharge() == 0.)
+    return false;
+
+  // Optional particle filters (uncomment refs + conditions together):
+  // const G4String& particleName = aTrack->GetDefinition()->GetParticleName();
+  // const G4String& particleType = aTrack->GetDefinition()->GetParticleType();
 
   G4TouchableHistory* theTouchable
     = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
@@ -87,7 +85,7 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4double hitx=pos.getX();
   G4double hitz=pos.getZ();
 
-    G4ThreeVector VertexPosition = aTrack->GetVertexPosition();
+  G4ThreeVector VertexPosition = aTrack->GetVertexPosition();
   G4ThreeVector VertexMomentum = aTrack->GetVertexMomentumDirection();
   G4double VertexEnergy = aTrack -> GetVertexKineticEnergy(); // Ek = sqrt(p^2+m^2)-m
   G4VPhysicalVolume* physVol = theTouchable->GetVolume();
@@ -123,15 +121,15 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int iLay = iLay_copyNo;
   //G4int iRow= padHelper::getRowID(iPad);
   G4int iRow = TPCPadHelper::GetRowID(iPad);
-  
-	G4double PadLen = TPCPadHelper::GetLength(iLay);
-	G4ThreeVector PadPos(hitx,0,hitz - TPCPadHelper::GetZTarget()); 
-	G4ThreeVector MomT(mom.x(),0,mom.z());	
-	G4double alpha = PadPos.theta()-MomT.theta();
-	G4double PathT = PadLen * 1./cos(alpha);
-	G4double Pitch = mom.y()/MomT.mag();
-	G4double Path = PathT * sqrt(1+Pitch*Pitch);
-	slength = Path;
+
+  G4double PadLen = TPCPadHelper::GetLength(iLay);
+  G4ThreeVector PadPos(hitx,0,hitz - TPCPadHelper::GetZTarget());
+  G4ThreeVector MomT(mom.x(),0,mom.z());
+  G4double alpha = PadPos.theta()-MomT.theta();
+  G4double PathT = PadLen * 1./std::cos(alpha);
+  G4double Pitch = mom.y()/MomT.mag();
+  G4double Path = PathT * std::sqrt(1+Pitch*Pitch);
+  slength = Path;
 
 	/*
 	G4double edepMean =TPCdEdx(mass,beta)*Path; 

@@ -653,7 +653,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 				       (*HC)[i]->GetPadRow(), drop_noise)) {
 	    continue;
 	  }
-	  int restype = gConf.Get<G4int>("ResType");
+	  static const G4int restype = gConf.Get<G4int>("ResType");
 	  switch(restype){
 	  case 0:
 	    gAnaMan.SetCounterDataSimple( slot,tof, xyz, mom, tid, pid, ilay,
