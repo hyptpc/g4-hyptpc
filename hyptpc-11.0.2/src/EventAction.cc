@@ -3,6 +3,7 @@
 #include "EventAction.hh"
 
 #include <fstream>
+#include <map>
 
 #include <G4RunManager.hh>
 #include <G4Event.hh>
@@ -240,6 +241,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       G4int laytpc[MaxHitsTPC]={0};
       G4double lentpc[MaxHitsTPC]={0};
       G4int nparticle=0;
+      std::map<G4int, G4int> tid_to_slot; // tid -> summary slot
       // G4cout << "TPC  " << nhits << G4endl;
 
 
@@ -450,9 +452,6 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
 
       for( G4int i=0; i<nhits; ++i ){
-	if(nparticle >20) continue;
-
-
 	G4ThreeVector vtxpos = (*HC)[i]-> GetVtxPosition();
 	G4ThreeVector vtxmom = (*HC)[i]-> GetVtxMomentum();
 	G4double vtxene =(*HC)[i]-> GetVtxEnergy();
@@ -602,112 +601,50 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
 
 	G4double slength = (*HC)[i]-> GetsLength();
-	//      G4VTrajectoryPoint *tp -> HC->GetPoint(i);
-	//    G4int nhits= HC -> entries();
-	if( nparticle==0 ){
-	  qqtpc[nparticle]=charge;
-	  pmtpc[nparticle]=mass;
-	  detpc[nparticle]=detpc[nparticle]+edep;
-	  // vtxpptpc[nparticle]=sqrt(pow(vtxmom[0],2)+pow(vtxmom[1],2)+pow(vtxmom[2],2));
+	// Group Pad hits into track summary slots by Geant4 track ID.
+	G4int slot = -1;
+	auto tid_it = tid_to_slot.find(tid);
+	if(tid_it != tid_to_slot.end()){
+	  slot = tid_it->second;
+	  detpc[slot] = detpc[slot]+edep;
 	  if(ilay>-1){
-	    laytpc[nparticle]=laytpc[nparticle]+1;
+	    laytpc[slot]=laytpc[slot]+1;
 	  }
-	  pidtr[nparticle]=pid;
-	  pxtpc[nparticle]=mom[0];
-	  pytpc[nparticle]=mom[1];
-	  pztpc[nparticle]=mom[2];
-
+	  lentpc[slot]=tlength;
+	}else if(nparticle <= 20){
+	  slot = nparticle;
+	  qqtpc[slot]=charge;
+	  pmtpc[slot]=mass;
+	  detpc[slot]=detpc[slot]+edep;
+	  if(ilay>-1){
+	    laytpc[slot]=laytpc[slot]+1;
+	  }
+	  pidtr[slot]=pid;
+	  pxtpc[slot]=mom[0];
+	  pytpc[slot]=mom[1];
+	  pztpc[slot]=mom[2];
 
 	  //////////////////////vertex information /////////////////////////
-	  vtxpxtpc[nparticle]=vtxmom[0];
-	  vtxpytpc[nparticle]=vtxmom[1];
-	  vtxpztpc[nparticle]=vtxmom[2];
-	  // vtxpptpc[nparticle]=sqrt(pow(vtxmom[0],2)+pow(vtxmom[1],2)+pow(vtxmom[2],2));
+	  vtxpxtpc[slot]=vtxmom[0];
+	  vtxpytpc[slot]=vtxmom[1];
+	  vtxpztpc[slot]=vtxmom[2];
+	  // vtxpptpc[slot]=sqrt(pow(vtxmom[0],2)+pow(vtxmom[1],2)+pow(vtxmom[2],2));
 
-	  vtxxtpc[nparticle]=vtxpos[0];
-	  vtxytpc[nparticle]=vtxpos[1];
-	  vtxztpc[nparticle]=vtxpos[2];
+	  vtxxtpc[slot]=vtxpos[0];
+	  vtxytpc[slot]=vtxpos[1];
+	  vtxztpc[slot]=vtxpos[2];
 
-	  vtxenetpc[nparticle]=vtxene;
+	  vtxenetpc[slot]=vtxene;
 
-	  pptpc[nparticle]=sqrt(pow(mom[0],2.)+pow(mom[1],2.)+pow(mom[2],2.));
-	  lentpc[nparticle]=tlength;
-	  ptidtpc[nparticle]=ptid;
-	  ptidtpc_pid[nparticle]=ptid_pid;
+	  pptpc[slot]=mom.mag();
+	  lentpc[slot]=tlength;
+	  ptidtpc[slot]=ptid;
+	  ptidtpc_pid[slot]=ptid_pid;
+	  tid_to_slot[tid]=slot;
 	  nparticle=nparticle+1;
-
-	}else if( nparticle>0 ){
-	  //G4cout<<nparticle<<G4endl;
 	}
 
-	if( (pidtr[nparticle-1] != pid) || (pidtr[nparticle-1] == pid && vtxpxtpc[nparticle-1] != vtxmom[0] && vtxpytpc[nparticle-1] != vtxmom[1] && vtxpztpc[nparticle-1] != vtxmom[2])){
-	  qqtpc[nparticle]=charge;
-	  pmtpc[nparticle]=mass;
-	  detpc[nparticle]=detpc[nparticle]+edep;
-	  if(ilay>-1){
-	    laytpc[nparticle]=laytpc[nparticle]+1;
-	  }
-	  pidtr[nparticle]=pid;
-	  pxtpc[nparticle]=mom[0];
-	  pytpc[nparticle]=mom[1];
-	  pztpc[nparticle]=mom[2];
-
-	  vtxpxtpc[nparticle]=vtxmom[0];
-	  vtxpytpc[nparticle]=vtxmom[1];
-	  vtxpztpc[nparticle]=vtxmom[2];
-	  // vtxpptpc[nparticle]=sqrt(pow(vtxmom[0],2)+pow(vtxmom[1],2)+pow(vtxmom[2],2));
-	  vtxenetpc[nparticle]=vtxene;
-
-	  vtxxtpc[nparticle]=vtxpos[0];
-	  vtxytpc[nparticle]=vtxpos[1];
-	  vtxztpc[nparticle]=vtxpos[2];
-
-	  pptpc[nparticle]=sqrt(pow(mom[0],2.)+pow(mom[1],2.)+pow(mom[2],2.));
-	  lentpc[nparticle]=tlength;
-	  ptidtpc[nparticle]=ptid;
-	  ptidtpc_pid[nparticle]=ptid_pid;
-	  nparticle=nparticle+1;
-	}else if (pidtr[nparticle-1] == pid && vtxpxtpc[nparticle-1] == vtxmom[0] && vtxpytpc[nparticle-1] == vtxmom[1] && vtxpztpc[nparticle-1] == vtxmom[2]){
-	  if( ptidtpc[nparticle-1] != ptid){
-	    qqtpc[nparticle]=charge;
-	    pmtpc[nparticle]=mass;
-	    detpc[nparticle]=detpc[nparticle]+edep;
-	    if(ilay>-1){
-	      laytpc[nparticle]=laytpc[nparticle]+1;
-	    }
-	    pidtr[nparticle]=pid;
-	    pxtpc[nparticle]=mom[0];
-	    pytpc[nparticle]=mom[1];
-	    pztpc[nparticle]=mom[2];
-
-	    vtxpxtpc[nparticle]=vtxmom[0];
-	    vtxpytpc[nparticle]=vtxmom[1];
-	    vtxpztpc[nparticle]=vtxmom[2];
-	    // vtxpptpc[nparticle]=sqrt(pow(vtxmom[0],2)+pow(vtxmom[1],2)+pow(vtxmom[2],2));
-
-	    vtxenetpc[nparticle]=vtxene;
-
-	    vtxxtpc[nparticle]=vtxpos[0];
-	    vtxytpc[nparticle]=vtxpos[1];
-	    vtxztpc[nparticle]=vtxpos[2];
-
-	    pptpc[nparticle]=sqrt(pow(mom[0],2.)+pow(mom[1],2.)+pow(mom[2],2.));
-	    lentpc[nparticle]=tlength;
-	    ptidtpc[nparticle]=ptid;
-	    ptidtpc_pid[nparticle]=ptid_pid;
-	    nparticle=nparticle+1;
-	  }
-	  else{
-	    detpc[nparticle-1]=detpc[nparticle-1]+edep;
-	    if(ilay>-1){
-	      laytpc[nparticle-1]=laytpc[nparticle-1]+1;
-	    }
-	    lentpc[nparticle-1]=tlength;
-	  }
-
-	}
-
-	if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
+	if(slot >= 0 && ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
 	  // Dead = center-frame pads; Noise = abnormal waveform (E72).
 	  // TPCDropNoisePad (default true): GetDeadCon == IsDead || (drop_noise && Noise).
 	  static const G4bool drop_noise =
@@ -719,15 +656,15 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	  int restype = gConf.Get<G4int>("ResType");
 	  switch(restype){
 	  case 0:
-	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+	    gAnaMan.SetCounterDataSimple( slot,tof, xyz, mom, tid, pid, ilay,
 					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    break;
 	  case 1:
-	    gAnaMan.SetCounterDataExp( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+	    gAnaMan.SetCounterDataExp( slot,tof, xyz, mom, tid, pid, ilay,
 				       irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    break;
 	  default:
-	    gAnaMan.SetCounterDataSimple( nparticle-1,tof, xyz, mom, tid, pid, ilay,
+	    gAnaMan.SetCounterDataSimple( slot,tof, xyz, mom, tid, pid, ilay,
 					  irow, beta, edep/CLHEP::MeV, parentid, parentpid, charge, tlength,slength );
 	    G4cout<<"TPC Resolution type is not determined. Now using constant resolution"<<G4endl;
 	    break;
