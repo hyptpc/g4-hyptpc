@@ -37,8 +37,11 @@ G4bool
 SFVSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
 {
     const auto preStepPoint = aStep->GetPreStepPoint();
+    const auto Definition = aStep->GetTrack()->GetDefinition();
 
     if (preStepPoint->GetStepStatus() != fGeomBoundary)
+        return false;
+    if (Definition->GetPDGCharge() == 0.)
         return false;
 
     auto aHit = new SFVHit(SensitiveDetectorName, aStep);
