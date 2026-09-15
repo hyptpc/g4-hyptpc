@@ -755,12 +755,20 @@ DetectorConstruction::ConstructHTOF()
       }
       //Beam-through slats
       else if(j==1){
-	new G4PVPlacement(rotMOutP, seg_pos + window_pos, htof_upper_lv, Form("HtofPV%d", 1), m_world_lv, false, 1, m_check_overlaps);
-	new G4PVPlacement(rotMOutP, seg_pos - window_pos, htof_lower_lv, Form("HtofPV%d", 2), m_world_lv, false, 2, m_check_overlaps);
+        new G4PVPlacement(rotMOutP, seg_pos + window_pos, htof_upper_lv,
+                          Form("HtofPV%d", 1), m_world_lv, false, 1,
+                          m_check_overlaps);
+        new G4PVPlacement(rotMOutP, seg_pos - window_pos, htof_lower_lv,
+                          Form("HtofPV%d", 2), m_world_lv, false, 2,
+                          m_check_overlaps);
       }
       else if(j==2){
-	new G4PVPlacement(rotMOutP, seg_pos + window_pos, htof_upper_lv, Form("HtofPV%d", seg), m_world_lv, false, 3, m_check_overlaps);
-	new G4PVPlacement(rotMOutP, seg_pos - window_pos, htof_lower_lv, Form("HtofPV%d", seg+31), m_world_lv, false, 4, m_check_overlaps);
+        new G4PVPlacement(rotMOutP, seg_pos + window_pos, htof_upper_lv,
+                          Form("HtofPV%d", 3), m_world_lv, false, 3,
+                          m_check_overlaps);
+        new G4PVPlacement(rotMOutP, seg_pos - window_pos, htof_lower_lv,
+                          Form("HtofPV%d", 4), m_world_lv, false, 4,
+                          m_check_overlaps);
       }
     }
   }
@@ -1927,43 +1935,40 @@ DetectorConstruction::ConstructVP()
 {
   using CLHEP::mm;
   using CLHEP::deg;
-  G4int i = 1;
-  try {
-    while (true) {
-      G4String name = "VP"+std::to_string(i);
-      const auto& ra2 = gGeom.GetRotAngle2(name)*deg;
-      const auto& half_size = gSize.GetSize(name)*mm/2.;
-      auto pos = gGeom.GetGlobalPosition(name);
-      auto mother_solid = new G4Box(name+"MotherSolid",
-                                    half_size.x() + 1*mm,
-                                    half_size.y() + 1*mm,
-                                    half_size.z() + 1*mm);
-      auto mother_lv = new G4LogicalVolume(mother_solid,
-                                           m_material_map["Air"],
-                                           name+"MotherLV");
-      auto rot = new G4RotationMatrix;
-      rot->rotateY(- ra2 - m_rotation_angle);
-      pos.rotateY(m_rotation_angle);
-      new G4PVPlacement(rot, pos, mother_lv,
-                        name+"MotherPV", m_world_lv, false, 0, m_check_overlaps);
-      mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
-      auto vp_solid = new G4Box(name+"Solid",
-                                half_size.x(), half_size.y(), half_size.z());
-      auto vp_lv = new G4LogicalVolume(vp_solid, m_material_map["Air"],
-                                       name+"LV");
-      new G4PVPlacement(nullptr, G4ThreeVector(), vp_lv, name+"PV",
-                        mother_lv, false, i, m_check_overlaps);
-      vp_lv->SetVisAttributes(G4Colour::Yellow());
-      static auto vpSD = new VPSD("VP");
-      AddNewDetector(vpSD);
-      vp_lv->SetSensitiveDetector(vpSD);
-      ++i;
+  for (G4int i = 1; i <= NumOfSegVP; ++i) {
+    G4String name = "VP" + std::to_string(i);
+    G4double ra2;
+    G4ThreeVector half_size;
+    G4ThreeVector pos;
+    try {
+      ra2 = gGeom.GetRotAngle2(name) * deg;
+      half_size = gSize.GetSize(name) * mm / 2.;
+      pos = gGeom.GetGlobalPosition(name);
+    } catch (const std::exception&) {
+      break; // consecutive VPs from 1; stop at first missing key
     }
-  } catch (const std::exception& e) {
-#if 0
-    G4cout << FUNC_NAME // << " " << e.what()
-           << G4endl
-           << "   " << i-1 << " VPs constructed." << G4endl;
-#endif
+    auto mother_solid = new G4Box(name+"MotherSolid",
+                                  half_size.x() + 1*mm,
+                                  half_size.y() + 1*mm,
+                                  half_size.z() + 1*mm);
+    auto mother_lv = new G4LogicalVolume(mother_solid,
+                                         m_material_map["Air"],
+                                         name+"MotherLV");
+    auto rot = new G4RotationMatrix;
+    rot->rotateY(- ra2 - m_rotation_angle);
+    pos.rotateY(m_rotation_angle);
+    new G4PVPlacement(rot, pos, mother_lv,
+                      name+"MotherPV", m_world_lv, false, 0, m_check_overlaps);
+    mother_lv->SetVisAttributes(G4VisAttributes::GetInvisible());
+    auto vp_solid = new G4Box(name+"Solid",
+                              half_size.x(), half_size.y(), half_size.z());
+    auto vp_lv = new G4LogicalVolume(vp_solid, m_material_map["Air"],
+                                     name+"LV");
+    new G4PVPlacement(nullptr, G4ThreeVector(), vp_lv, name+"PV",
+                      mother_lv, false, i, m_check_overlaps);
+    vp_lv->SetVisAttributes(G4Colour::Yellow());
+    static auto vpSD = new VPSD("VP");
+    AddNewDetector(vpSD);
+    vp_lv->SetSensitiveDetector(vpSD);
   }
 }
