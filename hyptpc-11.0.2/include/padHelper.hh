@@ -1,3 +1,5 @@
+// Legacy pad geometry helpers. Unused after migration to TPCPadHelper
+// (0-origin, analyzer-aligned). Kept for reference; do not use in new code.
 #ifndef PADHELPER_HH
 #define PADHELPER_HH
 #include <iostream>

@@ -33,25 +33,25 @@
 #include "BeamMan.hh"
 #include "ConfMan.hh"
 #include "DCGeomMan.hh"
-#include "DetectorID.hh"
 #include "DetSizeMan.hh"
+#include "DetectorID.hh"
 #include "FuncName.hh"
+#include "MagneticField.hh"
 #include "MathTools.hh"
+#include "TPCPadHelper.hh"
 #include "BACSD.hh"
 #include "BH2SD.hh"
+#include "CVCSD.hh"
 #include "FTOFSD.hh"
 #include "HTOFSD.hh"
 #include "KVCSD.hh"
-#include "CVCSD.hh"
 #include "SAC3SD.hh"
 #include "SFVSD.hh"
-#include "MagneticField.hh"
-#include "TPCSD.hh"
-#include "TPCPadSD.hh"
-#include "TPCEdepSD.hh"
 #include "TargetSD.hh"
+#include "TPCEdepSD.hh"
+#include "TPCPadSD.hh"
+#include "TPCSD.hh"
 #include "VPSD.hh"
-#include "padHelper.hh"
 
 namespace
 {
@@ -1214,18 +1214,18 @@ DetectorConstruction::ConstructHypTPC()
     //If you need the dE/dx information, it should be modified.
     //Thin sensitive detector is introduced.
     for (G4int i=0; i<NumOfPadTPC; ++i) {
-      G4double pad_radius = padHelper::getRadius(i);
+      G4double pad_radius = TPCPadHelper::GetRadius(i);
       pad_in[i] = pad_radius;
       pad_out[i] = pad_radius + 0.1*mm;
       /*
-        double pad_halflength = padHelper::getLength(i)/2;
+        double pad_halflength = TPCPadHelper::GetLength(i)/2;
         pad_in[i] = pad_radius-pad_halflength;
         pad_out[i] = pad_radius + pad_halflength;
       */
       if (i<NumOfPadTPCIn) {
-	angle[i]   = 360.;
+        angle[i]   = 360.;
       } else {
-	angle[i] = padHelper::getsTheta(i);
+        angle[i] = TPCPadHelper::GetsTheta(i);
       }
     }
     break;
@@ -1234,8 +1234,8 @@ DetectorConstruction::ConstructHypTPC()
     // position -> pad center
     // dE/dx -> energy deposition
     for (G4int i=0; i<NumOfPadTPC; ++i) {
-      G4double pad_radius = padHelper::getRadius(i);
-      G4double pad_halflength = padHelper::getLength(i)/2;
+      G4double pad_radius = TPCPadHelper::GetRadius(i);
+      G4double pad_halflength = TPCPadHelper::GetLength(i)/2.;
       pad_in[i] = pad_radius;
       pad_out[i] = pad_radius + 0.1*mm;
       pad_in_edep[i] = pad_radius - pad_halflength;
@@ -1244,7 +1244,7 @@ DetectorConstruction::ConstructHypTPC()
       if (i<NumOfPadTPCIn) {
 	angle[i]   = 360.;
       } else {
-	angle[i] = padHelper::getsTheta(i);
+	angle[i] = TPCPadHelper::GetsTheta(i);
       }
     }
 
@@ -1253,14 +1253,14 @@ DetectorConstruction::ConstructHypTPC()
     //for tracking alaysis
     // to get dE/dx information -> short step
     for (G4int i=0;i<NumOfPadTPC; ++i) {
-      G4double pad_radius = padHelper::getRadius(i);
-      G4double pad_halflength = padHelper::getLength(i)/2;
+      G4double pad_radius = TPCPadHelper::GetRadius(i);
+      G4double pad_halflength = TPCPadHelper::GetLength(i)/2.;
       pad_in[i] = pad_radius - pad_halflength;
       pad_out[i] = pad_radius + pad_halflength;
       if (i<NumOfPadTPCIn) {
 	angle[i]   = 360.;
       } else {
-	angle[i] = padHelper::getsTheta(i);
+	angle[i] = TPCPadHelper::GetsTheta(i);
       }
     }
     break;

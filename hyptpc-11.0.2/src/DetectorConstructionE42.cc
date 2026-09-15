@@ -43,7 +43,6 @@
 #include "TargetSD.hh"
 #include "VPSD.hh"
 #include "WCSD.hh"
-#include "padHelper.hh"
 
 namespace
 {

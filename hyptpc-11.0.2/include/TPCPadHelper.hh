@@ -18,7 +18,10 @@ G4double GetTheta(G4int padID);
 G4double GetTheta(const G4int layerID, const G4double m_row);
 G4double GetMrow(const G4int layerID, const G4double m_phi);
 G4double GetRadius(const G4int layerID);
+G4double GetLength(const G4int layerID);
+G4double GetsTheta(const G4int layerID);
 G4double GetR(G4int padID);
+G4double GetZTarget();
 G4ThreeVector GetPosition(G4int padID);
 G4ThreeVector GetPosition(const G4int layerID, const G4double m_row);
 // Find PadID from global position (z, x)

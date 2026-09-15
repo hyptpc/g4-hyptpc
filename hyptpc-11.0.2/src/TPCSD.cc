@@ -19,7 +19,6 @@
 #include "ConfMan.hh"
 #include "FuncName.hh"
 #include "TPCHit.hh"
-#include "padHelper.hh"
 
 namespace
 {

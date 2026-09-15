@@ -475,6 +475,29 @@ GetRadius(const G4int layerID)
 
 //______________________________________________________________________________
 G4double
+GetLength(const G4int layerID)
+{
+  return padParameter[layerID][kLength];
+}
+
+//______________________________________________________________________________
+G4double
+GetsTheta(const G4int layerID)
+{
+  const G4double n_pad = padParameter[layerID][kNumOfPad];
+  const G4double n_div = padParameter[layerID][kNumOfDivision];
+  return 180. - (360. / n_div) * n_pad / 2.;
+}
+
+//______________________________________________________________________________
+G4double
+GetZTarget()
+{
+  return ZTarget();
+}
+
+//______________________________________________________________________________
+G4double
 GetR(G4int padID)
 {
   G4int layer = 0;

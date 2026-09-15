@@ -16,10 +16,11 @@
 #include <G4DecayProcessType.hh>
 #include <Randomize.hh>
 
+#include <cmath>
+
 #include "ConfMan.hh"
 #include "FuncName.hh"
 #include "TPCEdepHit.hh"
-#include "padHelper.hh"
 #include "TPCPadHelper.hh"
 
 
@@ -120,8 +121,8 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   //G4int iRow= padHelper::getRowID(iPad);
   G4int iRow = TPCPadHelper::GetRowID(iPad);
   
-	G4double PadLen = padHelper::getLength(iLay);
-	G4ThreeVector PadPos(hitx,0,hitz + 143); 
+	G4double PadLen = TPCPadHelper::GetLength(iLay);
+	G4ThreeVector PadPos(hitx,0,hitz - TPCPadHelper::GetZTarget()); 
 	G4ThreeVector MomT(mom.x(),0,mom.z());	
 	G4double alpha = PadPos.theta()-MomT.theta();
 	G4double PathT = PadLen * 1./cos(alpha);
@@ -149,8 +150,8 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 #ifdef DEBUG
   
   //for test 
-  G4double radius = sqrt( hitx*hitx + (hitz+143.)*(hitz+143.));
-  TVector3 Point = padHelper::getPoint(iPad);
+  G4double radius = std::hypot(hitx, hitz - TPCPadHelper::GetZTarget());
+  G4ThreeVector Point = TPCPadHelper::GetPosition(iPad);
   //G4int iPad_re = padHelper::findPadID(Point.z(), Point.x());
   G4int iPad_re = iPad;
   /*
@@ -178,7 +179,7 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int iPad_post = TPCPadHelper::FindPadID(hitz_post,hitx_post);
   G4int iLay_post = TPCPadHelper::GetLayerID(iPad_post);
     /*
-  G4cout<<"Post : radius = "<<sqrt( hitx_post*hitx_post + (hitz_post+143.)*(hitz_post+143.))
+  G4cout<<"Post : radius = "<<std::hypot(hitx_post, hitz_post - TPCPadHelper::GetZTarget())
 	<<", iPad ="<<iPad_post
    	<<", iLay_copyNo = " <<copyNo_post-2000
    	<< ", iLay = "<<iLay_post
@@ -223,14 +224,14 @@ TPCEdepSD::DrawAll( void )
 }
 
 G4double
-TPCEdepSD::TPCdEdx(Double_t mass/*MeV/c2*/, Double_t beta){
+TPCEdepSD::TPCdEdx(G4double mass/*MeV/c2*/, G4double beta){
 
-  Double_t rho=0.; //[g cm-3]
-  Double_t ZoverA=0.; //[mol g-1]
-  Double_t I=0.; //[eV]
-  Double_t density_effect_par[6]={0.}; //Sternheimer’s parameterization
+  G4double rho=0.; //[g cm-3]
+  G4double ZoverA=0.; //[mol g-1]
+  G4double I=0.; //[eV]
+  G4double density_effect_par[6]={0.}; //Sternheimer’s parameterization
   //P10  
-	rho = TMath::Power(10.,-3)*(0.9*1.662 + 0.1*0.6672);
+	rho = std::pow(10.,-3)*(0.9*1.662 + 0.1*0.6672);
 	ZoverA = 17.2/37.6;
 	I = 0.9*188.0 + 0.1*41.7;
 	density_effect_par[0] = 0.9*0.19714 + 0.1*0.09253;
@@ -240,27 +241,27 @@ TPCEdepSD::TPCdEdx(Double_t mass/*MeV/c2*/, Double_t beta){
 	density_effect_par[4] = 0.9*11.9480 + 0.1*9.5243;
 	density_effect_par[5] = 0.;
 
-  Double_t Z = 1.;
-  Double_t me = 0.5109989461; //[MeV]
-  Double_t K = 0.307075; //[MeV cm2 mol-1]
-  Double_t constant = rho*K*ZoverA; //[MeV cm-1]
+  G4double Z = 1.;
+  G4double me = 0.5109989461; //[MeV]
+  G4double K = 0.307075; //[MeV cm2 mol-1]
+  G4double constant = rho*K*ZoverA; //[MeV cm-1]
   constant = constant;
-  Double_t I2 = I*I; //Mean excitaion energy [eV]
-  Double_t beta2 = beta*beta;
-  Double_t gamma2 = 1./(1.-beta2);
-  Double_t MeVToeV = TMath::Power(10.,6);
-  Double_t Wmax = 2*me*beta2*gamma2/((me/mass+1.)*(me/mass+1.)+2*(me/mass)*(TMath::Sqrt(gamma2)-1));
-  Double_t delta = DensityEffectCorrection(TMath::Sqrt(beta2*gamma2), density_effect_par);
-  Double_t dedx = constant*Z*Z/beta2*(0.5*TMath::Log(2*me*beta2*gamma2*Wmax*MeVToeV*MeVToeV/I2) - beta2 - 0.5*delta);
+  G4double I2 = I*I; //Mean excitaion energy [eV]
+  G4double beta2 = beta*beta;
+  G4double gamma2 = 1./(1.-beta2);
+  G4double MeVToeV = std::pow(10.,6);
+  G4double Wmax = 2*me*beta2*gamma2/((me/mass+1.)*(me/mass+1.)+2*(me/mass)*(std::sqrt(gamma2)-1));
+  G4double delta = DensityEffectCorrection(std::sqrt(beta2*gamma2), density_effect_par);
+  G4double dedx = constant*Z*Z/beta2*(0.5*std::log(2*me*beta2*gamma2*Wmax*MeVToeV*MeVToeV/I2) - beta2 - 0.5*delta);
   
 	
   G4double conversion_factor = 11073.3;
   return conversion_factor*dedx;
 
 }
-double
-TPCEdepSD::TPCdEdxSig(Double_t mass/*MeV/c2*/, Double_t mom){
-	double par[3]={0,0,0} ;
+G4double
+TPCEdepSD::TPCdEdxSig(G4double mass/*MeV/c2*/, G4double mom){
+	G4double par[3]={0,0,0} ;
 	if(mass < 0.2){//pion;
 		par[0] = 7.792;
 		par[1] =	-8.704;
@@ -271,19 +272,19 @@ TPCEdepSD::TPCdEdxSig(Double_t mass/*MeV/c2*/, Double_t mom){
 		par[1] = -26.24;
 		par[2] = 6.259; 
 	}
-	double value = par[0]+par[1]*mom+par[2]*mom*mom;
+	G4double value = par[0]+par[1]*mom+par[2]*mom*mom;
 	return value;
 }
 G4double
-TPCEdepSD::DensityEffectCorrection(Double_t betagamma, Double_t *par){
+TPCEdepSD::DensityEffectCorrection(G4double betagamma, G4double *par){
 
     //reference : Sternheimer’s parameterizatio(PDG)
     //notation : par[0] : a, par[1] : k, par[2] : x0, par[3] : x1, par[4] : _C, par[5] : delta0
-    Double_t constant = 2*TMath::Log(10);
-    Double_t delta = 0.;
-    Double_t X = log10(betagamma);
-    if(X<=par[2]) delta = par[5]*TMath::Power(10., 2*(X - par[2]));
-    else if(par[2]<X && X<par[3]) delta = constant*X - par[4] + par[0]*pow((par[3] - X), par[1]);
+    G4double constant = 2*std::log(10.);
+    G4double delta = 0.;
+    G4double X = std::log10(betagamma);
+    if(X<=par[2]) delta = par[5]*std::pow(10., 2*(X - par[2]));
+    else if(par[2]<X && X<par[3]) delta = constant*X - par[4] + par[0]*std::pow((par[3] - X), par[1]);
     else if(X>=par[3]) delta = constant*X - par[4];
 
   return delta;

@@ -33,7 +33,7 @@
 #include "switch.h"
 #include "track.hh"
 #include "VHitInfo.hh"
-#include "padHelper.hh"
+#include "TPCPadHelper.hh"
 #include "Kinematics.hh"
 #include "DCGeomMan.hh"
 #include "DetSizeMan.hh"
@@ -264,7 +264,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   trig_param->Write();
  
 #if 0
-  G4double target_pos_z=-143.;
+  G4double target_pos_z=TPCPadHelper::GetZTarget();
   truncated_mean_cut = gConf.Get<G4double>("TruncatedMeanCut");
   //m_experiment = gConf.Get<G4int>("Experiment");
   //out side less 100 mm. 10+5*x < 100 mm is pad_in_num
@@ -483,8 +483,8 @@ AnaManager::EndOfEventAction()
 	event.layertpc[ihit] = counterData[i].iLay;
 
 	event.rowtpc[ihit] = counterData[i].iRow;
-	event.padtpc[ihit] = padHelper::getPadID(event.layertpc[ihit], event.rowtpc[ihit]);
-	TVector3 Point = padHelper::getPoint(event.padtpc[ihit]);
+	event.padtpc[ihit] = TPCPadHelper::GetPadID(event.layertpc[ihit], event.rowtpc[ihit]);
+	G4ThreeVector Point = TPCPadHelper::GetPosition(event.padtpc[ihit]);
 	event.xtpc_pad[ihit] = Point.x();
 	event.ytpc_pad[ihit] = event.ytpc[ihit];
 	event.ztpc_pad[ihit] = Point.z();
@@ -724,7 +724,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
     return;
   }
 
-  G4ThreeVector tar_pos(0.,0., -143);
+  G4ThreeVector tar_pos(0.,0., TPCPadHelper::GetZTarget());
   G4ThreeVector sh_pos(0.,0.,0.);
   sh_pos=pos-tar_pos;
 
@@ -847,7 +847,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
     return;
   }
 
-  G4ThreeVector tar_pos(0.,0., -143);
+  G4ThreeVector tar_pos(0.,0., TPCPadHelper::GetZTarget());
   G4ThreeVector sh_pos(0.,0.,0.);
   sh_pos=pos-tar_pos;
 
