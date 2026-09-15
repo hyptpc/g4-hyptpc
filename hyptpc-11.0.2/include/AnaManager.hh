@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <bitset>
+#include <cmath>
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -12,7 +13,9 @@
 #include <vector>
 
 #include <G4LorentzVector.hh>
+#include <G4String.hh>
 #include <G4ThreeVector.hh>
+#include <G4Types.hh>
 
 #include <TParticle.h>
 #include <TVector3.h>
@@ -39,12 +42,12 @@ const G4int MaxTrack = 54*20;
 
 void initTrack(Track* aTrack);
 void initTrack_ku(Track* aTrack);
-int setInitialPara(Track* aTrack, double* initPara);
-int setVirtualPlane(Track* aTrack);
-void minuitInit(double printLevel);
+G4int setInitialPara(Track* aTrack, G4double* initPara);
+G4int setVirtualPlane(Track* aTrack);
+void minuitInit(G4double printLevel);
 
-static const int MAXtpctrNum=30;
-static const int MAXtpctrhitNum=500;
+static const G4int MAXtpctrNum = 30;
+static const G4int MAXtpctrhitNum = 500;
 
 // Acceptance-study / trigger channel for one generator ID.
 // focus_name: Geant4 particle name used when tagging the Decay step ("none" if unused).
@@ -351,10 +354,10 @@ private:
   std::bitset<NumOfPadTPC> m_slot_layer_seen[MaxTrack];
   TPCData tpcData[MAXtpctrNum];
 
-  int HitNum;
-  int tpctrNum;
-  int HitNum_K;
-  int HitNum_p;
+  G4int HitNum;
+  G4int tpctrNum;
+  G4int HitNum_K;
+  G4int HitNum_p;
 
   G4double mean[MAXtpctrNum];//read fit parameters
   G4double trmean[MAXtpctrNum];//read fit parameters
@@ -435,7 +438,7 @@ public:
   void BeginOfRunAction(G4int runnum);
   void EndOfRunAction();
   void BeginOfEventAction();
-  int  EndOfEventAction();
+  G4int EndOfEventAction();
   void MakeBranch(const G4String& sd_name);
   void MakeHistogram(const G4String& sd_name);
   void SetNhits(const G4String& sd_name, G4int nhits);
@@ -450,11 +453,11 @@ public:
   void SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-			    G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
+          G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
   void SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                       G4ThreeVector mom, G4int track, G4int particle,
                       G4int iLay, G4int iRow, G4double beta, G4double edep,
-			 G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
+       G4int parentid, G4int parentpid, G4int charge, G4double tlength, G4double slength);
   void SetFermiMomentum(const G4ThreeVector& p);
   void SetGeneratorID(G4int generator);
   void SetModeID(G4int mode);
@@ -464,13 +467,13 @@ public:
                           const G4LorentzVector& v,
                           G4bool is_virtual_beam=false);
   void SetSecondaryVertex(G4int pdg, G4int motherPdg,
-			  const G4LorentzVector& p,
-			  const G4LorentzVector& v,
-			  G4int daughterTrackID=0,
-			  G4int motherTrackID=0);
+        const G4LorentzVector& p,
+        const G4LorentzVector& v,
+        G4int daughterTrackID=0,
+        G4int motherTrackID=0);
   void SetBeamInfo(G4int pdg,
-		   const G4LorentzVector& p,
-		   const G4LorentzVector& v);
+       const G4LorentzVector& p,
+       const G4LorentzVector& v);
   void SetPrimaryVertex(G4int id, const G4ThreeVector& x);
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);
@@ -518,34 +521,35 @@ public:
 
   void BuildVtxInfo();
 
-  int CircleIntersect(double x1, double y1, double r1, double x2, double y2, double r2,
-		      double ca1, double cb1, double ct01, int qq1,
-		      double ca2, double cb2, double ct02, int qq2,
-		      double inter1[3], double inter2[3])
+  G4int CircleIntersect(G4double x1, G4double y1, G4double r1,
+                        G4double x2, G4double y2, G4double r2,
+                        G4double ca1, G4double cb1, G4double ct01, G4int qq1,
+                        G4double ca2, G4double cb2, G4double ct02, G4int qq2,
+                        G4double inter1[3], G4double inter2[3])
   {
     // function inputs: x1, y1, r1, x2, y2, r2
     // function output: inter1, inter2 = coordinates of intersections
 
-    double d,e,f,g,a,b,c;
-    double x,y,discrim;
+    G4double d, e, f, g, a, b, c;
+    G4double x, y, discrim;
 
-    if(x1 == x2 && y1 == y2){
+    if (x1 == x2 && y1 == y2) {
       G4cout << x1 << " " << y1 << " " << r1 << G4endl;
       return 0;
     }
     //    G4cout << x1 << " " << y1 << " " << r1 << G4endl;
     //    G4cout << x2 << " " << y2 << " " << r2 << G4endl;
 
-    d = -0.5*(r1*r1 - r2*r2 - x1*x1 - y1*y1 + x2*x2 + y2*y2);
-    e =  0.5*(r1*r1 + r2*r2 - x1*x1 - y1*y1 - x2*x2 - y2*y2);
-    if(fabs(y1-y2) < 1.0e-20) {
-      x = d/(x1 - x2);
+    d = -0.5 * (r1 * r1 - r2 * r2 - x1 * x1 - y1 * y1 + x2 * x2 + y2 * y2);
+    e = 0.5 * (r1 * r1 + r2 * r2 - x1 * x1 - y1 * y1 - x2 * x2 - y2 * y2);
+    if (std::fabs(y1 - y2) < 1.0e-20) {
+      x = d / (x1 - x2);
       a = 1.0;
       b = 0.0;
-      c = x*x - x*(x1 + x2) - e;
-      discrim = -4*a*c;
-      if(discrim < 0) return 0;
-      y = sqrt(discrim) / (2*a);
+      c = x * x - x * (x1 + x2) - e;
+      discrim = -4 * a * c;
+      if (discrim < 0) return 0;
+      y = std::sqrt(discrim) / (2 * a);
       inter1[0] = x;
       inter1[1] = y;
       inter2[0] = x;
@@ -556,64 +560,62 @@ public:
     g = d / (y1 - y2);
     // cout << "d=" << d << " e=" << e << " f=" << f << " g=" << g << endl;
 
-    a = 1. + f*f;
-    b = f*(y1 + y2) - 2*f*g - (x1 + x2);
-    c = g*g - g*(y1 + y2) - e;
+    a = 1. + f * f;
+    b = f * (y1 + y2) - 2 * f * g - (x1 + x2);
+    c = g * g - g * (y1 + y2) - e;
     //    G4cout << "a=" << a << " b=" << b << " c=" << c << G4endl;
 
-    discrim = b*b - 4*a*c;
+    discrim = b * b - 4 * a * c;
     //    G4cout << "discrim = " << discrim << G4endl;
-    if(discrim < 0) return 0;
-    inter1[0] = (-b + sqrt(discrim)) / (2*a);
-    inter1[1] = g - f*inter1[0];
-    inter2[0] = (-b - sqrt(discrim)) / (2*a);
-    inter2[1] = g - f*inter2[0];
+    if (discrim < 0) return 0;
+    inter1[0] = (-b + std::sqrt(discrim)) / (2 * a);
+    inter1[1] = g - f * inter1[0];
+    inter2[0] = (-b - std::sqrt(discrim)) / (2 * a);
+    inter2[1] = g - f * inter2[0];
 
+    G4double theta11 = std::atan2(inter1[1] - y1, inter1[0] - x1);
+    G4double theta21 = std::atan2(inter1[1] - y2, inter1[0] - x2);
+    G4double theta12 = std::atan2(inter2[1] - y1, inter2[0] - x1);
+    G4double theta22 = std::atan2(inter2[1] - y2, inter2[0] - x2);
 
-    double theta11 = atan2(inter1[1]-y1, inter1[0]-x1);
-    double theta21 = atan2(inter1[1]-y2, inter1[0]-x2);
-    double theta12 = atan2(inter2[1]-y1, inter2[0]-x1);
-    double theta22 = atan2(inter2[1]-y2, inter2[0]-x2);
+    G4double tmp_y11 = -1. * G4double(qq1) * ca1 * r1 * (theta11 - ct01) + cb1;
+    G4double tmp_y21 = -1. * G4double(qq2) * ca2 * r2 * (theta21 - ct02) + cb2;
+    G4double tmp_y12 = -1. * G4double(qq1) * ca1 * r1 * (theta12 - ct01) + cb1;
+    G4double tmp_y22 = -1. * G4double(qq2) * ca2 * r2 * (theta22 - ct02) + cb2;
 
-    double tmp_y11 = -1.*(double)qq1*ca1*r1*(theta11-ct01)+cb1;
-    double tmp_y21 = -1.*(double)qq2*ca2*r2*(theta21-ct02)+cb2;
-    double tmp_y12 = -1.*(double)qq1*ca1*r1*(theta12-ct01)+cb1;
-    double tmp_y22 = -1.*(double)qq2*ca2*r2*(theta22-ct02)+cb2;
+    // G4cout<<"theta11="<<theta11<<", theta21="<<theta21
+    //       <<", theta12="<<theta12<<", theta22="<<theta22<<G4endl;
 
-    // std::cout<<"theta11="<<theta11<<", theta21="<<theta21
-    // 	     <<", theta12="<<theta12<<", theta22="<<theta22<<std::endl;
-
-    // std::cout<<"tmp_y11="<<tmp_y11<<", tmp_y21="<<tmp_y21<<std::endl;
-    // std::cout<<"tmp_y12="<<tmp_y12<<", tmp_y22="<<tmp_y22<<std::endl;
+    // G4cout<<"tmp_y11="<<tmp_y11<<", tmp_y21="<<tmp_y21<<G4endl;
+    // G4cout<<"tmp_y12="<<tmp_y12<<", tmp_y22="<<tmp_y22<<G4endl;
     //getchar();
 
-    inter1[2] = (tmp_y11+tmp_y21)/2.;
-    inter2[2] = (tmp_y12+tmp_y22)/2.;
-
+    inter1[2] = (tmp_y11 + tmp_y21) / 2.;
+    inter2[2] = (tmp_y12 + tmp_y22) / 2.;
 
     return 1;
   }
 
 
-  double linearFitter(const int np,
-		      const double *x,
-		      const double *y, double *er,
-		      double *a, double *b){
+  G4double linearFitter(const G4int np,
+                        const G4double* x,
+                        const G4double* y, G4double* er,
+                        G4double* a, G4double* b)
+  {
+    G4int i;
 
-    int i;
+    G4double alpha = 0.;
+    G4double beta = 0.;
+    G4double gamma = 0.;
+    G4double AA = 0;
+    G4double BB = 0;
 
-    double alpha=0.;
-    double beta=0.;
-    double gamma=0.;
-    double AA=0;
-    double BB=0;
-
-    for(i=0;i<np;i++){
-      alpha+=x[i]*x[i]/er[i]/er[i];
-      beta+=x[i]/er[i]/er[i];
-      gamma+=1./er[i]/er[i];
-      AA+=y[i]*x[i]/er[i]/er[i];
-      BB+=y[i]/er[i]/er[i];
+    for (i = 0; i < np; i++) {
+      alpha += x[i] * x[i] / er[i] / er[i];
+      beta += x[i] / er[i] / er[i];
+      gamma += 1. / er[i] / er[i];
+      AA += y[i] * x[i] / er[i] / er[i];
+      BB += y[i] / er[i] / er[i];
 
       //  G4cout<<"x test: "<<x[i]<<G4endl;
       //  G4cout<<"y test: "<<y[i]<<G4endl;
@@ -623,8 +625,8 @@ public:
     //  G4cout<<"alpha test: "<<alpha<<G4endl;
     //  G4cout<<"gamma test: "<<gamma<<G4endl;
 
-    *a=(gamma*AA -  beta*BB)/(alpha*gamma-beta*beta);
-    *b=(-beta *AA + alpha*BB)/(alpha*gamma-beta*beta);
+    *a = (gamma * AA - beta * BB) / (alpha * gamma - beta * beta);
+    *b = (-beta * AA + alpha * BB) / (alpha * gamma - beta * beta);
 
     //  G4cout<<"a test: "<<(*a)<<G4endl;
     //  G4cout<<"b test: "<<(*b)<<G4endl;
