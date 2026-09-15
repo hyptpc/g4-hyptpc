@@ -379,6 +379,10 @@ namespace
   // Resolve padID -> (layer, row). Returns false if out of range.
   G4bool FindLayerRow(G4int padID, G4int& layer, G4int& row)
   {
+    // Negative padID is a FindPadID sentinel (gap / not found), not a pad index.
+    if (padID < 0)
+      return false;
+
     G4int sum = 0;
     for (layer = 0; layer < NumOfLayersTPC; ++layer) {
       const G4int n_pad = static_cast<G4int>(padParameter[layer][kNumOfPad]);
@@ -547,6 +551,10 @@ GetPosition(const G4int layerID, const G4double m_row)
 G4int
 FindPadID(G4double z, G4double x)
 {
+  // Boundary FP: layer bands slightly expanded; gap shrunk from both ends.
+  // << 0.5 mm inter-layer gap so adjacent expanded bands do not overlap.
+  constexpr G4double kRadialEps = 1.0e-3 * CLHEP::mm;
+
   const G4double z_target = ZTarget();
 
   // 0 <= angle < 360 (degrees)
@@ -562,16 +570,16 @@ FindPadID(G4double z, G4double x)
     const G4double r_in  = r_pad - l_pad * 0.5;
     const G4double r_out = r_pad + l_pad * 0.5;
 
-    if (r_in <= radius && radius <= r_out) {
+    if (r_in - kRadialEps <= radius && radius <= r_out + kRadialEps) {
       hit_layer = layer;
       break;
     }
 
-    // Gap between previous and current layer
+    // Gap between previous and current layer (clear interior only)
     if (layer > 0) {
       const G4double r_prev_out =
         padParameter[layer - 1][kRadius] + padParameter[layer - 1][kLength] * 0.5;
-      if (r_prev_out < radius && radius < r_in)
+      if (r_prev_out + kRadialEps < radius && radius < r_in - kRadialEps)
         return -layer;
     }
   }

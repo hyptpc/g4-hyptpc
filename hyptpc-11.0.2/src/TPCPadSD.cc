@@ -105,6 +105,9 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int iLay_copyNo=copyNo;
   G4int iPad = TPCPadHelper::FindPadID(hitz, hitx);
   G4int iLay= TPCPadHelper::GetLayerID(iPad);
+  // valid layers 0..31; GetLayerID sentinel 32 = neg / OOB padID
+  if (iLay > 31)
+    return false;
   G4int iRow= TPCPadHelper::GetRowID(iPad);
   
 	G4double PadLen = TPCPadHelper::GetLength(iLay);

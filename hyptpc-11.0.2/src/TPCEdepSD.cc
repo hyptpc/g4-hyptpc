@@ -116,6 +116,9 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   //G4int iPad = padHelper::findPadID(hitz, hitx);
   //G4int iLay= padHelper::getLayerID(iPad);
   G4int iPad = TPCPadHelper::FindPadID(hitz, hitx);
+  // valid layers 0..31; GetLayerID sentinel 32 = neg / OOB padID
+  if (TPCPadHelper::GetLayerID(iPad) > 31)
+    return false;
   //G4int iLay = TPCPadHelper::GetLayerID(iPad);
   G4int iLay = iLay_copyNo;
   //G4int iRow= padHelper::getRowID(iPad);
@@ -148,46 +151,43 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
 	//if(iLay_copyNo==4 && pos.getY()>-1 * 97./2.)return false;
 	
 #ifdef DEBUG
-  
-  //for test 
-  G4double radius = std::hypot(hitx, hitz - TPCPadHelper::GetZTarget());
-  G4ThreeVector Point = TPCPadHelper::GetPosition(iPad);
-  //G4int iPad_re = padHelper::findPadID(Point.z(), Point.x());
-  G4int iPad_re = iPad;
-  /*
-  G4cout<<"hitx = "<< hitx
-   	<<", pointx "<< Point.x()
-   	<<", hitz =" << hitz
-  	<<", pointz "<< Point.z()
-   	<<"Pre :  radius = "<< radius
-   	<<", iPad ="<<iPad
-	<<", iPad_re ="<<iPad_re
-   	<<", iLay_copyNo = " <<iLay_copyNo
-   	<< ", iLay = "<<iLay
-        <<", Pid = "<<pid
-	<<", Edep = "<<edep<<G4endl;
-  */
 
-  /*G4cout<<"dx ="<<hitx-Point.x()
-    <<", dz ="<<hitz-Point.z()<<std::endl;*/
+  // Compare geometry layer vs FindPadID-derived layer (not self-compare of iLay).
+  const G4int iLay_pad = TPCPadHelper::GetLayerID(iPad);
+  const G4double radius = std::hypot(hitx, hitz - TPCPadHelper::GetZTarget());
 
-    //check post step point
+  G4ThreeVector pos_post = postStepPoint->GetPosition();
+  const G4double hitx_post = pos_post.getX();
+  const G4double hitz_post = pos_post.getZ();
+  const G4int iPad_post = TPCPadHelper::FindPadID(hitz_post, hitx_post);
+  const G4int iLay_post = TPCPadHelper::GetLayerID(iPad_post);
+  const G4int iLay_post_copy = copyNo_post - 2000;
 
-  G4ThreeVector pos_post= postStepPoint-> GetPosition();
-  G4double hitx_post=pos_post.getX();
-  G4double hitz_post=pos_post.getZ();
-  G4int iPad_post = TPCPadHelper::FindPadID(hitz_post,hitx_post);
-  G4int iLay_post = TPCPadHelper::GetLayerID(iPad_post);
-    /*
-  G4cout<<"Post : radius = "<<std::hypot(hitx_post, hitz_post - TPCPadHelper::GetZTarget())
-	<<", iPad ="<<iPad_post
-   	<<", iLay_copyNo = " <<copyNo_post-2000
-   	<< ", iLay = "<<iLay_post
-	<<", Edep = "<<edep<<G4endl;
-    */
-
-  if(iLay<0 || iLay > 31 || iLay!=iLay_copyNo)G4cout<<"pre strange layer"<<G4endl;
-  if(iLay_post<0 || iLay_post > 31)G4cout<<"post strange layer"<<G4endl;
+  if (iLay_pad < 0 || iLay_pad > 31 || iLay_pad != iLay_copyNo) {
+    G4cout << "pre strange layer"
+           << " radius=" << radius
+           << " iPad=" << iPad
+           << " iLay_copyNo=" << iLay_copyNo
+           << " iLay_pad=" << iLay_pad
+           << " hitx=" << hitx
+           << " hitz=" << hitz
+           << G4endl;
+  }
+  // Post: only when still in TPCEdep copy range, or FindPadID returned a sentinel.
+  const G4bool post_in_edep =
+    (copyNo_post >= 2000 && copyNo_post < 2000 + 32);
+  if (iPad_post < 0
+      || (post_in_edep
+          && (iLay_post < 0 || iLay_post > 31 || iLay_post != iLay_post_copy))) {
+    G4cout << "post strange layer"
+           << " radius=" << std::hypot(hitx_post, hitz_post - TPCPadHelper::GetZTarget())
+           << " iPad=" << iPad_post
+           << " iLay_copyNo=" << iLay_post_copy
+           << " iLay_pad=" << iLay_post
+           << " hitx=" << hitx_post
+           << " hitz=" << hitz_post
+           << G4endl;
+  }
 
 #endif
 
