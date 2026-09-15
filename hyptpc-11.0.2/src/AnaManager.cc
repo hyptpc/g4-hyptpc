@@ -167,8 +167,7 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   MakeBranch("SEC");
 
   for(const auto& sd_name: DetectorConstruction::GetSDList()){
-    if ((sd_name != "TPCPad" && sd_name != "TPCEdep") ||
-        (sd_name == "CVC" && gConf.Get<G4bool>("TPCPadOn"))) {
+    if (sd_name != "TPCPad" && sd_name != "TPCEdep") {
       G4cout << "   make branch : " << sd_name << G4endl;
       MakeBranch(sd_name);
       MakeHistogram(sd_name);
@@ -745,7 +744,6 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
       flag = false;
     }
   }
-  flag=true;
   if(flag == true){
     counterData[hitnum].ntrk = ntrk;
     counterData[hitnum].time = time;
@@ -869,7 +867,6 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
     }
   }
 
-  flag=true;
   if(flag == true){
     counterData[hitnum].ntrk = ntrk;
     counterData[hitnum].time = time;
