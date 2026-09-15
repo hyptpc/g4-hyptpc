@@ -632,7 +632,7 @@ AnaManager::BuildVtxInfo()
     }
     event.mom0_track.push_back(mom0);
     std::sort(track_dedx.begin(), track_dedx.end());
-    const G4int n_trunc = static_cast<G4int>(0.8*track_dedx.size());
+    const G4int n_trunc = std::max(1, static_cast<G4int>(0.8*track_dedx.size()));
     G4double dedx_sum = 0.;
     for (G4int j=0; j<n_trunc; ++j) dedx_sum += track_dedx[j];
     event.dedx_track.push_back(n_trunc > 0 ? dedx_sum/n_trunc : 0.);
