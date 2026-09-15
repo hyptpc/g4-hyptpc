@@ -207,8 +207,10 @@ TPCPadSD::TPCdEdx(G4double mass/*MeV/c2*/, G4double beta){
   G4double Wmax = 2*me*beta2*gamma2/((me/mass+1.)*(me/mass+1.)+2*(me/mass)*(std::sqrt(gamma2)-1));
   G4double delta = DensityEffectCorrection(std::sqrt(beta2*gamma2), density_effect_par);
   G4double dedx = constant*Z*Z/beta2*(0.5*std::log(2*me*beta2*gamma2*Wmax*MeVToeV*MeVToeV/I2) - beta2 - 0.5*delta);
-	
-	G4double conversion_factor = 11073.3;
+
+  static const G4double conversion_factor =
+    gConf.GetOrDefault<G4double>("TpcConversionFactor",
+				 TPCPadHelper::kDefaultConversionFactor);
   return conversion_factor*dedx;
 
 }

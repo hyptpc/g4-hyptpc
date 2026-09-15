@@ -10,6 +10,9 @@
 
 namespace TPCPadHelper
 {
+// MeV/cm -> ADC/mm (match analyzer). Override via conf TpcConversionFactor.
+inline constexpr G4double kDefaultConversionFactor = 7388.11;
+
 // Pad / Layer / Row indices are unified to start from 0
 G4int GetPadID(const G4int layerID, const G4int rowID);
 G4int GetLayerID(G4int padID);
