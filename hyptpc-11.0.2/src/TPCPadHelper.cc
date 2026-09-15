@@ -543,13 +543,13 @@ GetPosition(const G4int layerID, const G4double m_row)
 }
 
 //______________________________________________________________________________
-// Find PadID from global position (z, x)
+// Find pad from global position (z, x).
 // Returns:
-//    0 or positive : Valid PadID
+//    0 or positive : Valid PadID (layer and row are set)
 //    -layer        : Hit inside the gap between layer and layer-1
 //    -1000         : Not found (outside detector volume)
 G4int
-FindPadID(G4double z, G4double x)
+FindPad(G4double z, G4double x, G4int& layer, G4int& row)
 {
   // Boundary FP: layer bands slightly expanded; gap shrunk from both ends.
   // << 0.5 mm inter-layer gap so adjacent expanded bands do not overlap.
@@ -564,23 +564,23 @@ FindPadID(G4double z, G4double x)
   if (angle < 0.)    angle += 360.;
 
   G4int hit_layer = -1;
-  for (G4int layer = 0; layer < NumOfLayersTPC; ++layer) {
-    const G4double r_pad = padParameter[layer][kRadius];
-    const G4double l_pad = padParameter[layer][kLength];
+  for (G4int ilay = 0; ilay < NumOfLayersTPC; ++ilay) {
+    const G4double r_pad = padParameter[ilay][kRadius];
+    const G4double l_pad = padParameter[ilay][kLength];
     const G4double r_in  = r_pad - l_pad * 0.5;
     const G4double r_out = r_pad + l_pad * 0.5;
 
     if (r_in - kRadialEps <= radius && radius <= r_out + kRadialEps) {
-      hit_layer = layer;
+      hit_layer = ilay;
       break;
     }
 
     // Gap between previous and current layer (clear interior only)
-    if (layer > 0) {
+    if (ilay > 0) {
       const G4double r_prev_out =
-        padParameter[layer - 1][kRadius] + padParameter[layer - 1][kLength] * 0.5;
+        padParameter[ilay - 1][kRadius] + padParameter[ilay - 1][kLength] * 0.5;
       if (r_prev_out + kRadialEps < radius && radius < r_in - kRadialEps)
-        return -layer;
+        return -ilay;
     }
   }
   if (hit_layer < 0)
@@ -595,11 +595,22 @@ FindPadID(G4double z, G4double x)
   if (std::isnan(diff) || diff < 0.)
     return -1000;
 
-  const G4int row = static_cast<G4int>(diff / d_theta);
-  if (row < 0 || static_cast<G4int>(n_pad) <= row)
+  const G4int hit_row = static_cast<G4int>(diff / d_theta);
+  if (hit_row < 0 || static_cast<G4int>(n_pad) <= hit_row)
     return -1000;
 
-  return GetPadID(hit_layer, row);
+  layer = hit_layer;
+  row = hit_row;
+  return GetPadID(hit_layer, hit_row);
+}
+
+//______________________________________________________________________________
+G4int
+FindPadID(G4double z, G4double x)
+{
+  G4int layer = 0;
+  G4int row = 0;
+  return FindPad(z, x, layer, row);
 }
 
 //______________________________________________________________________________

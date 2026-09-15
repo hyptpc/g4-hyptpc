@@ -101,12 +101,12 @@ TPCPadSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int parentID_pid = aStep-> GetTrack()->GetDynamicParticle()->GetDefinition()->GetPDGEncoding();
 
   G4int iLay_copyNo=copyNo;
-  G4int iPad = TPCPadHelper::FindPadID(hitz, hitx);
-  G4int iLay= TPCPadHelper::GetLayerID(iPad);
-  // valid layers 0..31; GetLayerID sentinel 32 = neg / OOB padID
-  if (iLay > 31)
+  G4int iLay = 0;
+  G4int iRow = 0;
+  G4int iPad = TPCPadHelper::FindPad(hitz, hitx, iLay, iRow);
+  // valid layers 0..31; reject gap/OOB sentinels and invalid layer
+  if (iPad < 0 || iLay > 31)
     return false;
-  G4int iRow= TPCPadHelper::GetRowID(iPad);
 
   G4double PadLen = TPCPadHelper::GetLength(iLay);
   G4ThreeVector PadPos(hitx,0,hitz - TPCPadHelper::GetZTarget());

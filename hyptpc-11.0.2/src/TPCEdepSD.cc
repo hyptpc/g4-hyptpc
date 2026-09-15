@@ -113,14 +113,15 @@ TPCEdepSD::ProcessHits( G4Step* aStep, G4TouchableHistory* /* ROhist */ )
   G4int iLay_copyNo=copyNo - 2000;
   //G4int iPad = padHelper::findPadID(hitz, hitx);
   //G4int iLay= padHelper::getLayerID(iPad);
-  G4int iPad = TPCPadHelper::FindPadID(hitz, hitx);
-  // valid layers 0..31; GetLayerID sentinel 32 = neg / OOB padID
-  if (TPCPadHelper::GetLayerID(iPad) > 31)
+  G4int iLay_pad = 0;
+  G4int iRow = 0;
+  G4int iPad = TPCPadHelper::FindPad(hitz, hitx, iLay_pad, iRow);
+  // valid layers 0..31; reject gap/OOB sentinels and invalid layer
+  if (iPad < 0 || iLay_pad > 31)
     return false;
   //G4int iLay = TPCPadHelper::GetLayerID(iPad);
   G4int iLay = iLay_copyNo;
   //G4int iRow= padHelper::getRowID(iPad);
-  G4int iRow = TPCPadHelper::GetRowID(iPad);
 
   G4double PadLen = TPCPadHelper::GetLength(iLay);
   G4ThreeVector PadPos(hitx,0,hitz - TPCPadHelper::GetZTarget());

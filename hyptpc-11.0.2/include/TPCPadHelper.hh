@@ -27,11 +27,13 @@ G4double GetR(G4int padID);
 G4double GetZTarget();
 G4ThreeVector GetPosition(G4int padID);
 G4ThreeVector GetPosition(const G4int layerID, const G4double m_row);
-// Find PadID from global position (z, x)
+// Find pad from global position (z, x).
 // Returns:
-//    0 or positive : Valid PadID
+//    0 or positive : Valid PadID (layer and row are set)
 //    -layer        : Hit inside the gap between layer and layer-1
 //    -1000         : Not found (outside detector volume)
+G4int FindPad(G4double z, G4double x, G4int& layer, G4int& row);
+// Same as FindPad but discards layer/row (compatibility wrapper).
 G4int FindPadID(G4double z, G4double x);
 G4double ArcLength(const G4int layerID, const G4double row1, const G4double row2);
 // Dead = pad on center frame / empty pad
