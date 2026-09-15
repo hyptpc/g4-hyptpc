@@ -85,8 +85,9 @@ RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff)
     auto max_it = std::max_element(diff_cs.begin(), diff_cs.end());
     G4int index = std::distance(diff_cs.begin(), max_it);
     maximum_value = *max_it;
-    range_min = index==0 ? -1.0 : range_min + (index-1.0)*step;
-    range_max = index==diff_cs.size()-1 ? 1.0 : range_min + (index+1.0)*step;
+    const G4double prev_min = range_min;
+    range_min = index==0 ? -1.0 : prev_min + (index-1.0)*step;
+    range_max = index==diff_cs.size()-1 ? 1.0 : prev_min + (index+1.0)*step;
   }
 
   // -- calc. diff cross section and do rejection sampling -----
