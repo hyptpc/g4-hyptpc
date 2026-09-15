@@ -3722,7 +3722,6 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   G4LorentzVector v(m_beam->pos, 0.);
   gAnaMan.SetBeamInfo(pdg, p, v);
   gAnaMan.SetMomKaonLab(0.0);
-  m_beam->mom.mag();
   Double_t mom_kaon_lab = m_beam->mom.mag()/CLHEP::MeV;
   if(!gConf.Get<G4bool>("Combine"))gAnaMan.SetMomKaonLab(mom_kaon_lab);
   gAnaMan.SetCosTheta(-9999.0);
