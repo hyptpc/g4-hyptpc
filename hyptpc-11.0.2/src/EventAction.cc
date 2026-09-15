@@ -709,14 +709,11 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
 	if(ilay>-1){ //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
 	  // Dead = center-frame pads; Noise = abnormal waveform (E72).
-	  // TPCDropNoisePad (default true) keeps legacy GetDeadCon == IsDead||Noise.
+	  // TPCDropNoisePad (default true): GetDeadCon == IsDead || (drop_noise && Noise).
 	  static const G4bool drop_noise =
 	    gConf.GetOrDefault<G4bool>("TPCDropNoisePad", true);
-	  if (TPCPadHelper::IsDead((*HC)[i]->GetPadLay(), (*HC)[i]->GetPadRow())) {
-	    continue;
-	  }
-	  if (drop_noise &&
-	      TPCPadHelper::Noise((*HC)[i]->GetPadLay(), (*HC)[i]->GetPadRow())) {
+	  if (TPCPadHelper::GetDeadCon((*HC)[i]->GetPadLay(),
+				       (*HC)[i]->GetPadRow(), drop_noise)) {
 	    continue;
 	  }
 	  int restype = gConf.Get<G4int>("ResType");

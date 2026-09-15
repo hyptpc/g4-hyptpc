@@ -37,9 +37,9 @@ G4bool IsDead(const G4int layerID, const G4int rowID);
 // Noise = abnormal waveform pad (E72)
 G4bool Noise(const G4int padID);
 G4bool Noise(const G4int layerID, const G4int rowID);
-// Compatibility: IsDead || Noise
-G4bool GetDeadCon(const G4int padID);
-G4bool GetDeadCon(const G4int layerID, const G4int rowID);
+// Compatibility: always drop dead; noise only if drop_noise (TPCDropNoisePad).
+G4bool GetDeadCon(const G4int padID, G4bool drop_noise = true);
+G4bool GetDeadCon(const G4int layerID, const G4int rowID, G4bool drop_noise = true);
 
 inline G4String ClassName()
 {

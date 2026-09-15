@@ -652,16 +652,18 @@ Noise(const G4int layerID, const G4int rowID)
 
 //______________________________________________________________________________
 G4bool
-GetDeadCon(const G4int padID)
+GetDeadCon(const G4int padID, G4bool drop_noise)
 {
-  return IsDead(padID) || Noise(padID);
+  if (IsDead(padID))
+    return true;
+  return drop_noise && Noise(padID);
 }
 
 //______________________________________________________________________________
 G4bool
-GetDeadCon(const G4int layerID, const G4int rowID)
+GetDeadCon(const G4int layerID, const G4int rowID, G4bool drop_noise)
 {
-  return GetDeadCon(GetPadID(layerID, rowID));
+  return GetDeadCon(GetPadID(layerID, rowID), drop_noise);
 }
 
 } // namespace TPCPadHelper
