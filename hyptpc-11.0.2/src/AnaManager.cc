@@ -39,7 +39,6 @@
 #include "DetSizeMan.hh"
 #include "DiffCrossSectionMan.hh"
 
-
 namespace
 {
 const auto& gConf   = ConfMan::GetInstance();
@@ -58,6 +57,32 @@ enum TriggerBit {
   kHTOFFwdBit = 1 << 1, // HTOF forward-segment edep above cut
   kTPCBit     = 1 << 0  // all TPC checklist species above layer-multiplicity cut
 };
+
+G4bool
+IsSlotLayerSeen(const std::bitset<NumOfPadTPC>* seen,
+                const CounterData* data, G4int hitnum,
+                G4int ntrk, G4int iLay)
+{
+  if (ntrk >= 0 && ntrk < MaxTrack &&
+      iLay >= 0 && iLay < NumOfPadTPC) {
+    return seen[ntrk].test(static_cast<std::size_t>(iLay));
+  }
+  // Out of bitset range: fall back to the old linear scan over counterData.
+  for (G4int i = 0; i < hitnum; ++i) {
+    if (data[i].iLay == iLay && data[i].ntrk == ntrk)
+      return true;
+  }
+  return false;
+}
+
+void
+MarkSlotLayerSeen(std::bitset<NumOfPadTPC>* seen, G4int ntrk, G4int iLay)
+{
+  if (ntrk >= 0 && ntrk < MaxTrack &&
+      iLay >= 0 && iLay < NumOfPadTPC) {
+    seen[ntrk].set(static_cast<std::size_t>(iLay));
+  }
+}
 }
 
 //_____________________________________________________________________________
@@ -420,6 +445,9 @@ AnaManager::BeginOfEventAction()
 {
   HitNum=0;
   tpctrNum=0;
+
+  for (G4int i = 0; i < MaxTrack; ++i)
+    m_slot_layer_seen[i].reset();
   
   //for K+
   HitNum_K=0;
@@ -717,7 +745,6 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
-  G4bool flag=true;
   if (hitnum >= MaxTrack) {
     fprintf(stderr, "AnaManager::SetCounterData Too Much multiplicity %d\n",
             hitnum);
@@ -740,12 +767,8 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
   // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
   counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
 
-  for(G4int i=0;i<hitnum;i++){
-    if((counterData[i].iLay == iLay &&
-        counterData[i].ntrk == ntrk)){
-      flag = false;
-    }
-  }
+  G4bool flag = !IsSlotLayerSeen(m_slot_layer_seen, counterData, hitnum,
+                                 ntrk, iLay);
   if(flag == true){
     counterData[hitnum].ntrk = ntrk;
     counterData[hitnum].time = time;
@@ -821,6 +844,7 @@ AnaManager::SetCounterDataSimple(G4int ntrk, G4double time, G4ThreeVector pos,
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
     counterData[hitnum].parentPID = parentpid;
+    MarkSlotLayerSeen(m_slot_layer_seen, ntrk, iLay);
     HitNum++;
 
     if(particle==321)
@@ -844,7 +868,6 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
                            G4double tlength, G4double slength)
 {
   G4int hitnum = HitNum;
-  G4bool flag=true;
   if (hitnum >= MaxTrack) {
     fprintf(stderr, "AnaManager::SetCounterData Too Much multiplicity %d\n",
             hitnum);
@@ -867,12 +890,8 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
     // Sign map +1/0/-1. Neutrals do not reach here today (TPC*SD rejects PDGCharge==0).
     counterData[hitnum].charge = (charge > 0) ? 1 : ((charge < 0) ? -1 : 0);
 
-  for(G4int i=0;i<hitnum;i++){
-    if((counterData[i].iLay == iLay &&
-        counterData[i].ntrk == ntrk)){
-      flag = false;
-    }
-  }
+  G4bool flag = !IsSlotLayerSeen(m_slot_layer_seen, counterData, hitnum,
+                                 ntrk, iLay);
 
   if(flag == true){
     counterData[hitnum].ntrk = ntrk;
@@ -985,6 +1004,7 @@ AnaManager::SetCounterDataExp(G4int ntrk, G4double time, G4ThreeVector pos,
     counterData[hitnum].iRow = iRow;
     counterData[hitnum].parentID = parentid;
     counterData[hitnum].parentPID = parentpid;
+    MarkSlotLayerSeen(m_slot_layer_seen, ntrk, iLay);
 
     HitNum++;
     if(particle==321)

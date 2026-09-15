@@ -3,18 +3,21 @@
 #ifndef ANA_MANAGER_HH
 #define ANA_MANAGER_HH
 
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <set>
 #include <algorithm>
+#include <bitset>
+#include <map>
+#include <set>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <G4LorentzVector.hh>
 #include <G4ThreeVector.hh>
 
 #include <TParticle.h>
 #include <TVector3.h>
+
+#include "DetectorID.hh"
 
 class G4ParticleDefinition;
 
@@ -344,6 +347,8 @@ private:
   G4double m_cos_theta_lambda;
   
   CounterData counterData[MaxTrack];
+  // Per summary-slot: which pad layers (0 .. NumOfPadTPC-1) already stored.
+  std::bitset<NumOfPadTPC> m_slot_layer_seen[MaxTrack];
   TPCData tpcData[MAXtpctrNum];
 
   int HitNum;
