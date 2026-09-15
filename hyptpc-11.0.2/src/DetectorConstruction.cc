@@ -15,6 +15,7 @@
 #include <G4Polyhedra.hh>
 #include <G4PVPlacement.hh>
 #include <G4PVReplica.hh>
+#include <G4Region.hh>
 #include <G4SDManager.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4TessellatedSolid.hh>
@@ -1143,6 +1144,14 @@ DetectorConstruction::ConstructHypTPC()
   const G4double pad_length_out = gSize.Get("TpcPadLengthOut");
   const G4double pad_gap = gSize.Get("TpcPadGap");
   const G4int pad_configure = gSize.Get("TpcPadConfigure");
+  // IonGas EM models (PhysicsList) apply only inside TpcP10Region.
+  // FieldCage is G10 inside P10; put it in its own region so it is excluded.
+  if(pad_configure == 4){
+    auto* tpc_p10_region = new G4Region("TpcP10Region");
+    tpc_p10_region->AddRootLogicalVolume(p10_lv);
+    auto* tpc_fc_region = new G4Region("TpcFieldCageRegion");
+    tpc_fc_region->AddRootLogicalVolume(fc_lv);
+  }
   switch (pad_configure) {
   case 1:
     for (G4int i=0; i<NumOfPadTPC; ++i) {

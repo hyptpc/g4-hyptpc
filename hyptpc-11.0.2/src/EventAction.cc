@@ -554,33 +554,35 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 	G4bool find_track = false;
 	G4bool find_hit = false;
 	if(pad_configure == 4){
+	  // Match Pad hit to layer-summed Edep by (tid, ilay) and position.
+	  // Pad is a thin-shell crossing; Edep position is the average over the
+	  // thick layer — reject if they differ by >= 50 mm (large-angle mismatch).
 	  for(int j=0;j<remain_tid.size();j++){
 	    find_hit = false;
 	    if(tid == remain_tid[j]){
 	      find_track = true;
 	      for(int k=0;k<remain_ilay[j].size();k++){
 		if(ilay == remain_ilay[j][k]){
-		  //check position difference
 		  G4double pos_diff = (remain_pos[j][k] - xyz).mag();
-
-		  if(pos_diff < 50){
+		  if(pos_diff < 50.){
 		    edep = remain_edep[j][k];
 		    find_hit = true;
 		    break;
 		  }
-
 		}
 	      }
 	      if(!find_hit){
-
-		std::cout<<"no same hit"<<std::endl;
-		std::cout<<"Pos SD ilay : "<<ilay<<std::endl;
+		G4cout << "[EventAction] no Edep for Pad hit"
+		       << " tid=" << tid << " ilay=" << ilay << G4endl;
 	      }
 	      break;
 	    }
 	  }
-	  if(!find_track)std::cout<<"no same track"<<std::endl;
-	
+	  if(!find_track){
+	    G4cout << "[EventAction] no Edep track for Pad hit"
+		   << " tid=" << tid << G4endl;
+	  }
+
 	  if(!find_hit)edep = -9999;
 	  //std::cout<<"Layer : "<<ilay<<", Cal : "<<(*HC)[i]->GetEdep()<<", Exp : "<<edep<<std::endl;
 

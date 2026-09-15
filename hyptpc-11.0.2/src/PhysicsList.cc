@@ -3,6 +3,7 @@
 #include "PhysicsList.hh"
 
 #include <iomanip>
+
 #include <CLHEP/Units/SystemOfUnits.h>
 
 #include <globals.hh>
@@ -18,24 +19,15 @@
 #include <G4HadronPhysicsQGSP_BERT.hh>
 #include <G4VPhysicsConstructor.hh>
 
-// ionization process and model of generic ions 
-#include <G4ionIonisation.hh>
+// IonGas models for TPC P10 region only (standard EM kept elsewhere)
 #include <G4BraggIonGasModel.hh>
 #include <G4BetheBlochIonGasModel.hh>
 #include <G4IonFluctuations.hh>
 #include <G4UniversalFluctuation.hh>
 #include <G4EmParameters.hh>
-// Multipple scattering process and model of generic ions
-#include <G4hMultipleScattering.hh>
-#include <G4UrbanMscModel.hh>
-
-// Single coulomb scattering process and model of generic ions
-#include <G4CoulombScattering.hh>
-#include <G4IonCoulombScatteringModel.hh>
-
-// Nuclear stopping process and model of generic ions
-#include <G4NuclearStopping.hh>
-#include <G4ICRU49NuclearStoppingModel.hh>
+#include <G4ProcessManager.hh>
+#include <G4RegionStore.hh>
+#include <G4VEnergyLossProcess.hh>
 
 #include "ConfMan.hh"
 #include "DetSizeMan.hh"
@@ -98,13 +90,8 @@ PhysicsList::ConstructProcess()
 
   const G4int pad_configure = gSize.Get("TpcPadConfigure");
 
-  
   // G4AutoLock l(&constructProcessMutex);
   AddTransportation();
-
-  if(pad_configure ==4)
-    AddIonGasProcess(); 
-
 
   for(auto itr = G4MT_physicsVector->cbegin();
       itr != G4MT_physicsVector->cend(); ++itr)
@@ -123,55 +110,74 @@ PhysicsList::ConstructProcess()
 
     (*itr)->ConstructProcess();
 
-
     if(pad_configure ==4){
       G4EmParameters* emParameters = G4EmParameters::Instance();
       emParameters->SetMinEnergy(10*CLHEP::eV);
       emParameters->SetMaxEnergy(2.*CLHEP::GeV);
       emParameters->SetNumberOfBinsPerDecade(100);
     }
-
   }
+
+  // After standard EM: add IonGas ionization models only in TpcP10Region.
+  if(pad_configure ==4)
+    AddIonGasProcess();
 }
 
 //_____________________________________________________________________________
 void PhysicsList::AddIonGasProcess()
 {
-    auto ph = G4PhysicsListHelper::GetPhysicsListHelper();
-    auto pIterator = GetParticleIterator();
-    pIterator->reset();
-    while((*pIterator)())
-    {
-        G4ParticleDefinition *pDefinition = pIterator->value();
-        G4String pName = pDefinition->GetParticleName();
-        if(pName == "proton" || pName == "kaon" || pName == "pion" || pName == "muon")
-        {
-            // effective charge and energy loss model of ion
-            G4ionIonisation *iIon = new G4ionIonisation();
-            G4BraggIonGasModel *bIgm = new G4BraggIonGasModel();
-            G4BetheBlochIonGasModel *bbIgm = new G4BetheBlochIonGasModel();
-	    
-	    bIgm->SetActivationHighEnergyLimit(2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
-	    bbIgm->SetActivationLowEnergyLimit(2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
+  // configure==4: keep standard EM everywhere; overlay IonGas models
+  // only inside TpcP10Region. e+/e- stay on standard eIoni.
+  G4Region* gasRegion =
+    G4RegionStore::GetInstance()->GetRegion("TpcP10Region", false);
+  if(!gasRegion){
+    G4cerr << FUNC_NAME
+           << " TpcP10Region not found; skip IonGas models" << G4endl;
+    return;
+  }
 
-            iIon->AddEmModel(0, bIgm, new G4IonFluctuations);
-            iIon->AddEmModel(0, bbIgm, new G4UniversalFluctuation);
-	    
-            // no delta ray
-            iIon->ActivateSecondaryBiasing("World", 1e-10, 100*CLHEP::TeV);
-	    
-            G4hMultipleScattering *hMsc = new G4hMultipleScattering();
-            hMsc->AddEmModel(0, new G4UrbanMscModel());
-            G4CoulombScattering *csc = new G4CoulombScattering();
-            csc->AddEmModel(0, new G4IonCoulombScatteringModel());
-            G4NuclearStopping *nsp = new G4NuclearStopping();
-            nsp->AddEmModel(0, new G4ICRU49NuclearStoppingModel());
-            ph->RegisterProcess(iIon, pDefinition);
-            ph->RegisterProcess(hMsc, pDefinition);
-            ph->RegisterProcess(csc, pDefinition);
-            ph->RegisterProcess(nsp, pDefinition);
-        }
-    }
+  auto pIterator = GetParticleIterator();
+  pIterator->reset();
+  while((*pIterator)())
+  {
+    G4ParticleDefinition *pDefinition = pIterator->value();
+    G4String pName = pDefinition->GetParticleName();
+    const G4bool use_iongas =
+      pName == "proton" || pName == "anti_proton" ||
+      pName == "pi+" || pName == "pi-" ||
+      pName == "kaon+" || pName == "kaon-" ||
+      pName == "mu+" || pName == "mu-" ||
+      pName == "sigma+" || pName == "sigma-" ||
+      pName == "anti_sigma+" || pName == "anti_sigma-" ||
+      pName == "xi-" || pName == "xi+" ||
+      pName == "deuteron" || pName == "triton" ||
+      pName == "He3" || pName == "alpha";
+    if(!use_iongas)
+      continue;
+
+    auto* pmanager = pDefinition->GetProcessManager();
+    if(!pmanager) continue;
+
+    G4VProcess* ioni = pmanager->GetProcess("hIoni");
+    if(!ioni) ioni = pmanager->GetProcess("muIoni");
+    if(!ioni) ioni = pmanager->GetProcess("ionIoni");
+    auto* eloss = dynamic_cast<G4VEnergyLossProcess*>(ioni);
+    if(!eloss) continue;
+
+    G4BraggIonGasModel *bIgm = new G4BraggIonGasModel();
+    G4BetheBlochIonGasModel *bbIgm = new G4BetheBlochIonGasModel();
+
+    bIgm->SetActivationHighEnergyLimit(
+      2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
+    bbIgm->SetActivationLowEnergyLimit(
+      2.*CLHEP::MeV*pDefinition->GetPDGMass()/CLHEP::proton_mass_c2);
+
+    eloss->AddEmModel(0, bIgm, new G4IonFluctuations, gasRegion);
+    eloss->AddEmModel(0, bbIgm, new G4UniversalFluctuation, gasRegion);
+
+    // suppress delta rays only inside TPC P10 gas
+    eloss->ActivateSecondaryBiasing("TpcP10Region", 1e-10, 100*CLHEP::TeV);
+  }
 }
 
 //_____________________________________________________________________________
