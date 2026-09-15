@@ -22,7 +22,6 @@
 #include "DetectorConstruction.hh"
 #include "FuncName.hh"
 #include "BH2SD.hh"
-#include "FTOFSD.hh"
 #include "HTOFSD.hh"
 #include "BACSD.hh"
 #include "TPCSD.hh"
@@ -114,6 +113,9 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     }
   }
 
+  // Legacy KURAMA FTOF (FTOFSD); not E72 IncludeFTOF (CVC/SAC3/SFV).
+  // ConstructFTOF() is unused, so this SD is never registered.
+#if 0
   {
     static const auto id = SDManager->GetCollectionID("FTOF/hit");
     if (id >= 0) {
@@ -124,6 +126,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       gAnaMan.SetNhits("FTOF", HC->entries());
     }
   }
+#endif
 
   {
     static const auto id = SDManager->GetCollectionID("BAC/hit");
@@ -147,48 +150,40 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
     }
   }
 
-  if (gConf.Get<G4bool>("IncludeFTOF"))
+  if (gConf.Get<G4bool>("IncludeFTOF")) {
     {
-        {
-            static const auto id = SDManager->GetCollectionID("CVC/hit");
-            if (id >= 0)
-            {
-                auto HC = dynamic_cast<G4THitsCollection<CVCHit>*>(HCTE->GetHC(id));
-                for (G4int i = 0, n = HC->entries(); i < n; ++i)
-                {
-                    gAnaMan.SetHitData((*HC)[i]);
-                }
-                gAnaMan.SetNhits("CVC", HC->entries());
-            }
+      static const auto id = SDManager->GetCollectionID("CVC/hit");
+      if (id >= 0) {
+        auto HC = dynamic_cast<G4THitsCollection<CVCHit>*>(HCTE->GetHC(id));
+        for (G4int i=0, n=HC->entries(); i<n; ++i) {
+	  gAnaMan.SetHitData((*HC)[i]);
         }
-
-        {
-            static const auto id = SDManager->GetCollectionID("SAC3/hit");
-            if (id >= 0)
-            {
-                auto HC = dynamic_cast<G4THitsCollection<SAC3Hit>*>(HCTE->GetHC(id));
-                for (G4int i = 0, n = HC->entries(); i < n; ++i)
-                {
-                    gAnaMan.SetHitData((*HC)[i]);
-                }
-                gAnaMan.SetNhits("SAC3", HC->entries());
-            }
-        }
-
-		{
-            static const auto id = SDManager->GetCollectionID("SFV/hit");
-            if (id >= 0)
-            {
-                auto HC = dynamic_cast<G4THitsCollection<SFVHit>*>(HCTE->GetHC(id));
-                for (G4int i = 0, n = HC->entries(); i < n; ++i)
-                {
-                    gAnaMan.SetHitData((*HC)[i]);
-                }
-                gAnaMan.SetNhits("SFV", HC->entries());
-            }
-        }
+        gAnaMan.SetNhits("CVC", HC->entries());
+      }
     }
 
+    {
+      static const auto id = SDManager->GetCollectionID("SAC3/hit");
+      if (id >= 0) {
+        auto HC = dynamic_cast<G4THitsCollection<SAC3Hit>*>(HCTE->GetHC(id));
+        for (G4int i=0, n=HC->entries(); i<n; ++i) {
+	  gAnaMan.SetHitData((*HC)[i]);
+        }
+        gAnaMan.SetNhits("SAC3", HC->entries());
+      }
+    }
+
+    {
+      static const auto id = SDManager->GetCollectionID("SFV/hit");
+      if (id >= 0) {
+        auto HC = dynamic_cast<G4THitsCollection<SFVHit>*>(HCTE->GetHC(id));
+        for (G4int i=0, n=HC->entries(); i<n; ++i) {
+	  gAnaMan.SetHitData((*HC)[i]);
+        }
+        gAnaMan.SetNhits("SFV", HC->entries());
+      }
+    }
+  }
   
   {
     static const auto id = SDManager->GetCollectionID("VP/hit");

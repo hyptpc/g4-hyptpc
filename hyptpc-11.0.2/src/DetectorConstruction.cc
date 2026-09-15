@@ -210,7 +210,6 @@ DetectorConstruction::Construct()
     ConstructSAC3();
     ConstructSFV();
   }
-  G4cout << gConf.Get<G4bool>("IncludeFTOF") << G4endl; 
 #endif
 
 #if 1
@@ -591,6 +590,8 @@ DetectorConstruction::ConstructBH2()
 }
 
 //_____________________________________________________________________________
+// Legacy KURAMA TOF. Unused (not called from Construct()).
+// Unrelated to E72 IncludeFTOF (CVC/SAC3/SFV).
 void
 DetectorConstruction::ConstructFTOF()
 {
