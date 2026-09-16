@@ -3,9 +3,11 @@
 #ifndef EVENT_ACTION_HH
 #define EVENT_ACTION_HH
 
+#include <vector>
+
 #include <G4String.hh>
-#include <G4UserEventAction.hh>
 #include <G4Types.hh>
+#include <G4UserEventAction.hh>
 
 class G4Event;
 class G4RunAction;
@@ -20,8 +22,8 @@ public:
   virtual void BeginOfEventAction(const G4Event* anEvent);
   virtual void EndOfEventAction(const G4Event* anEvent);
 private:
-  G4double CalculateAverage(const std::vector<double>& pos);
-  G4double CalculateSum(const std::vector<double>& edep);
+  G4double CalculateAverage(const std::vector<G4double>& pos);
+  G4double CalculateSum(const std::vector<G4double>& edep);
 };
 
 //_____________________________________________________________________________
