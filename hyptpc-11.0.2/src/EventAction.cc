@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <map>
+#include <vector>
 
 #include <G4RunManager.hh>
 #include <G4Event.hh>
@@ -244,16 +245,7 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       std::map<G4int, G4int> tid_to_slot; // tid -> summary slot
       // G4cout << "TPC  " << nhits << G4endl;
 
-
-      const G4int pad_configure =  gSize.Get("TpcPadConfigure");
-      std::vector<G4ThreeVector> temp_pos;
-      std::vector<double> temp_edep;
-      std::vector<int> temp_ilay;
-
-      G4int temp_pid;
-      G4int temp_tid;
-      G4int temp_parentid;
-      G4int temp_parentpid;
+      const G4int pad_configure = gSize.Get("TpcPadConfigure");
 
       std::vector<std::vector<G4ThreeVector>> remain_pos;
       std::vector<std::vector<double>> remain_edep;
@@ -263,240 +255,164 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       std::vector<int> remain_parentid;
       std::vector<int> remain_parentpid;
 
+      // Pad lookup built after child→parent merge (pad_configure==4 only).
+      std::map<G4int, std::size_t> pad_tid_to_remain;
+      std::vector<std::map<G4int, std::vector<std::size_t>>> pad_ilay_to_ks;
 
-      std::vector<double> cal_posx;
-      std::vector<double> cal_posy;
-      std::vector<double> cal_posz;
-      std::vector<double> cal_edep;
+      if (pad_configure == 4) {
+	// Group Edep hits by tid (non-contiguous tid stays one remain row).
+	std::map<G4int, std::size_t> tid_to_remain_idx;
+	std::vector<std::vector<double>> open_posx;
+	std::vector<std::vector<double>> open_posy;
+	std::vector<std::vector<double>> open_posz;
+	std::vector<std::vector<double>> open_edep;
+	std::vector<G4int> open_ilay;
 
-      if(pad_configure==4){
-	//Edep Hit sort
-	for(int i=0; i<nhits_edep;i++){
-	  G4int pid_edep = (*HC_edep)[i]-> GetParticleID();
-	  G4int parentid_edep = (*HC_edep)[i]-> GetParentID();
-	  G4int parentpid_edep = (*HC_edep)[i]-> GetParentID_pid();
-	  G4double edep_edep = (*HC_edep)[i]-> GetEdep();
-	  G4int tid_edep = (*HC_edep)[i]-> GetTrackID();
-	  G4ThreeVector xyz_edep = (*HC_edep)[i]-> GetPosition();
-	  G4int ilay_edep = (*HC_edep)[i]-> GetPadLay();
+	auto flush_open_layer = [&](std::size_t r) {
+	  if (open_posx[r].empty())
+	    return;
+	  G4ThreeVector ave_pos(CalculateAverage(open_posx[r]),
+				CalculateAverage(open_posy[r]),
+				CalculateAverage(open_posz[r]));
+	  remain_pos[r].push_back(ave_pos);
+	  remain_edep[r].push_back(CalculateSum(open_edep[r]));
+	  remain_ilay[r].push_back(open_ilay[r]);
+	  open_posx[r].clear();
+	  open_posy[r].clear();
+	  open_posz[r].clear();
+	  open_edep[r].clear();
+	};
 
-	  if(i==0){
-	    cal_posx.push_back(xyz_edep.x());
-	    cal_posy.push_back(xyz_edep.y());
-	    cal_posz.push_back(xyz_edep.z());
-	    cal_edep.push_back(edep_edep);
+	for (G4int i = 0; i < nhits_edep; ++i) {
+	  G4int pid_edep = (*HC_edep)[i]->GetParticleID();
+	  G4int parentid_edep = (*HC_edep)[i]->GetParentID();
+	  G4int parentpid_edep = (*HC_edep)[i]->GetParentID_pid();
+	  G4double edep_edep = (*HC_edep)[i]->GetEdep();
+	  G4int tid_edep = (*HC_edep)[i]->GetTrackID();
+	  G4ThreeVector xyz_edep = (*HC_edep)[i]->GetPosition();
+	  G4int ilay_edep = (*HC_edep)[i]->GetPadLay();
 
-	    temp_pid = pid_edep;
-	    temp_tid = tid_edep;
-	    temp_parentid = parentid_edep;
-	    temp_parentpid = parentpid_edep;
-
-	    temp_ilay.push_back(ilay_edep);
-
-	    if(nhits_edep==1){
-	      G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
-	      temp_pos.push_back(ave_pos);
-	      temp_edep.push_back(CalculateSum(cal_edep));
-
-	      //put track info into remain
-	      remain_pos.push_back(temp_pos);
-	      remain_edep.push_back(temp_edep);
-	      remain_ilay.push_back(temp_ilay);
-	      remain_pid.push_back(temp_pid);
-	      remain_tid.push_back(temp_tid);
-	      remain_parentid.push_back(temp_parentid);
-	      remain_parentpid.push_back(temp_parentpid);
-	    }
-
-	  }
-
-	  else if(i>0){
-	    if(tid_edep == temp_tid){
-	      if(ilay_edep == temp_ilay.back()){
-		cal_posx.push_back(xyz_edep.x());
-		cal_posy.push_back(xyz_edep.y());
-		cal_posz.push_back(xyz_edep.z());
-		cal_edep.push_back(edep_edep);
-	      }
-
-	      else if(ilay_edep != temp_ilay.back()){
-		//put previous layer info into temp
-		G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
-		temp_pos.push_back(ave_pos);
-		temp_edep.push_back(CalculateSum(cal_edep));
-
-		//clear cal
-		cal_posx.clear();
-		cal_posy.clear();
-		cal_posz.clear();
-		cal_edep.clear();
-
-		//put new hit info to cal
-		cal_posx.push_back(xyz_edep.x());
-		cal_posy.push_back(xyz_edep.y());
-		cal_posz.push_back(xyz_edep.z());
-		cal_edep.push_back(edep_edep);
-
-		temp_ilay.push_back(ilay_edep);
-	      }
-
-	      if(i == nhits_edep-1){
-		//End of the edep hits
-		//Finalize previous track!!!
-		//put current layer info into temp (last layer of previous track)
-		G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
-		temp_pos.push_back(ave_pos);
-		temp_edep.push_back(CalculateSum(cal_edep));
-
-		//put track info into remain
-		remain_pos.push_back(temp_pos);
-		remain_edep.push_back(temp_edep);
-		remain_ilay.push_back(temp_ilay);
-		remain_pid.push_back(temp_pid);
-		remain_tid.push_back(temp_tid);
-		remain_parentid.push_back(temp_parentid);
-		remain_parentpid.push_back(temp_parentpid);
-	      }
-
-	    }
-	    else if(tid_edep != temp_tid){
-	      //Finalize previous track!!!
-	      //put previous layer info into temp (last layer of previous track)
-	      G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
-	      temp_pos.push_back(ave_pos);
-	      temp_edep.push_back(CalculateSum(cal_edep));
-
-	      //put track info into remain
-	      remain_pos.push_back(temp_pos);
-	      remain_edep.push_back(temp_edep);
-	      remain_ilay.push_back(temp_ilay);
-	      remain_pid.push_back(temp_pid);
-	      remain_tid.push_back(temp_tid);
-	      remain_parentid.push_back(temp_parentid);
-	      remain_parentpid.push_back(temp_parentpid);
-
-	      //clear cal
-
-	      cal_posx.clear();
-	      cal_posy.clear();
-	      cal_posz.clear();
-	      cal_edep.clear();
-
-	      //clear temp
-
-	      temp_pos.clear();
-	      temp_edep.clear();
-	      temp_ilay.clear();
-
-	      temp_pid = -9999;
-	      temp_tid = -9999;
-	      temp_parentid = -9999;
-	      temp_parentpid = -9999;
-
-	      //put new hit of new track to temp and cal
-	      cal_posx.push_back(xyz_edep.x());
-	      cal_posy.push_back(xyz_edep.y());
-	      cal_posz.push_back(xyz_edep.z());
-	      cal_edep.push_back(edep_edep);
-
-	      temp_pid = pid_edep;
-	      temp_tid = tid_edep;
-	      temp_parentid = parentid_edep;
-	      temp_parentpid = parentpid_edep;
-
-	      temp_ilay.push_back(ilay_edep);
-
-
-
-	      if(i == nhits_edep-1){
-		//End of the edep hits
-		//Finalize previous track!!!
-		//put current layer info into temp (last layer of previous track)
-		G4ThreeVector ave_pos(CalculateAverage(cal_posx), CalculateAverage(cal_posy), CalculateAverage(cal_posz));
-		temp_pos.push_back(ave_pos);
-		temp_edep.push_back(CalculateSum(cal_edep));
-
-		//put track info into remain
-		remain_pos.push_back(temp_pos);
-		remain_edep.push_back(temp_edep);
-		remain_ilay.push_back(temp_ilay);
-		remain_pid.push_back(temp_pid);
-		remain_tid.push_back(temp_tid);
-		remain_parentid.push_back(temp_parentid);
-		remain_parentpid.push_back(temp_parentpid);
-	      }
+	  auto it = tid_to_remain_idx.find(tid_edep);
+	  if (it == tid_to_remain_idx.end()) {
+	    std::size_t r = remain_tid.size();
+	    tid_to_remain_idx[tid_edep] = r;
+	    remain_pos.emplace_back();
+	    remain_edep.emplace_back();
+	    remain_ilay.emplace_back();
+	    remain_pid.push_back(pid_edep);
+	    remain_tid.push_back(tid_edep);
+	    remain_parentid.push_back(parentid_edep);
+	    remain_parentpid.push_back(parentpid_edep);
+	    open_posx.emplace_back();
+	    open_posy.emplace_back();
+	    open_posz.emplace_back();
+	    open_edep.emplace_back();
+	    open_ilay.push_back(ilay_edep);
+	    open_posx[r].push_back(xyz_edep.x());
+	    open_posy[r].push_back(xyz_edep.y());
+	    open_posz[r].push_back(xyz_edep.z());
+	    open_edep[r].push_back(edep_edep);
+	  } else {
+	    std::size_t r = it->second;
+	    if (!open_posx[r].empty() && open_ilay[r] == ilay_edep) {
+	      open_posx[r].push_back(xyz_edep.x());
+	      open_posy[r].push_back(xyz_edep.y());
+	      open_posz[r].push_back(xyz_edep.z());
+	      open_edep[r].push_back(edep_edep);
+	    } else {
+	      flush_open_layer(r);
+	      open_ilay[r] = ilay_edep;
+	      open_posx[r].push_back(xyz_edep.x());
+	      open_posy[r].push_back(xyz_edep.y());
+	      open_posz[r].push_back(xyz_edep.z());
+	      open_edep[r].push_back(edep_edep);
 	    }
 	  }
 	}
+	for (std::size_t r = 0; r < remain_tid.size(); ++r)
+	  flush_open_layer(r);
 
+	// Child → parent edep add (same ilay, dist < 30 mm). Local indexes.
+	{
+	  std::map<G4int, std::vector<std::size_t>> parent_to_children;
+	  for (std::size_t u = 0; u < remain_tid.size(); ++u)
+	    parent_to_children[remain_parentid[u]].push_back(u);
 
-	for(int n=0;n<remain_tid.size();n++){
-	  for(int u=0;u<remain_tid.size();u++){
-	    if(remain_tid[n]==remain_parentid[u]){
-	      for(int j=0;j<remain_edep[u].size();j++){
-		for(int k=0;k<remain_edep[n].size();k++){
-		  if(remain_ilay[n][k]==remain_ilay[u][j] && (remain_pos[n][k]-remain_pos[u][j]).mag()<30){
-		    remain_edep[n][k]+=remain_edep[u][j];
-		  }
+	  std::vector<std::map<G4int, std::vector<std::size_t>>> ilay_to_ks(
+	    remain_tid.size());
+	  for (std::size_t n = 0; n < remain_tid.size(); ++n) {
+	    for (std::size_t k = 0; k < remain_ilay[n].size(); ++k)
+	      ilay_to_ks[n][remain_ilay[n][k]].push_back(k);
+	  }
 
+	  for (std::size_t n = 0; n < remain_tid.size(); ++n) {
+	    auto ch_it = parent_to_children.find(remain_tid[n]);
+	    if (ch_it == parent_to_children.end())
+	      continue;
+	    for (std::size_t u : ch_it->second) {
+	      for (std::size_t j = 0; j < remain_edep[u].size(); ++j) {
+		auto ks_it = ilay_to_ks[n].find(remain_ilay[u][j]);
+		if (ks_it == ilay_to_ks[n].end())
+		  continue;
+		for (std::size_t k : ks_it->second) {
+		  if ((remain_pos[n][k] - remain_pos[u][j]).mag() < 30.)
+		    remain_edep[n][k] += remain_edep[u][j];
 		}
 	      }
 	    }
 	  }
 	}
 
-
-
-
+	// Pad → Edep lookup (after merge). Separate local indexes.
+	pad_ilay_to_ks.resize(remain_tid.size());
+	for (std::size_t j = 0; j < remain_tid.size(); ++j) {
+	  pad_tid_to_remain.insert({remain_tid[j], j}); // first j wins
+	  for (std::size_t k = 0; k < remain_ilay[j].size(); ++k)
+	    pad_ilay_to_ks[j][remain_ilay[j][k]].push_back(k);
+	}
       }
 
+      // Primary TrackID → PDG (once per event; parentpid only for primary parents).
+      std::map<G4int, G4int> primary_tid_to_pdg;
+      for (G4int k = 0; k < anEvent->GetNumberOfPrimaryVertex(); ++k) {
+	G4PrimaryVertex* primaryVertex = anEvent->GetPrimaryVertex(k);
+	for (G4int j = 0; j < primaryVertex->GetNumberOfParticle(); ++j) {
+	  G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary(j);
+	  primary_tid_to_pdg[primaryParticle->GetTrackID()] =
+	    primaryParticle->GetPDGcode();
+	}
+      }
 
-      for( G4int i=0; i<nhits; ++i ){
-	G4ThreeVector vtxpos = (*HC)[i]-> GetVtxPosition();
-	G4ThreeVector vtxmom = (*HC)[i]-> GetVtxMomentum();
-	G4double vtxene =(*HC)[i]-> GetVtxEnergy();
-	G4ThreeVector xyz = (*HC)[i]-> GetPosition();
-	G4ThreeVector mom = (*HC)[i]-> GetMomentum();
-	G4double tof= (*HC)[i]-> GetTOF();
-	G4int tid = (*HC)[i]-> GetTrackID();
-	G4int ptid = (*HC)[i]-> GetParentID();
-	G4int ptid_pid = (*HC)[i]-> GetParentID_pid();
-	G4int pid = (*HC)[i]-> GetParticleID();
-	G4double mass = (*HC)[i]-> GetMass();
-	G4int charge = (*HC)[i]-> GetCharge();
-	// std::cout<<"pid="<<pid<<", mass="<<mass<<", charge="<<charge<<std::endl;
-	// getchar();
-	G4int ilay = (*HC)[i]-> GetPadLay();
-	//      G4double mass = (*HC)[i]-> GetPDGMass(); //mass(GeV)
-	G4int parentid = (*HC)[i]-> GetParentID();
-	//G4int parentpid = (*HC)[i]-> GetParentID_pid();
-	//Get Parent pid
+      for (G4int i = 0; i < nhits; ++i) {
+	G4ThreeVector vtxpos = (*HC)[i]->GetVtxPosition();
+	G4ThreeVector vtxmom = (*HC)[i]->GetVtxMomentum();
+	G4double vtxene = (*HC)[i]->GetVtxEnergy();
+	G4ThreeVector xyz = (*HC)[i]->GetPosition();
+	G4ThreeVector mom = (*HC)[i]->GetMomentum();
+	G4double tof = (*HC)[i]->GetTOF();
+	G4int tid = (*HC)[i]->GetTrackID();
+	G4int ptid = (*HC)[i]->GetParentID();
+	G4int ptid_pid = (*HC)[i]->GetParentID_pid();
+	G4int pid = (*HC)[i]->GetParticleID();
+	G4double mass = (*HC)[i]->GetMass();
+	G4int charge = (*HC)[i]->GetCharge();
+	G4int ilay = (*HC)[i]->GetPadLay();
+	G4int parentid = (*HC)[i]->GetParentID();
+
 	G4int parentpid = -9999;
-	if(parentid>0){
-	  const G4Track* parentTrack = nullptr;
-
-	  for (G4int k = 0; k < anEvent->GetNumberOfPrimaryVertex(); k++) {
-	    G4PrimaryVertex* primaryVertex = anEvent->GetPrimaryVertex(k);
-	    for (G4int j = 0; j < primaryVertex->GetNumberOfParticle(); j++) {
-	      G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary(j);
-	      if (primaryParticle->GetTrackID() == parentid) {
-		parentpid = primaryParticle->GetPDGcode();
-		break;
-	      }
-	    }
-	  }
+	if (parentid > 0) {
+	  auto pp_it = primary_tid_to_pdg.find(parentid);
+	  if (pp_it != primary_tid_to_pdg.end())
+	    parentpid = pp_it->second;
 	}
 
-	G4double tlength = (*HC)[i]-> GettLength();
-	G4int irow=(*HC)[i]-> GetPadRow();
-	G4double beta = (*HC)[i]-> GetBeta();
+	G4double tlength = (*HC)[i]->GettLength();
+	G4int irow = (*HC)[i]->GetPadRow();
+	G4double beta = (*HC)[i]->GetBeta();
 
-	//test edep info save
 	G4double edep;
 
-	//test end
-
-	if(pad_configure==3){
+	if (pad_configure == 3) {
 	  edep = (*HC)[i]->GetEdep();
 #if 0
 	  // Legacy momentum-diff edep (unreachable; OOB on HC[i+1] if re-enabled).
@@ -547,52 +463,37 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
 
 	G4bool find_track = false;
 	G4bool find_hit = false;
-	if(pad_configure == 4){
+	if (pad_configure == 4) {
 	  // Match Pad hit to layer-summed Edep by (tid, ilay) and position.
 	  // Pad is a thin-shell crossing; Edep position is the average over the
 	  // thick layer — reject if they differ by >= 50 mm (large-angle mismatch).
-	  for(int j=0;j<remain_tid.size();j++){
-	    find_hit = false;
-	    if(tid == remain_tid[j]){
-	      find_track = true;
-	      for(int k=0;k<remain_ilay[j].size();k++){
-		if(ilay == remain_ilay[j][k]){
-		  G4double pos_diff = (remain_pos[j][k] - xyz).mag();
-		  if(pos_diff < 50.){
-		    edep = remain_edep[j][k];
-		    find_hit = true;
-		    break;
-		  }
+	  auto tr_it = pad_tid_to_remain.find(tid);
+	  if (tr_it != pad_tid_to_remain.end()) {
+	    find_track = true;
+	    std::size_t j = tr_it->second;
+	    auto ks_it = pad_ilay_to_ks[j].find(ilay);
+	    if (ks_it != pad_ilay_to_ks[j].end()) {
+	      for (std::size_t k : ks_it->second) {
+		G4double pos_diff = (remain_pos[j][k] - xyz).mag();
+		if (pos_diff < 50.) {
+		  edep = remain_edep[j][k];
+		  find_hit = true;
+		  break;
 		}
 	      }
-	      if(!find_hit){
-		G4cout << "[EventAction] no Edep for Pad hit"
-		       << " tid=" << tid << " ilay=" << ilay << G4endl;
-	      }
-	      break;
+	    }
+	    if (!find_hit) {
+	      G4cout << "[EventAction] no Edep for Pad hit"
+		     << " tid=" << tid << " ilay=" << ilay << G4endl;
 	    }
 	  }
-	  if(!find_track){
+	  if (!find_track) {
 	    G4cout << "[EventAction] no Edep track for Pad hit"
 		   << " tid=" << tid << G4endl;
 	  }
 
-	  if(!find_hit)edep = -9999;
-	  //std::cout<<"Layer : "<<ilay<<", Cal : "<<(*HC)[i]->GetEdep()<<", Exp : "<<edep<<std::endl;
-
-
-	  int hit_check = 0;
-	  if(remain_ilay.size()>0){
-	    for(int f=0;f<remain_ilay.size();++f){
-	      if(remain_ilay[f].size()>0){
-		hit_check+=remain_ilay[f].size();
-		for(int k=0;k<remain_ilay[f].size();++k){
-		  //std::cout<<"layer : "<<remain_ilay[f][k]<<std::endl;
-		}
-	      }
-	    }
-	  }
-	  //std::cout<<"nhit Cal : "<<nhits<<"nhit Edep : "<<hit_check<<std::endl;
+	  if (!find_hit)
+	    edep = -9999;
 	}
 
 
