@@ -1840,7 +1840,7 @@ DetectorConstruction::ConstructTarget()
                                          "TargetKaptonLV");
     kapton_lv->SetVisAttributes(G4Colour::Red());
     new G4PVPlacement(rot, target_pos, kapton_lv, "TargetKaptonPV",
-                      m_world_lv, true, 0, m_check_overlaps);
+                      m_world_lv, true, 1001, m_check_overlaps);
     // -- Al-Mylar(Al part) -----
     auto al = new G4Tubs("TargetAl",
                            al_size[0],
@@ -1852,7 +1852,7 @@ DetectorConstruction::ConstructTarget()
 				     "TargetAlLV");
     al_lv->SetVisAttributes(G4Colour::Blue());
     new G4PVPlacement(rot, target_pos, al_lv, "TargetAlPV",
-                      m_world_lv, true, 0, m_check_overlaps);
+                      m_world_lv, true, 1002, m_check_overlaps);
     // -- Al-Mylar(Mypar part) -----
     auto mylar = new G4Tubs("TargetMylar",
 			    mylar_size[0],
@@ -1864,7 +1864,7 @@ DetectorConstruction::ConstructTarget()
 					"TargetMylarLV");
     mylar_lv->SetVisAttributes(G4Colour::Red());
     new G4PVPlacement(rot, target_pos, mylar_lv, "TargetMylarPV",
-                      m_world_lv, true, 0, m_check_overlaps);
+                      m_world_lv, true, 1003, m_check_overlaps);
     // -- GFRP -----
     auto gfrp = new G4Tubs("TargetGFRP",
                            gfrp_size[0],
@@ -1876,7 +1876,7 @@ DetectorConstruction::ConstructTarget()
                                        "TargetGFRPLV");
     gfrp_lv->SetVisAttributes(G4Colour::Green());
     new G4PVPlacement(rot, target_pos, gfrp_lv, "TargetGFRPPV",
-                      m_world_lv, true, 0, m_check_overlaps);
+                      m_world_lv, true, 1004, m_check_overlaps);
     // -- G10 (Target Top) -----
     auto g10 = new G4Tubs("TargetG10",
 			  g10_size[0],
@@ -1891,7 +1891,7 @@ DetectorConstruction::ConstructTarget()
 			     target_pos.y()+target_size[2]+g10_size[2],
 			     target_pos.z());
     new G4PVPlacement(rot, g10top_pos, g10top_lv, "TargetG10TopPV"
-		      ,m_world_lv, true, 0, m_check_overlaps);
+		      ,m_world_lv, true, 1005, m_check_overlaps);
     // -- G10 (Target Bottom) -----
     auto g10bottom_lv = new G4LogicalVolume(g10,
 					    m_material_map["G10"],
@@ -1901,7 +1901,7 @@ DetectorConstruction::ConstructTarget()
 				target_pos.y()-target_size[2]-g10_size[2],
 				target_pos.z());
     new G4PVPlacement(rot, g10bottom_pos, g10bottom_lv, "TargetG10BottomPV"
-		      ,m_world_lv, true, 0, m_check_overlaps);
+		      ,m_world_lv, true, 1006, m_check_overlaps);
   }
     break;
   default:
@@ -1916,9 +1916,16 @@ DetectorConstruction::ConstructTarget()
                                        "TargetLV");
   target_lv->SetSensitiveDetector(target_sd);
   target_lv->SetVisAttributes(G4Colour::Blue());
+  if (gConf.Get<G4bool>("IncludeTargetFrame") &&
+      target_lv->GetMaterial()->GetName() == "LH2") {
+    constexpr G4double kLH2TargetMaxStep = 1.0 * mm;
+    target_lv->SetUserLimits(new G4UserLimits(kLH2TargetMaxStep));
+    G4cout << "[DetectorConstruction] LH2 target max step = "
+           << kLH2TargetMaxStep / mm << " mm" << G4endl;
+  }
   new G4PVPlacement(rot, target_pos,
                     target_lv, "TargetPV",
-                    m_world_lv, true, 0, m_check_overlaps);
+                    m_world_lv, true, 1000, m_check_overlaps);
 }
 
 //_____________________________________________________________________________
