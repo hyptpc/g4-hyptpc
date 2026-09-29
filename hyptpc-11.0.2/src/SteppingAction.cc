@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <G4Material.hh>
+#include <G4LogicalVolume.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTypes.hh>
 #include <G4SteppingManager.hh>
@@ -64,22 +65,36 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   //            << " (TrackID: " << theTrack->GetTrackID() << ")" << G4endl;
   // }
 
-  // -- cal effective thickness -----
+  // -- cal effective thickness and target/frame path lengths -----
   static const G4int experiment = gConf.Get<G4int>("Experiment");
-  if (prePVName == "TargetPV") {
+  if (prePVName == "TargetPV" ||
+      prePVName == "TargetKaptonPV" ||
+      prePVName == "TargetAlPV" ||
+      prePVName == "TargetMylarPV" ||
+      prePVName == "TargetGFRPPV" ||
+      prePVName == "TargetG10TopPV" ||
+      prePVName == "TargetG10BottomPV") {
     G4int generator = gAnaMan.GetNextGenerator();
-    if(experiment == 72){
-      if (generator == 7201 && particleName == "kaon-") {
-	G4double effective_thickness = gAnaMan.GetEffectiveThickness();
-	if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
-	else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+    const G4bool is_beam =
+      (experiment == 72 && generator == 7201 && particleName == "kaon-") ||
+      (experiment == 104 && generator == 10401 && particleName == "anti_proton");
+    if (is_beam) {
+      const G4int volume_id = prePV->GetCopyNo();
+      const auto density =
+        prePV->GetLogicalVolume()->GetMaterial()->GetDensity();
+      const auto areal_density =
+        density * stepLength / (CLHEP::g / CLHEP::cm2);
+      if (gConf.Get<G4bool>("IncludeTargetFrame")) {
+        gAnaMan.AddReactionPathSegment(volume_id,
+                                       prePoint->GetPosition(),
+                                       postPoint->GetPosition(),
+                                       stepLength, areal_density);
       }
-    }
-    else if(experiment == 104){
-      if (generator == 10401 && particleName == "anti_proton") {
-	G4double effective_thickness = gAnaMan.GetEffectiveThickness();
-	if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
-	else gAnaMan.SetEffectiveThickness( (G4double) effective_thickness+stepLength);
+
+      if (volume_id == 1000) {
+        G4double effective_thickness = gAnaMan.GetEffectiveThickness();
+        if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
+        else gAnaMan.SetEffectiveThickness((G4double) effective_thickness + stepLength);
       }
     }
   }
