@@ -1828,6 +1828,7 @@ DetectorConstruction::ConstructTarget()
     const auto al_size     = gSize.GetSize("TargetAl")*mm/2.;
     const auto mylar_size  = gSize.GetSize("TargetMylar")*mm/2.;
     const auto gfrp_size   = gSize.GetSize("TargetGFRP")*mm/2.;
+    const auto g10_size    = gSize.GetSize("TargetG10")*mm/2.;
     // -- Kapton -----
     auto kapton = new G4Tubs("TargetKapton",
                              kapton_size[0],
@@ -1876,6 +1877,31 @@ DetectorConstruction::ConstructTarget()
     gfrp_lv->SetVisAttributes(G4Colour::Green());
     new G4PVPlacement(rot, target_pos, gfrp_lv, "TargetGFRPPV",
                       m_world_lv, true, 0, m_check_overlaps);
+    // -- G10 (Target Top) -----
+    auto g10 = new G4Tubs("TargetG10",
+			  g10_size[0],
+			  g10_size[1],
+			  g10_size[2],
+			  0.*deg,360.*deg);
+    auto g10top_lv = new G4LogicalVolume(g10,
+					 m_material_map["G10"],
+					 "TargetG10TopLV");
+    g10top_lv->SetVisAttributes(G4Colour::Blue());
+    G4ThreeVector g10top_pos(target_pos.x(),
+			     target_pos.y()+target_size[2]+g10_size[2],
+			     target_pos.z());
+    new G4PVPlacement(rot, g10top_pos, g10top_lv, "TargetG10TopPV"
+		      ,m_world_lv, true, 0, m_check_overlaps);
+    // -- G10 (Target Bottom) -----
+    auto g10bottom_lv = new G4LogicalVolume(g10,
+					    m_material_map["G10"],
+					    "TargetG10BottomLV");
+    g10bottom_lv->SetVisAttributes(G4Colour::Blue());
+    G4ThreeVector g10bottom_pos(target_pos.x(),
+				target_pos.y()-target_size[2]-g10_size[2],
+				target_pos.z());
+    new G4PVPlacement(rot, g10bottom_pos, g10bottom_lv, "TargetG10BottomPV"
+		      ,m_world_lv, true, 0, m_check_overlaps);
   }
     break;
   default:

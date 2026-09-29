@@ -29,6 +29,7 @@ TargetKapton	80.0	80.5	100.0
 TargetAl	96.799995	96.8	100.0
 TargetMylar	96.8	97.0	100.0
 TargetGFRP	97.0	100.0	100.0
+TargetG10       0.0     80.0    12.0
 
 ### HypTPC
 TpcGasVessel		634	654	620
