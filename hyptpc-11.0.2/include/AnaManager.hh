@@ -352,6 +352,16 @@ private:
   G4bool m_do_accep_study;
 
   G4double m_effective_thickness;
+  G4int m_vtx_volume_id;
+  std::vector<G4int> m_reaction_path_volume_id;
+  std::vector<G4double> m_reaction_path_x_start;
+  std::vector<G4double> m_reaction_path_y_start;
+  std::vector<G4double> m_reaction_path_z_start;
+  std::vector<G4double> m_reaction_path_x_end;
+  std::vector<G4double> m_reaction_path_y_end;
+  std::vector<G4double> m_reaction_path_z_end;
+  std::vector<G4double> m_reaction_path_length;
+  std::vector<G4double> m_reaction_path_weight;
   G4double m_mom_kaon_lab;
   G4double m_cos_theta;
   G4double m_cos_theta_lambda;
@@ -485,6 +495,12 @@ public:
   void SetPrimaryVertex(G4int id, G4double x, G4double y, G4double z);
   void SetEffectiveThickness(G4double effective_thickness);
   G4double GetEffectiveThickness();
+  void ClearEffectiveVolumePaths();
+  void AddReactionPathSegment(G4int volume_id,
+                              const G4ThreeVector& start,
+                              const G4ThreeVector& end,
+                              G4double step_length,
+                              G4double areal_density);
   void SetMomKaonLab(G4double mom_kaon_lab);
   void SetCosTheta(G4double cos_theta);
   void SetCosThetaLambda(G4double cos_theta_lambda);

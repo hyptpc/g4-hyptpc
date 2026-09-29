@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Material.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ThreeVector.hh>
@@ -89,6 +90,16 @@ AnaManager::AnaManager()
     m_tree(new TTree("g4hyptpc", "GEANT4 simulation for HypTPC")),
     m_tree_light(new TTree("g4hyptpc_light", "GEANT4 simulation for HypTPC")),
     m_effective_thickness(-1.0),
+    m_vtx_volume_id(-1),
+    m_reaction_path_volume_id(),
+    m_reaction_path_x_start(),
+    m_reaction_path_y_start(),
+    m_reaction_path_z_start(),
+    m_reaction_path_x_end(),
+    m_reaction_path_y_end(),
+    m_reaction_path_z_end(),
+    m_reaction_path_length(),
+    m_reaction_path_weight(),
     m_mom_kaon_lab(0.0),
     m_cos_theta(-9999.),
     m_cos_theta_lambda(-9999.),
@@ -170,6 +181,15 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("effective_evnum", &m_effective_evnum, "effective_evnum/I");
   m_tree->Branch("generator", &m_next_generator, "generator/I");
   m_tree->Branch("effective_thickness", &m_effective_thickness, "effective_thickness/D");
+  m_tree->Branch("reaction_path_volume_id", &m_reaction_path_volume_id);
+  m_tree->Branch("reaction_path_x_start", &m_reaction_path_x_start);
+  m_tree->Branch("reaction_path_y_start", &m_reaction_path_y_start);
+  m_tree->Branch("reaction_path_z_start", &m_reaction_path_z_start);
+  m_tree->Branch("reaction_path_x_end", &m_reaction_path_x_end);
+  m_tree->Branch("reaction_path_y_end", &m_reaction_path_y_end);
+  m_tree->Branch("reaction_path_z_end", &m_reaction_path_z_end);
+  m_tree->Branch("reaction_path_length", &m_reaction_path_length);
+  m_tree->Branch("reaction_path_weight", &m_reaction_path_weight);
   m_tree->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
   m_tree->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
@@ -248,6 +268,8 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("vtx_x", &event.vtx_x);
     m_tree->Branch("vtx_y", &event.vtx_y);
     m_tree->Branch("vtx_z", &event.vtx_z);
+    m_tree->Branch("vtx_volume_id", &m_vtx_volume_id,
+                   "vtx_volume_id/I");
     m_tree->Branch("vtx_trackid", &event.vtx_trackid);
     m_tree->Branch("vtx_trackpid", &event.vtx_trackpid);
     m_tree->Branch("vtx_px", &event.vtx_px);
@@ -1195,6 +1217,38 @@ AnaManager::GetEffectiveThickness()
   return m_effective_thickness;
 }
 
+void
+AnaManager::ClearEffectiveVolumePaths()
+{
+  m_reaction_path_volume_id.clear();
+  m_reaction_path_x_start.clear();
+  m_reaction_path_y_start.clear();
+  m_reaction_path_z_start.clear();
+  m_reaction_path_x_end.clear();
+  m_reaction_path_y_end.clear();
+  m_reaction_path_z_end.clear();
+  m_reaction_path_length.clear();
+  m_reaction_path_weight.clear();
+}
+
+void
+AnaManager::AddReactionPathSegment(G4int volume_id,
+                                   const G4ThreeVector& start,
+                                   const G4ThreeVector& end,
+                                   G4double step_length,
+                                   G4double areal_density)
+{
+  m_reaction_path_volume_id.push_back(volume_id);
+  m_reaction_path_x_start.push_back(start.x() / CLHEP::mm);
+  m_reaction_path_y_start.push_back(start.y() / CLHEP::mm);
+  m_reaction_path_z_start.push_back(start.z() / CLHEP::mm);
+  m_reaction_path_x_end.push_back(end.x() / CLHEP::mm);
+  m_reaction_path_y_end.push_back(end.y() / CLHEP::mm);
+  m_reaction_path_z_end.push_back(end.z() / CLHEP::mm);
+  m_reaction_path_length.push_back(step_length / CLHEP::mm);
+  m_reaction_path_weight.push_back(areal_density);
+}
+
 //_____________________________________________________________________________
 void
 AnaManager::SetMomKaonLab(G4double mom_kaon_lab)
@@ -1508,13 +1562,24 @@ void
 AnaManager::StoreTgtBeamForCombine()
 {
   m_do_hit_tgt = false;
-  if (event.hits.at("TGT").empty()) return;
+  const G4bool include_target_frame =
+    gConf.Get<G4bool>("IncludeTargetFrame");
+
+  if (event.hits.at("TGT").empty()) {
+    if (include_target_frame && !m_reaction_path_volume_id.empty())
+      m_do_hit_tgt = true;
+    return;
+  }
 
   const auto& p = event.hits.at("TGT")[0];
   auto pdg_it = kCombineTgtBeamPdg.find(m_experiment);
   const G4bool particle_pass =
     (pdg_it != kCombineTgtBeamPdg.end() && p.GetPdgCode() == pdg_it->second);
-  if (!particle_pass) return;
+  if (!particle_pass) {
+    if (include_target_frame && !m_reaction_path_volume_id.empty())
+      m_do_hit_tgt = true;
+    return;
+  }
 
   m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
   m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
@@ -1530,19 +1595,40 @@ AnaManager::StoreTgtBeamForCombine()
   m_do_hit_tgt = true;
 }
 
-// Random accept using m_effective_thickness; false resets thickness to -1.
+// Random accept using the accumulated density-weighted target/frame path.
+// The legacy LH2-only gate is retained when IncludeTargetFrame is disabled.
 //_____________________________________________________________________________
 G4bool
 AnaManager::PassCombineThicknessGate()
 {
   const auto target_size = gSize.GetSize("Target") * CLHEP::mm;
-  // Thickness is 3D path length; allow a small offset above target diameter.
-  G4double rand_thickness =
+  const G4double rand_thickness =
     G4RandFlat::shoot(0.0, target_size.getY() + 5.0);
-  if (0 < m_effective_thickness && rand_thickness <= m_effective_thickness) {
-    return true;
+
+  if (!gConf.Get<G4bool>("IncludeTargetFrame")) {
+    if (0 < m_effective_thickness &&
+        rand_thickness <= m_effective_thickness)
+      return true;
+  } else {
+    auto* lh2 = G4Material::GetMaterial("LH2", false);
+    G4double total_weight = 0.0;
+    for (const auto weight : m_reaction_path_weight)
+      total_weight += weight;
+
+    if (lh2 != nullptr && total_weight > 0.0) {
+      const G4double reference_weight =
+        lh2->GetDensity() * (target_size.getY() + 5.0 * CLHEP::mm)
+        / (CLHEP::g / CLHEP::cm2);
+      if (reference_weight > 0.0) {
+        const G4double accept_probability =
+          std::min(total_weight / reference_weight, 1.0);
+        if (G4RandFlat::shoot() < accept_probability)
+          return true;
+      }
+    }
   }
   m_effective_thickness = -1.0;
+  ClearEffectiveVolumePaths();
   return false;
 }
 
@@ -1553,8 +1639,41 @@ AnaManager::SwitchToReactionGenerator()
 {
   const auto target_pos = gGeom.GetGlobalPosition("SHSTarget") * CLHEP::mm;
   const auto target_size = gSize.GetSize("Target") * CLHEP::mm;
-  m_vertex_pos =
-    Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
+  G4double total_weight = 0.;
+  for (const auto weight : m_reaction_path_weight)
+    total_weight += weight;
+
+  if (gConf.Get<G4bool>("IncludeTargetFrame") &&
+      total_weight > 0. &&
+      m_reaction_path_weight.size() == m_reaction_path_volume_id.size()) {
+    const G4double selected_weight =
+      G4RandFlat::shoot(0., total_weight);
+    G4double cumulative_weight = 0.;
+    std::size_t selected = m_reaction_path_weight.size() - 1;
+    for (std::size_t i = 0; i < m_reaction_path_weight.size(); ++i) {
+      cumulative_weight += m_reaction_path_weight[i];
+      if (selected_weight <= cumulative_weight) {
+        selected = i;
+        break;
+      }
+    }
+
+    const G4ThreeVector start(
+      m_reaction_path_x_start[selected] * CLHEP::mm,
+      m_reaction_path_y_start[selected] * CLHEP::mm,
+      m_reaction_path_z_start[selected] * CLHEP::mm);
+    const G4ThreeVector end(
+      m_reaction_path_x_end[selected] * CLHEP::mm,
+      m_reaction_path_y_end[selected] * CLHEP::mm,
+      m_reaction_path_z_end[selected] * CLHEP::mm);
+    const G4double fraction = G4RandFlat::shoot();
+    m_vertex_pos = start + fraction * (end - start);
+    m_vtx_volume_id = m_reaction_path_volume_id[selected];
+  } else {
+    m_vertex_pos =
+      Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
+    m_vtx_volume_id = -1;
+  }
   m_next_generator = m_second_generator;
   m_do_generate_beam = false;
 }
@@ -1568,6 +1687,8 @@ AnaManager::ReturnToBeamGenerator()
   m_do_generate_beam = true;
   m_effective_evnum++;
   m_effective_thickness = -1.0;
+  m_vtx_volume_id = -1;
+  ClearEffectiveVolumePaths();
 }
 
 namespace
