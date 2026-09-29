@@ -225,6 +225,10 @@ struct Event
   std::vector<Double_t> vtx_z;
   std::vector<std::vector<Int_t>> vtx_trackid;
   std::vector<std::vector<Int_t>> vtx_trackpid;
+  // Daughter momentum at production vertex [GeV/c], aligned with vtx_trackid/pid
+  std::vector<std::vector<Double_t>> vtx_px;
+  std::vector<std::vector<Double_t>> vtx_py;
+  std::vector<std::vector<Double_t>> vtx_pz;
 
   void ClearTPCPadHits()
   {
@@ -279,6 +283,9 @@ struct Event
     vtx_z.clear();
     vtx_trackid.clear();
     vtx_trackpid.clear();
+    vtx_px.clear();
+    vtx_py.clear();
+    vtx_pz.clear();
   }
 
   void ResizeTPCPadHits(Int_t nhits)

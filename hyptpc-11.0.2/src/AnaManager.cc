@@ -250,6 +250,9 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
     m_tree->Branch("vtx_z", &event.vtx_z);
     m_tree->Branch("vtx_trackid", &event.vtx_trackid);
     m_tree->Branch("vtx_trackpid", &event.vtx_trackpid);
+    m_tree->Branch("vtx_px", &event.vtx_px);
+    m_tree->Branch("vtx_py", &event.vtx_py);
+    m_tree->Branch("vtx_pz", &event.vtx_pz);
   }
 
   for(auto& h: hmap){
@@ -641,6 +644,9 @@ AnaManager::BuildVtxInfo()
   event.vtx_z.clear();
   event.vtx_trackid.clear();
   event.vtx_trackpid.clear();
+  event.vtx_px.clear();
+  event.vtx_py.clear();
+  event.vtx_pz.clear();
 
   for (G4int i=0; i<event.nhittpc; ++i) {
     const G4int id = event.trackidtpc[i];
@@ -671,7 +677,10 @@ AnaManager::BuildVtxInfo()
 
   auto append_vtx = [&](G4int type, G4int motherpid, G4double x, G4double y, G4double z,
                         const std::vector<G4int>& member_trackid,
-                        const std::vector<G4int>& member_pdg) {
+                        const std::vector<G4int>& member_pdg,
+                        const std::vector<G4double>& member_px,
+                        const std::vector<G4double>& member_py,
+                        const std::vector<G4double>& member_pz) {
     event.vtx_type.push_back(type);
     event.vtx_motherpid.push_back(motherpid);
     event.vtx_x.push_back(x);
@@ -679,6 +688,9 @@ AnaManager::BuildVtxInfo()
     event.vtx_z.push_back(z);
     event.vtx_trackid.push_back(member_trackid);
     event.vtx_trackpid.push_back(member_pdg);
+    event.vtx_px.push_back(member_px);
+    event.vtx_py.push_back(member_py);
+    event.vtx_pz.push_back(member_pz);
 
     event.nvtx = event.vtx_type.size();
   };
@@ -689,14 +701,23 @@ AnaManager::BuildVtxInfo()
     const auto& primary = event.hits.at("PRM");
     std::vector<G4int> pdg;
     std::vector<G4int> trackid;
+    std::vector<G4double> px;
+    std::vector<G4double> py;
+    std::vector<G4double> pz;
     pdg.reserve(primary.size());
     trackid.reserve(primary.size());
+    px.reserve(primary.size());
+    py.reserve(primary.size());
+    pz.reserve(primary.size());
     for (const auto& p: primary) {
       pdg.push_back(p.GetPdgCode());
       trackid.push_back(-1);
+      px.push_back(p.Px()/CLHEP::GeV);
+      py.push_back(p.Py()/CLHEP::GeV);
+      pz.push_back(p.Pz()/CLHEP::GeV);
     }
     append_vtx(0, m_next_generator, primary.front().Vx(), primary.front().Vy(), primary.front().Vz(),
-               trackid, pdg);
+               trackid, pdg, px, py, pz);
   }
 
   auto find_daughter_trackids = [&](G4int mother_trackid, G4int daughter_pdg) {
@@ -719,17 +740,28 @@ AnaManager::BuildVtxInfo()
     const G4int mother_trackid = p.GetMother(1);
     const G4int daughter_pdg = p.GetPdgCode();
     const auto daughter_trackids = find_daughter_trackids(mother_trackid, daughter_pdg);
+    const G4double daughter_px = p.Px()/CLHEP::GeV;
+    const G4double daughter_py = p.Py()/CLHEP::GeV;
+    const G4double daughter_pz = p.Pz()/CLHEP::GeV;
     auto key = std::make_tuple(mother_pdg, mother_trackid, p.Vx(), p.Vy(), p.Vz());
     auto it = decay_vtx_index.find(key);
     if (it == decay_vtx_index.end()) {
       std::vector<G4int> daughter_pdgs(daughter_trackids.size(), daughter_pdg);
-      append_vtx(1, mother_pdg, p.Vx(), p.Vy(), p.Vz(), daughter_trackids, daughter_pdgs);
+      std::vector<G4double> daughter_pxs(daughter_trackids.size(), daughter_px);
+      std::vector<G4double> daughter_pys(daughter_trackids.size(), daughter_py);
+      std::vector<G4double> daughter_pzs(daughter_trackids.size(), daughter_pz);
+      append_vtx(1, mother_pdg, p.Vx(), p.Vy(), p.Vz(),
+                 daughter_trackids, daughter_pdgs,
+                 daughter_pxs, daughter_pys, daughter_pzs);
       decay_vtx_index[key] = event.nvtx - 1;
     } else {
       const G4int ivtx = it->second;
       for (const auto daughter_trackid: daughter_trackids) {
         event.vtx_trackid[ivtx].push_back(daughter_trackid);
         event.vtx_trackpid[ivtx].push_back(daughter_pdg);
+        event.vtx_px[ivtx].push_back(daughter_px);
+        event.vtx_py[ivtx].push_back(daughter_py);
+        event.vtx_pz[ivtx].push_back(daughter_pz);
       }
     }
   }
