@@ -48,7 +48,6 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   auto theParticle     = theTrack->GetParticleDefinition();
   auto particleName    = theParticle->GetParticleName();
   auto particlePdgCode = theParticle->GetPDGEncoding();
-  auto particleMass    = theParticle->GetPDGMass();
   auto prePoint        = theStep->GetPreStepPoint();
   auto prePV           = prePoint->GetPhysicalVolume();
   auto prePVName       = prePV->GetName();
@@ -135,8 +134,9 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
             G4int daughterTrackID = secTrack->GetTrackID();
             G4ThreeVector mom_se = secTrack->GetMomentum();
             G4LorentzVector v_se(secTrack->GetPosition(), 0);
+            const G4double daughterMass = secTrack->GetDefinition()->GetPDGMass();
             G4LorentzVector p_se(mom_se,
-                                 std::sqrt(std::pow(particleMass, 2)
+                                 std::sqrt(std::pow(daughterMass, 2)
                                            + std::pow(mom_se.mag(), 2)));
 
             gAnaMan.SetSecondaryVertex(daughterPdgCode, motherPdgCode, p_se, v_se,
