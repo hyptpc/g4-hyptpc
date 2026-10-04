@@ -7,6 +7,8 @@
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
 #include <G4ParticleDefinition.hh>
+#include <G4Run.hh>
+#include <G4RunManager.hh>
 #include <G4UImanager.hh>
 #include <G4IonConstructor.hh>
 #include <Randomize.hh>
@@ -14,6 +16,7 @@
 #include <TMath.h>
 #include <TLorentzVector.h>
 #include <TGenPhaseSpace.h>
+#include <TRandom.h>
 
 #include "AnaManager.hh"
 #include "BeamMan.hh"
@@ -108,6 +111,19 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void
 PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
+  // TGenPhaseSpace uses ROOT gRandom; re-seed once per run from G4 RNG
+  // so jobs do not share the default gRandom stream. (Keep ROOT out of RunAction.)
+  {
+    static G4int s_gRandom_seeded_run = -1;
+    const G4Run* run = G4RunManager::GetRunManager()->GetCurrentRun();
+    const G4int run_id = run ? run->GetRunID() : 0;
+    if (s_gRandom_seeded_run != run_id) {
+      gRandom->SetSeed(static_cast<ULong_t>(
+          G4RandFlat::shootInt(1, 0x7fffffff)));
+      s_gRandom_seeded_run = run_id;
+    }
+  }
+
   G4bool do_generate_beam = gAnaMan.GetDoGenerateBeam();
   if (do_generate_beam) *m_beam = gBeam.Get();
   
