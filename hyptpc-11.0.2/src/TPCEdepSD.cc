@@ -108,8 +108,7 @@ TPCEdepSD::ProcessHits(G4Step* aStep, G4TouchableHistory* /* ROhist */)
   G4double edep   = aStep->GetTotalEnergyDeposit() * conversion_factor * cmTomm;
 
 #ifdef DEBUG
-  // Compare geometry layer vs FindPadID-derived layer (not self-compare of iLay).
-  const G4int    iLay_pad = TPCPadHelper::GetLayerID(iPad);
+  // iLay_pad already set by FindPad above; compare to geometry copyNo.
   const G4double radius   = std::hypot(hitx, hitz - TPCPadHelper::GetZTarget());
 
   G4ThreeVector  pos_post       = postStepPoint->GetPosition();
