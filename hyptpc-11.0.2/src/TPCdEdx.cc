@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+#include <CLHEP/Units/SystemOfUnits.h>
+
 #include "ConfMan.hh"
 #include "TPCPadHelper.hh"
 
@@ -40,7 +42,7 @@ namespace TPCdEdx
 // Mean dE/dx for HypTPC P10 gas (Ar 90% + CH4 10%), ADC scale via
 // TpcConversionFactor. Same formula as analyzer Kinematics::HypTPCdEdx(0,...).
 G4double
-dEdx(G4double mass /*MeV/c2*/, G4double beta)
+dEdx(G4double mass /* G4: MeV/c2 */, G4double beta /* dimensionless */)
 {
   // --- P10 gas parameters (weighted Ar:CH4 = 0.9:0.1) ---
   const G4double rho =
@@ -85,21 +87,25 @@ dEdx(G4double mass /*MeV/c2*/, G4double beta)
 }
 
 //_____________________________________________________________________________
+// Empirical fit thresholds/coefficients are in GeV. Callers must pass G4
+// internal units (MeV); convert here before applying the polynomial.
 G4double
-dEdxSigma(G4double mass /*MeV/c2*/, G4double mom)
+dEdxSigma(G4double mass /* G4: MeV/c2 */, G4double mom /* G4: MeV/c */)
 {
+  const G4double mass_gev = mass / CLHEP::GeV; // GeV/c2 for mass bands
+  const G4double mom_gev  = mom / CLHEP::GeV;  // GeV/c for polynomial
   G4double par[3] = {0.0, 0.0, 0.0};
-  if (mass < 0.2) { // pion
+  if (mass_gev < 0.2) { // pion
     par[0] = 7.792;
     par[1] = -8.704;
     par[2] = 4.477;
   }
-  else if (mass > 0.7) { // proton
+  else if (mass_gev > 0.7) { // proton
     par[0] = 33.92;
     par[1] = -26.24;
     par[2] = 6.259;
   }
-  return par[0] + par[1] * mom + par[2] * mom * mom;
+  return par[0] + par[1] * mom_gev + par[2] * mom_gev * mom_gev;
 }
 
 }
