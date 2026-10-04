@@ -362,6 +362,9 @@ private:
   std::vector<G4double> m_reaction_path_z_end;
   std::vector<G4double> m_reaction_path_length;
   std::vector<G4double> m_reaction_path_weight;
+  std::vector<G4double> m_reaction_path_px; // GeV/c, same event as path segment
+  std::vector<G4double> m_reaction_path_py;
+  std::vector<G4double> m_reaction_path_pz;
   G4double m_mom_kaon_lab;
   G4double m_cos_theta;
   G4double m_cos_theta_lambda;
@@ -403,8 +406,9 @@ private:
   G4double tpc_rad;
 
   // --------------------------------
-  // combine beam and reaction generator  
-  G4bool m_do_hit_tgt;
+  // combine beam and reaction generator
+  // True when this beam event may proceed to the reaction generator.
+  G4bool m_combine_beam_accepted;
   G4bool m_do_generate_beam;
   G4bool m_do_combine;
   G4bool m_threshold_con;
@@ -500,15 +504,16 @@ public:
                               const G4ThreeVector& start,
                               const G4ThreeVector& end,
                               G4double step_length,
-                              G4double areal_density);
+                              G4double areal_density,
+                              const G4ThreeVector& momentum);
   void SetMomKaonLab(G4double mom_kaon_lab);
   void SetCosTheta(G4double cos_theta);
   void SetCosThetaLambda(G4double cos_theta_lambda);
   
   // --------------------------------
   // combine beam and reaction generator
-  void   SetDoHitTGT(G4bool do_hit_tgt);
-  G4bool GetDoHitTGT();
+  void   SetCombineBeamAccepted(G4bool accepted);
+  G4bool GetCombineBeamAccepted() const;
   void   SetDoGenerateBeam(G4bool do_generate_beam);
   G4bool GetDoGenerateBeam();
   void   SetDoCombine(G4bool do_combine);
@@ -664,7 +669,7 @@ private:
   G4int MapHtofMpPairSeg(G4int seg) const;
   void EvaluateBeamTrigger(G4bool require_tgt);
   void EvaluateReactionTrigger();
-  void StoreTgtBeamForCombine();
+  void AcceptCombineBeamEvent();
   G4bool PassCombineThicknessGate();
   void SwitchToReactionGenerator();
   void ReturnToBeamGenerator();

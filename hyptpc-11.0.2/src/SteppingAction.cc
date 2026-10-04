@@ -83,11 +83,12 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
         prePV->GetLogicalVolume()->GetMaterial()->GetDensity();
       const auto areal_density =
         density * stepLength / (CLHEP::g / CLHEP::cm2);
-      if (gConf.Get<G4bool>("IncludeTargetFrame")) {
+      if (gConf.GetOrDefault<G4bool>("IncludeTargetFrame", false)) {
         gAnaMan.AddReactionPathSegment(volume_id,
                                        prePoint->GetPosition(),
                                        postPoint->GetPosition(),
-                                       stepLength, areal_density);
+                                       stepLength, areal_density,
+                                       prePoint->GetMomentum());
       }
 
       if (volume_id == 1000) {

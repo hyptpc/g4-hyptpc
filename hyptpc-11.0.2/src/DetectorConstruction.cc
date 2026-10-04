@@ -1916,7 +1916,7 @@ DetectorConstruction::ConstructTarget()
                                        "TargetLV");
   target_lv->SetSensitiveDetector(target_sd);
   target_lv->SetVisAttributes(G4Colour::Blue());
-  if (gConf.Get<G4bool>("IncludeTargetFrame") &&
+  if (gConf.GetOrDefault<G4bool>("IncludeTargetFrame", false) &&
       target_lv->GetMaterial()->GetName() == "LH2") {
     constexpr G4double kLH2TargetMaxStep = 1.0 * mm;
     target_lv->SetUserLimits(new G4UserLimits(kLH2TargetMaxStep));

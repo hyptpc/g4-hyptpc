@@ -82,6 +82,12 @@ MarkSlotLayerSeen(std::bitset<NumOfPadTPC>* seen, G4int ntrk, G4int iLay)
     seen[ntrk].set(static_cast<std::size_t>(iLay));
   }
 }
+
+G4bool
+IncludeTargetFrameEnabled()
+{
+  return gConf.GetOrDefault<G4bool>("IncludeTargetFrame", false);
+}
 }
 
 //_____________________________________________________________________________
@@ -100,10 +106,13 @@ AnaManager::AnaManager()
     m_reaction_path_z_end(),
     m_reaction_path_length(),
     m_reaction_path_weight(),
+    m_reaction_path_px(),
+    m_reaction_path_py(),
+    m_reaction_path_pz(),
     m_mom_kaon_lab(0.0),
     m_cos_theta(-9999.),
     m_cos_theta_lambda(-9999.),
-    m_do_hit_tgt(false),
+    m_combine_beam_accepted(false),
     m_do_generate_beam(true),
     m_do_combine(false),
     m_effective_evnum(0),
@@ -190,6 +199,9 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("reaction_path_z_end", &m_reaction_path_z_end);
   m_tree->Branch("reaction_path_length", &m_reaction_path_length);
   m_tree->Branch("reaction_path_weight", &m_reaction_path_weight);
+  m_tree->Branch("reaction_path_px", &m_reaction_path_px);
+  m_tree->Branch("reaction_path_py", &m_reaction_path_py);
+  m_tree->Branch("reaction_path_pz", &m_reaction_path_pz);
   m_tree->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
   m_tree->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
@@ -572,16 +584,16 @@ AnaManager::EndOfEventAction()
     EvaluateReactionTrigger();
   }
 
-  // Combine beam step: accept TGT PDG and store kinematics for the next reaction.
+  // Combine beam step: decide whether this beam proceeds to the reaction generator.
   if (m_do_combine && m_next_generator == m_first_generator) {
-    StoreTgtBeamForCombine();
+    AcceptCombineBeamEvent();
   }
 
   // Tree Fill + Combine state transitions (all Fill() calls are here).
   // Modes differ: Combine beam / Combine reaction / non-Combine.
   if (m_do_combine) {
     // Beam event: thickness gate → optional BeamEventSave Fill → switch to reaction.
-    if (m_next_generator == m_first_generator && m_do_hit_tgt) {
+    if (m_next_generator == m_first_generator && m_combine_beam_accepted) {
       if (PassCombineThicknessGate()) {
         if (gConf.Get<G4bool>("BeamEventSave")) {
           m_tree->Fill();
@@ -1229,6 +1241,9 @@ AnaManager::ClearEffectiveVolumePaths()
   m_reaction_path_z_end.clear();
   m_reaction_path_length.clear();
   m_reaction_path_weight.clear();
+  m_reaction_path_px.clear();
+  m_reaction_path_py.clear();
+  m_reaction_path_pz.clear();
 }
 
 void
@@ -1236,7 +1251,8 @@ AnaManager::AddReactionPathSegment(G4int volume_id,
                                    const G4ThreeVector& start,
                                    const G4ThreeVector& end,
                                    G4double step_length,
-                                   G4double areal_density)
+                                   G4double areal_density,
+                                   const G4ThreeVector& momentum)
 {
   m_reaction_path_volume_id.push_back(volume_id);
   m_reaction_path_x_start.push_back(start.x() / CLHEP::mm);
@@ -1247,6 +1263,9 @@ AnaManager::AddReactionPathSegment(G4int volume_id,
   m_reaction_path_z_end.push_back(end.z() / CLHEP::mm);
   m_reaction_path_length.push_back(step_length / CLHEP::mm);
   m_reaction_path_weight.push_back(areal_density);
+  m_reaction_path_px.push_back(momentum.x() / CLHEP::GeV);
+  m_reaction_path_py.push_back(momentum.y() / CLHEP::GeV);
+  m_reaction_path_pz.push_back(momentum.z() / CLHEP::GeV);
 }
 
 //_____________________________________________________________________________
@@ -1276,14 +1295,16 @@ AnaManager::SetCosThetaLambda(G4double cos_theta_lambda)
 //  +----------------------------------+
 //_____________________________________________________________________________
 void
-AnaManager::SetDoHitTGT(G4bool do_hit_tgt)
+AnaManager::SetCombineBeamAccepted(G4bool accepted)
 {
-  m_do_hit_tgt = do_hit_tgt;
+  m_combine_beam_accepted = accepted;
 }
+
+//_____________________________________________________________________________
 G4bool
-AnaManager::GetDoHitTGT()
+AnaManager::GetCombineBeamAccepted() const
 {
-  return m_do_hit_tgt;
+  return m_combine_beam_accepted;
 }
 
 //_____________________________________________________________________________
@@ -1556,47 +1577,62 @@ AnaManager::EvaluateReactionTrigger()
   if (n_detected_track >= n_species) m_trig_flag_int |= kTPCBit;
 }
 
-// Store accepted TGT beam kinematics for Combine (sets m_do_hit_tgt).
+// Decide whether this beam event may proceed to the Combine reaction generator.
+// Rejected beams are not filled; the next Geant4 event stays on the beam generator.
 //_____________________________________________________________________________
 void
-AnaManager::StoreTgtBeamForCombine()
+AnaManager::AcceptCombineBeamEvent()
 {
-  m_do_hit_tgt = false;
-  const G4bool include_target_frame =
-    gConf.Get<G4bool>("IncludeTargetFrame");
+  m_combine_beam_accepted = false;
 
-  if (event.hits.at("TGT").empty()) {
-    if (include_target_frame && !m_reaction_path_volume_id.empty())
-      m_do_hit_tgt = true;
-    return;
+  G4bool has_path_kinematics = false;
+  if (!m_reaction_path_volume_id.empty() &&
+      m_reaction_path_px.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_py.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_pz.size() == m_reaction_path_volume_id.size()) {
+    for (std::size_t i = 0; i < m_reaction_path_px.size(); ++i) {
+      const G4double px = m_reaction_path_px[i];
+      const G4double py = m_reaction_path_py[i];
+      const G4double pz = m_reaction_path_pz[i];
+      if (px * px + py * py + pz * pz > 0.) {
+        has_path_kinematics = true;
+        break;
+      }
+    }
   }
 
-  const auto& p = event.hits.at("TGT")[0];
-  auto pdg_it = kCombineTgtBeamPdg.find(m_experiment);
-  const G4bool particle_pass =
-    (pdg_it != kCombineTgtBeamPdg.end() && p.GetPdgCode() == pdg_it->second);
-  if (!particle_pass) {
-    if (include_target_frame && !m_reaction_path_volume_id.empty())
-      m_do_hit_tgt = true;
-    return;
+  // Prefer a valid TGT (LH2) beam hit: store kinematics now.
+  if (!event.hits.at("TGT").empty()) {
+    const auto& p = event.hits.at("TGT")[0];
+    auto pdg_it = kCombineTgtBeamPdg.find(m_experiment);
+    const G4bool particle_pass =
+      (pdg_it != kCombineTgtBeamPdg.end() && p.GetPdgCode() == pdg_it->second);
+    if (particle_pass) {
+      m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
+      m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
+      G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
+      G4ParticleDefinition* particle = particle_table->FindParticle(p.GetPdgCode());
+      G4double mass = particle->GetPDGMass() / CLHEP::MeV;
+      G4LorentzVector v_beam(m_next_pos);
+      G4ThreeVector p3_beam(p.Px() / CLHEP::MeV, p.Py() / CLHEP::MeV,
+                            p.Pz() / CLHEP::MeV);
+      G4LorentzVector p_beam(p3_beam, std::hypot(p3_beam.mag(), mass));
+      if (event.hits.at("BEAM").empty()) {
+        SetBeamInfo(p.GetPdgCode(), p_beam, v_beam);
+      }
+      m_combine_beam_accepted = true;
+      return;
+    }
   }
 
-  m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
-  m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
-  G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle = particle_table->FindParticle(p.GetPdgCode());
-  G4double mass = particle->GetPDGMass() / CLHEP::MeV;
-  G4LorentzVector v_beam(m_next_pos);
-  G4ThreeVector p3_beam(p.Px() / CLHEP::MeV, p.Py() / CLHEP::MeV, p.Pz() / CLHEP::MeV);
-  G4LorentzVector p_beam(p3_beam, std::hypot(p3_beam.mag(), mass));
-  if (event.hits.at("BEAM").empty()) {
-    SetBeamInfo(p.GetPdgCode(), p_beam, v_beam);
+  // Frame BG path: accept only when IncludeTargetFrame is on and path has mom.
+  // m_next_pos/mom are finalized in SwitchToReactionGenerator from the chosen segment.
+  if (IncludeTargetFrameEnabled() && has_path_kinematics) {
+    m_combine_beam_accepted = true;
   }
-  m_do_hit_tgt = true;
 }
 
-// Random accept using the accumulated density-weighted target/frame path.
-// The legacy LH2-only gate is retained when IncludeTargetFrame is disabled.
+// Random accept using LH2 thickness (default) or density-weighted target/frame path.
 //_____________________________________________________________________________
 G4bool
 AnaManager::PassCombineThicknessGate()
@@ -1605,7 +1641,7 @@ AnaManager::PassCombineThicknessGate()
   const G4double rand_thickness =
     G4RandFlat::shoot(0.0, target_size.getY() + 5.0);
 
-  if (!gConf.Get<G4bool>("IncludeTargetFrame")) {
+  if (!IncludeTargetFrameEnabled()) {
     if (0 < m_effective_thickness &&
         rand_thickness <= m_effective_thickness)
       return true;
@@ -1632,7 +1668,7 @@ AnaManager::PassCombineThicknessGate()
   return false;
 }
 
-// Set reaction vertex and switch generator first -> second.
+// Set reaction vertex (and beam kinematics for frame path) then switch to reaction.
 //_____________________________________________________________________________
 void
 AnaManager::SwitchToReactionGenerator()
@@ -1643,9 +1679,13 @@ AnaManager::SwitchToReactionGenerator()
   for (const auto weight : m_reaction_path_weight)
     total_weight += weight;
 
-  if (gConf.Get<G4bool>("IncludeTargetFrame") &&
-      total_weight > 0. &&
-      m_reaction_path_weight.size() == m_reaction_path_volume_id.size()) {
+  const G4bool use_frame_path =
+    IncludeTargetFrameEnabled() &&
+    total_weight > 0. &&
+    m_reaction_path_weight.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_px.size() == m_reaction_path_volume_id.size();
+
+  if (use_frame_path) {
     const G4double selected_weight =
       G4RandFlat::shoot(0., total_weight);
     G4double cumulative_weight = 0.;
@@ -1669,6 +1709,10 @@ AnaManager::SwitchToReactionGenerator()
     const G4double fraction = G4RandFlat::shoot();
     m_vertex_pos = start + fraction * (end - start);
     m_vtx_volume_id = m_reaction_path_volume_id[selected];
+    m_next_pos = m_vertex_pos;
+    m_next_mom.set(m_reaction_path_px[selected],
+                   m_reaction_path_py[selected],
+                   m_reaction_path_pz[selected]);
   } else {
     m_vertex_pos =
       Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
@@ -1678,7 +1722,7 @@ AnaManager::SwitchToReactionGenerator()
   m_do_generate_beam = false;
 }
 
-// After reaction event: switch second -> first and reset thickness / evnum.
+// After reaction event: switch second -> first and clear Combine beam state.
 //_____________________________________________________________________________
 void
 AnaManager::ReturnToBeamGenerator()
@@ -1688,6 +1732,9 @@ AnaManager::ReturnToBeamGenerator()
   m_effective_evnum++;
   m_effective_thickness = -1.0;
   m_vtx_volume_id = -1;
+  m_combine_beam_accepted = false;
+  m_next_pos.set(0., 0., 0.);
+  m_next_mom.set(0., 0., 0.);
   ClearEffectiveVolumePaths();
 }
 
