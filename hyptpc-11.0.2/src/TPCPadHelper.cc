@@ -590,10 +590,25 @@ FindPad(G4double z, G4double x, G4int& layer, G4int& row)
   const G4double n_div = padParameter[hit_layer][kNumOfDivision];
   const G4double s_theta = 180. - (360. / n_div) * n_pad / 2.;
   const G4double d_theta = 360. / n_div;
+  // Same physical scale as kRadialEps (~1 um arc) → degrees at this layer radius.
+  const G4double r_pad = padParameter[hit_layer][kRadius];
+  const G4double kAngularEpsDeg = (kRadialEps / r_pad) / DegToRad;
+  const G4double coverage = n_pad * d_theta;
 
-  const G4double diff = angle - s_theta;
-  if (std::isnan(diff) || diff < 0.)
+  G4double diff = angle - s_theta;
+  if (std::isnan(diff))
     return -1000;
+  if (diff < 0.) {
+    if (diff >= -kAngularEpsDeg) diff = 0.;
+    else return -1000;
+  } else if (diff >= coverage) {
+    if (diff <= coverage + kAngularEpsDeg) {
+      layer = hit_layer;
+      row = static_cast<G4int>(n_pad) - 1;
+      return GetPadID(hit_layer, row);
+    }
+    return -1000;
+  }
 
   const G4int hit_row = static_cast<G4int>(diff / d_theta);
   if (hit_row < 0 || static_cast<G4int>(n_pad) <= hit_row)
