@@ -7,10 +7,10 @@ K1.8 geant4 simulation tool.
 
 ## Platform
 
-This tool is developed on the platform of KEKCC, CentOS 7.9.2009.
-- g++ (GCC) 8.3.0
-- ROOT 6.22/08
-- Geant4 11.0.2
+This tool is developed on the platform of KEKCC, RHEL 9.8.
+- g++ (GCC) 11.5.0
+- ROOT 6.32/04
+- Geant4 11.2.2
 
 
 ## Anaconda setting
@@ -20,15 +20,15 @@ it is necessary to build the Anaconda local environment once using the `conda` c
 Note that it is recommended to use `conda install` instead of `pip install` in the anaconda environment.
 
 ```sh
-$ conda create -n py37 python=3.7 # py37 is an example name
-$ conda activate py37
+$ conda create -n myenv python=3.9 # myenv is an example name
+$ conda activate myenv
 $ conda install numpy psutil pyyaml rich
 ```
 
 Add the following line in .bashrc to activate your environment.
 
 ```sh
-conda activate py37
+conda activate myenv
 ```
 
 If the prompt header of conda is annoying, add the following line in .condarc.
@@ -43,23 +43,21 @@ changeps1: False
 Set environment variables.
 
 ```shell
-. /opt/python-3.7/etc/profile.d/conda.sh
-. /group/had/sks/software/root/6.22.08/bin/thisroot.sh
-. /sw/packages/geant4/11.0.2/bin/geant4.sh
-. /sw/packages/geant4/11.0.2/share/Geant4-11.0.2/geant4make/geant4make.sh
-export PATH=$PATH:/group/had/sks/software/unpacker/s2s/bin
+. /sw/packages/root/6.32.04/bin/thisroot.sh
+. /sw/packages/geant4/11.2.2/bin/geant4.sh
+. /sw/packages/geant4/11.2.2/share/Geant4/geant4make/geant4make.sh
 export MAKEFLAGS=-j40
-conda activate py37
-module load gcc/830
-module load git/2260
+conda activate myenv
 ```
 
 then
 
+CMakeLists.txt is removed from git management, so copy it from CMakeLists.txt.org first.
+
 ```shell
-git clone ssh://sks@www-online.kek.jp:8022/~/public_html/git/k18geant4.git
-cd k18geant4
-git checkout e72
+git clone --branch e72 git@github.com:hyptpc/g4-hyptpc.git
+cd g4-hyptpc/hyptpc-11.0.2
+cp CMakeLists.txt.org CMakeLists.txt
 ./build.sh
 ```
 
@@ -72,8 +70,8 @@ G4Macro is an optional argument.
 
 ```shell
 ./bin/G4HypTPC [ConfFile] [OutputName] (G4Macro)
-./bin/G4HypTPC param/conf/default.conf foo.root
-./bin/G4HypTPC param/conf/default.conf foo.root bar.mac
+./bin/G4HypTPC param/conf/e72_beam.conf foo.root
+./bin/G4HypTPC param/conf/e72_beam.conf foo.root bar.mac
 ```
 
 
