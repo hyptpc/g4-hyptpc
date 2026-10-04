@@ -515,10 +515,9 @@ G4int
 AnaManager::EndOfEventAction()
 {
   event.evnum++;
-  if(HitNum > 0){
-    if(HitNum >= MaxHitsTPC){
-      G4cerr << FUNC_NAME << " too much nhit (TPC) " << HitNum << G4endl;
-    }else{
+  // Pad payload is vector-backed; save all hits accumulated up to MaxTrack.
+  // (Do not drop everything when HitNum >= MaxHitsTPC — that left nhittpc=0.)
+  if (HitNum > 0) {
       event.ResizeTPCPadHits(HitNum);
       for (G4int i = 0; i < HitNum; i++) {
         const G4int ihit = i;
@@ -570,7 +569,6 @@ AnaManager::EndOfEventAction()
         event.parentidtpc[ihit]  = counterData[i].parentID;
         event.parentpidtpc[ihit] = counterData[i].parentPID;
       }
-    }
   }//trigger parts
 
   if(gConf.Get<G4bool>("TPCPadOn")){
