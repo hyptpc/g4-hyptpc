@@ -3761,7 +3761,7 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
   static const auto EtaMass = m_Eta->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   // -- save beam info --
@@ -3843,7 +3843,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -3917,7 +3917,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
   static const auto PiMass = m_PionPlus->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -3990,7 +3990,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
   static const auto PiMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -4063,7 +4063,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
   static const auto PiMass = m_PionMinus->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -4134,7 +4134,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
   static const auto ProtonMass = m_Proton->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -4208,7 +4208,7 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
   static const auto NeutronMass = m_Neutron->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();  
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 
@@ -4360,7 +4360,7 @@ PrimaryGeneratorAction::GenerateE72PiPiLambdaPhaseSpace(G4Event* anEvent)
   static const auto PionZeroMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   // -- save beam info --
@@ -4447,7 +4447,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusPiMinusSimgaZeroPhaseSpace(G4Event* anE
   static const auto PionMinusMass = m_PionMinus->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   G4ThreeVector v3_beam = gAnaMan.GetNextPos();
@@ -4521,7 +4521,7 @@ PrimaryGeneratorAction::GenerateE72PiMinusPiZeroSigmaPlusPhaseSpace(G4Event* anE
   static const auto PionZeroMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   G4ThreeVector v3_beam = gAnaMan.GetNextPos();
@@ -4595,7 +4595,7 @@ PrimaryGeneratorAction::GenerateE72PiPlusPiZeroSigmaMinusPhaseSpace(G4Event* anE
   static const auto PionZeroMass = m_PionZero->GetPDGMass()/GeV;
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
   G4ThreeVector v3_beam = gAnaMan.GetNextPos();
@@ -4694,7 +4694,7 @@ PrimaryGeneratorAction::GenerateE104PhiPhi(G4Event* anEvent)
   //Beam
   TVector3 p_beam(m_beam->mom.x()/GeV, m_beam->mom.y()/GeV, m_beam->mom.z()/GeV);
   if (gAnaMan.GetDoCombine()) {
-    G4ThreeVector next_mom = gAnaMan.GetNextMom();
+    G4ThreeVector next_mom = gAnaMan.GetReactionMom();
     p_beam.SetXYZ( next_mom.getX(), next_mom.getY(), next_mom.getZ() );
   }
 

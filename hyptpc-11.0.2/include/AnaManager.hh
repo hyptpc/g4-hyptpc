@@ -362,9 +362,12 @@ private:
   std::vector<G4double> m_reaction_path_z_end;
   std::vector<G4double> m_reaction_path_length;
   std::vector<G4double> m_reaction_path_weight;
-  std::vector<G4double> m_reaction_path_px; // GeV/c, same event as path segment
-  std::vector<G4double> m_reaction_path_py;
-  std::vector<G4double> m_reaction_path_pz;
+  std::vector<G4double> m_reaction_path_px_start;
+  std::vector<G4double> m_reaction_path_py_start;
+  std::vector<G4double> m_reaction_path_pz_start;
+  std::vector<G4double> m_reaction_path_px_end;
+  std::vector<G4double> m_reaction_path_py_end;
+  std::vector<G4double> m_reaction_path_pz_end;
   G4double m_mom_kaon_lab;
   G4double m_cos_theta;
   G4double m_cos_theta_lambda;
@@ -418,6 +421,7 @@ private:
   G4int m_second_generator;
   G4ThreeVector m_next_pos;
   G4ThreeVector m_next_mom;
+  G4ThreeVector m_reaction_mom;
   G4ThreeVector m_vertex_pos;
   G4ThreeVector m_debug_pos;
   // --------------------------------
@@ -505,7 +509,8 @@ public:
                               const G4ThreeVector& end,
                               G4double step_length,
                               G4double areal_density,
-                              const G4ThreeVector& momentum);
+                               const G4ThreeVector& momentum_start,
+                               const G4ThreeVector& momentum_end);
   void SetMomKaonLab(G4double mom_kaon_lab);
   void SetCosTheta(G4double cos_theta);
   void SetCosThetaLambda(G4double cos_theta_lambda);
@@ -532,6 +537,8 @@ public:
   G4ThreeVector GetNextPos();
   void          SetNextMom(G4double px, G4double py, G4double pz);
   G4ThreeVector GetNextMom();
+  void          SetReactionMom(const G4ThreeVector& momentum);
+  G4ThreeVector GetReactionMom();
   void          SetVertexPos(G4double vx, G4double vy, G4double vz);
   G4ThreeVector GetVertexPos();
   void          SetDebugPos(G4double vx, G4double vy, G4double vz);

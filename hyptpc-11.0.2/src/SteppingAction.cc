@@ -88,7 +88,8 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
                                        prePoint->GetPosition(),
                                        postPoint->GetPosition(),
                                        stepLength, areal_density,
-                                       prePoint->GetMomentum());
+                                       prePoint->GetMomentum(),
+                                       postPoint->GetMomentum());
       }
 
       if (volume_id == 1000) {

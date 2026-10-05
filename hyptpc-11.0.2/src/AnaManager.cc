@@ -106,9 +106,12 @@ AnaManager::AnaManager()
     m_reaction_path_z_end(),
     m_reaction_path_length(),
     m_reaction_path_weight(),
-    m_reaction_path_px(),
-    m_reaction_path_py(),
-    m_reaction_path_pz(),
+    m_reaction_path_px_start(),
+    m_reaction_path_py_start(),
+    m_reaction_path_pz_start(),
+    m_reaction_path_px_end(),
+    m_reaction_path_py_end(),
+    m_reaction_path_pz_end(),
     m_mom_kaon_lab(0.0),
     m_cos_theta(-9999.),
     m_cos_theta_lambda(-9999.),
@@ -121,6 +124,7 @@ AnaManager::AnaManager()
     m_second_generator(-1),
     m_next_pos(0.0, 0.0, 0.0),
     m_next_mom(0.0, 0.0, 0.0),
+    m_reaction_mom(0.0, 0.0, 0.0),
     m_threshold_con(true),
     m_trig_tpc_layer_multi(kTrigTpcLayerMultiDefault),
     m_trig_htof_fwd_edep(kTrigHtofFwdEdepDefault),
@@ -199,9 +203,12 @@ AnaManager::BeginOfRunAction(G4int /* runnum */)
   m_tree->Branch("reaction_path_z_end", &m_reaction_path_z_end);
   m_tree->Branch("reaction_path_length", &m_reaction_path_length);
   m_tree->Branch("reaction_path_weight", &m_reaction_path_weight);
-  m_tree->Branch("reaction_path_px", &m_reaction_path_px);
-  m_tree->Branch("reaction_path_py", &m_reaction_path_py);
-  m_tree->Branch("reaction_path_pz", &m_reaction_path_pz);
+  m_tree->Branch("reaction_path_px_start", &m_reaction_path_px_start);
+  m_tree->Branch("reaction_path_py_start", &m_reaction_path_py_start);
+  m_tree->Branch("reaction_path_pz_start", &m_reaction_path_pz_start);
+  m_tree->Branch("reaction_path_px_end", &m_reaction_path_px_end);
+  m_tree->Branch("reaction_path_py_end", &m_reaction_path_py_end);
+  m_tree->Branch("reaction_path_pz_end", &m_reaction_path_pz_end);
   m_tree->Branch("mom_kaon_lab", &m_mom_kaon_lab, "mom_kaon_lab/D");
   m_tree->Branch("cos_theta", &m_cos_theta, "cos_theta/D");
   m_tree->Branch("cos_theta_lambda", &m_cos_theta_lambda, "cos_theta_lambda/D");
@@ -615,6 +622,10 @@ AnaManager::EndOfEventAction()
       m_effective_evnum++;
       m_effective_thickness = -1.0;
     }
+    // IncludeTargetFrame records every beam step.  In non-Combine mode there
+    // is no ReturnToBeamGenerator() transition to clear these vectors, so
+    // reset them after the event has been written to avoid cross-event growth.
+    ClearEffectiveVolumePaths();
   }
 
   event.hits.at("BEAM").clear();
@@ -1178,15 +1189,28 @@ AnaManager::SetSecondaryVertex(G4int pdg, G4int motherPdg,
 void 
 AnaManager::SetBeamInfo(G4int pdg,
                         const G4LorentzVector& p,
-      const G4LorentzVector& v)
+                        const G4LorentzVector& v)
 {
+  G4LorentzVector beam_p = p;
+  // Keep the existing BEAM branch value (the target-entry momentum) while
+  // reaction generators use the momentum at the selected reaction vertex.
+  if (m_do_combine && m_next_generator == m_second_generator &&
+      !gConf.Get<G4bool>("IncludeTargetFrame")) {
+    auto* particle_def = G4ParticleTable::GetParticleTable()->FindParticle(pdg);
+    if (particle_def) {
+      const auto p_surface = m_next_mom * CLHEP::GeV;
+      const auto mass = particle_def->GetPDGMass();
+      const auto e_surface = std::sqrt(p_surface.mag2() + mass*mass);
+      beam_p = G4LorentzVector(p_surface, e_surface);
+    }
+  }
   TParticle particle(pdg,
                      0, // fStatus
                      0, // fMother[0]
                      0, // fMother[1]
                      0, // fDaughter[0]
                      0, // fDaughter[1]
-                     TLorentzVector(p.px(), p.py(), p.pz(), p.e()),
+                     TLorentzVector(beam_p.px(), beam_p.py(), beam_p.pz(), beam_p.e()),
                      TLorentzVector(v.x(), v.y(), v.z(), v.t()));
   event.hits.at("BEAM").push_back(particle);
 }
@@ -1239,9 +1263,12 @@ AnaManager::ClearEffectiveVolumePaths()
   m_reaction_path_z_end.clear();
   m_reaction_path_length.clear();
   m_reaction_path_weight.clear();
-  m_reaction_path_px.clear();
-  m_reaction_path_py.clear();
-  m_reaction_path_pz.clear();
+  m_reaction_path_px_start.clear();
+  m_reaction_path_py_start.clear();
+  m_reaction_path_pz_start.clear();
+  m_reaction_path_px_end.clear();
+  m_reaction_path_py_end.clear();
+  m_reaction_path_pz_end.clear();
 }
 
 void
@@ -1250,7 +1277,8 @@ AnaManager::AddReactionPathSegment(G4int volume_id,
                                    const G4ThreeVector& end,
                                    G4double step_length,
                                    G4double areal_density,
-                                   const G4ThreeVector& momentum)
+                                   const G4ThreeVector& momentum_start,
+                                   const G4ThreeVector& momentum_end)
 {
   m_reaction_path_volume_id.push_back(volume_id);
   m_reaction_path_x_start.push_back(start.x() / CLHEP::mm);
@@ -1261,9 +1289,12 @@ AnaManager::AddReactionPathSegment(G4int volume_id,
   m_reaction_path_z_end.push_back(end.z() / CLHEP::mm);
   m_reaction_path_length.push_back(step_length / CLHEP::mm);
   m_reaction_path_weight.push_back(areal_density);
-  m_reaction_path_px.push_back(momentum.x() / CLHEP::GeV);
-  m_reaction_path_py.push_back(momentum.y() / CLHEP::GeV);
-  m_reaction_path_pz.push_back(momentum.z() / CLHEP::GeV);
+  m_reaction_path_px_start.push_back(momentum_start.x() / CLHEP::GeV);
+  m_reaction_path_py_start.push_back(momentum_start.y() / CLHEP::GeV);
+  m_reaction_path_pz_start.push_back(momentum_start.z() / CLHEP::GeV);
+  m_reaction_path_px_end.push_back(momentum_end.x() / CLHEP::GeV);
+  m_reaction_path_py_end.push_back(momentum_end.y() / CLHEP::GeV);
+  m_reaction_path_pz_end.push_back(momentum_end.z() / CLHEP::GeV);
 }
 
 //_____________________________________________________________________________
@@ -1412,6 +1443,18 @@ G4ThreeVector
 AnaManager::GetNextMom()
 {
   return m_next_mom;
+}
+
+void
+AnaManager::SetReactionMom(const G4ThreeVector& momentum)
+{
+  m_reaction_mom = momentum;
+}
+
+G4ThreeVector
+AnaManager::GetReactionMom()
+{
+  return m_reaction_mom;
 }
 
 //_____________________________________________________________________________
@@ -1585,14 +1628,22 @@ AnaManager::AcceptCombineBeamEvent()
 
   G4bool has_path_kinematics = false;
   if (!m_reaction_path_volume_id.empty() &&
-      m_reaction_path_px.size() == m_reaction_path_volume_id.size() &&
-      m_reaction_path_py.size() == m_reaction_path_volume_id.size() &&
-      m_reaction_path_pz.size() == m_reaction_path_volume_id.size()) {
-    for (std::size_t i = 0; i < m_reaction_path_px.size(); ++i) {
-      const G4double px = m_reaction_path_px[i];
-      const G4double py = m_reaction_path_py[i];
-      const G4double pz = m_reaction_path_pz[i];
-      if (px * px + py * py + pz * pz > 0.) {
+      m_reaction_path_px_start.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_py_start.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_pz_start.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_px_end.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_py_end.size() == m_reaction_path_volume_id.size() &&
+      m_reaction_path_pz_end.size() == m_reaction_path_volume_id.size()) {
+    for (std::size_t i = 0; i < m_reaction_path_px_start.size(); ++i) {
+      const G4double p_start2 =
+        m_reaction_path_px_start[i] * m_reaction_path_px_start[i] +
+        m_reaction_path_py_start[i] * m_reaction_path_py_start[i] +
+        m_reaction_path_pz_start[i] * m_reaction_path_pz_start[i];
+      const G4double p_end2 =
+        m_reaction_path_px_end[i] * m_reaction_path_px_end[i] +
+        m_reaction_path_py_end[i] * m_reaction_path_py_end[i] +
+        m_reaction_path_pz_end[i] * m_reaction_path_pz_end[i];
+      if (p_start2 > 0. || p_end2 > 0.) {
         has_path_kinematics = true;
         break;
       }
@@ -1681,7 +1732,12 @@ AnaManager::SwitchToReactionGenerator()
     IncludeTargetFrameEnabled() &&
     total_weight > 0. &&
     m_reaction_path_weight.size() == m_reaction_path_volume_id.size() &&
-    m_reaction_path_px.size() == m_reaction_path_volume_id.size();
+    m_reaction_path_px_start.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_py_start.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_pz_start.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_px_end.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_py_end.size() == m_reaction_path_volume_id.size() &&
+    m_reaction_path_pz_end.size() == m_reaction_path_volume_id.size();
 
   if (use_frame_path) {
     const G4double selected_weight =
@@ -1708,13 +1764,20 @@ AnaManager::SwitchToReactionGenerator()
     m_vertex_pos = start + fraction * (end - start);
     m_vtx_volume_id = m_reaction_path_volume_id[selected];
     m_next_pos = m_vertex_pos;
-    m_next_mom.set(m_reaction_path_px[selected],
-                   m_reaction_path_py[selected],
-                   m_reaction_path_pz[selected]);
+    const G4ThreeVector p_start(
+      m_reaction_path_px_start[selected] * CLHEP::GeV,
+      m_reaction_path_py_start[selected] * CLHEP::GeV,
+      m_reaction_path_pz_start[selected] * CLHEP::GeV);
+    const G4ThreeVector p_end(
+      m_reaction_path_px_end[selected] * CLHEP::GeV,
+      m_reaction_path_py_end[selected] * CLHEP::GeV,
+      m_reaction_path_pz_end[selected] * CLHEP::GeV);
+    SetReactionMom((p_start + fraction * (p_end - p_start)) / CLHEP::GeV);
   } else {
     m_vertex_pos =
       Kinematics::RandomVertex(m_next_pos, m_next_mom, target_pos, target_size);
     m_vtx_volume_id = -1;
+    SetReactionMom(m_next_mom);
   }
   m_next_generator = m_second_generator;
   m_do_generate_beam = false;
