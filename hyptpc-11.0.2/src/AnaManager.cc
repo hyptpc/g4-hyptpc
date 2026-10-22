@@ -1564,14 +1564,25 @@ AnaManager::EvaluateReactionTrigger()
   // TPC: for each checklist PDG, count unique layers in [0, 32).
   const G4int n_species = static_cast<G4int>(channel.tpc_pdg.size());
   std::vector<std::set<G4int>> layer_id_unique(n_species);
-  for (const auto& it : event.hits.at("TPC")) {
+  auto add_hit = [&](G4int pdg, G4int parent_id, G4int layer) {
+    if (layer < 0 || layer >= 32) return;
     for (G4int i = 0; i < n_species; ++i) {
-      if (it.GetPdgCode() != channel.tpc_pdg[i]) continue;
-      if (channel.require_focus_parent && it.GetMother(0) != m_focus_parent_id) continue;
-      const G4int layer = it.GetMother(1);
-      if (layer < 0 || layer >= 32) continue;
+      if (pdg != channel.tpc_pdg[i]) continue;
+      if (channel.require_focus_parent && parent_id != m_focus_parent_id) continue;
       layer_id_unique[i].insert(layer);
     }
+  };
+  static const G4bool tpc_pad_on = gConf.Get<G4bool>("TPCPadOn");
+  if (tpc_pad_on) {
+    // Pads use TPCPadSD; their hits are in counterData (pidtpc/parentidtpc/layertpc).
+    // TPCSD only covers the gas volume, so its TParticle copy number is no layer.
+    const G4int n_tpc_hit = std::min<G4int>(HitNum, MaxTrack);
+    for (G4int ih = 0; ih < n_tpc_hit; ++ih)
+      add_hit(counterData[ih].particleID, counterData[ih].parentID, counterData[ih].iLay);
+  } else {
+    // Pads use TPCSD: TParticle mother 0 = parent track ID, mother 1 = copy number = layer.
+    for (const auto& it : event.hits.at("TPC"))
+      add_hit(it.GetPdgCode(), it.GetMother(0), it.GetMother(1));
   }
 
   G4int n_detected_track = 0;
