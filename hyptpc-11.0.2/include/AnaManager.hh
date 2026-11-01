@@ -455,6 +455,8 @@ private:
   G4int m_decay_particle_code;
   G4int m_trig_flag_int;
   G4int m_focus_parent_id;
+  // Geant4 track IDs of this event's gun primaries (ParentID==0, listed PDG).
+  std::vector<G4int> m_primary_track_ids;
   G4bool m_kaon_beam_flag;
   // --------------------------------
 
@@ -552,6 +554,8 @@ public:
   G4int GetDecayParticleCode();
   G4bool IsInsideHtof(G4ThreeVector position) const;
   void SetFocusParentID(G4int focus_parent_id);
+  void RegisterPrimaryTrackID(G4int track_id);
+  G4bool IsPrimaryTrackID(G4int track_id) const;
   // --------------------------------
 
   void BuildVtxInfo();

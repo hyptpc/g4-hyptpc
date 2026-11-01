@@ -100,52 +100,64 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
     }
   }
 
+  // Register gun primaries by Geant4 track ID (ParentID==0 and listed PDG).
+  PrimaryGeneratorAction* generatorAction =
+    (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  if (theTrack->GetParentID() == 0) {
+    for (G4int i = 0; i < MaxPrimaryParticle; ++i) {
+      if (particlePdgCode == generatorAction->m_primary_pdg[i]) {
+        gAnaMan.RegisterPrimaryTrackID(theTrack->GetTrackID());
+        break;
+      }
+    }
+  }
+
   // Tag focus-particle Decay: mother TrackID is the focus parent for TPC matching.
+  // Accept primary focus (ParentID==0) or a child of a registered primary (e.g. 7205 Σ0→Λ).
   // If the decay vertex is inside HTOF, record the first secondary PDG as decay_particle_code.
   {
     G4int generator = gAnaMan.GetNextGenerator();
     G4String focus_name = gAnaMan.GetFocusParticle(generator);
     if (theProcess == "Decay" && focus_name != "none" && particleName == focus_name) {
-      gAnaMan.SetFocusParentID(theTrack->GetTrackID());
-      if (gAnaMan.IsInsideHtof(stepMiddlePosition)) {
-        const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
-        if (secTracks && !secTracks->empty() && (*secTracks)[0]->GetDefinition()) {
-          gAnaMan.SetDecayParticleCode(
-            (*secTracks)[0]->GetDefinition()->GetPDGEncoding());
+      const G4int parent_id = theTrack->GetParentID();
+      const G4bool in_lineage =
+        (parent_id == 0) || gAnaMan.IsPrimaryTrackID(parent_id);
+      if (in_lineage) {
+        gAnaMan.SetFocusParentID(theTrack->GetTrackID());
+        if (gAnaMan.IsInsideHtof(stepMiddlePosition)) {
+          const std::vector<const G4Track*>* secTracks =
+            theStep->GetSecondaryInCurrentStep();
+          if (secTracks && !secTracks->empty() && (*secTracks)[0]->GetDefinition()) {
+            gAnaMan.SetDecayParticleCode(
+              (*secTracks)[0]->GetDefinition()->GetPDGEncoding());
+          }
         }
       }
     }
   }
 
-  // -- Get Seconday Vertex info --
-  PrimaryGeneratorAction* generatorAction =
-    (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  // SEC truth: only when the dying mother is a registered primary track.
+  if (theTrack->GetTrackStatus() == fStopAndKill &&
+      gAnaMan.IsPrimaryTrackID(theTrack->GetTrackID())) {
+    const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
+    if (secTracks && !secTracks->empty()) {
+      for (const auto& secTrack : *secTracks) {
+        if (secTrack->GetCreatorProcess()) {
+          G4int motherPdgCode = particlePdgCode;
+          G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
+          G4int motherTrackID = theTrack->GetTrackID();
+          G4int daughterTrackID = secTrack->GetTrackID();
+          G4ThreeVector mom_se = secTrack->GetMomentum();
+          G4LorentzVector v_se(secTrack->GetPosition(), 0);
+          const G4double daughterMass = secTrack->GetDefinition()->GetPDGMass();
+          G4LorentzVector p_se(mom_se,
+                               std::sqrt(std::pow(daughterMass, 2)
+                                         + std::pow(mom_se.mag(), 2)));
 
-  for (int i = 0; i < 10; ++i) {
-    if (particlePdgCode != generatorAction->m_primary_pdg[i]) continue;
-
-    if (theTrack->GetTrackStatus() == fStopAndKill) {
-      const std::vector<const G4Track*>* secTracks = theStep->GetSecondaryInCurrentStep();
-      if (!secTracks->empty()) {
-        for (const auto& secTrack : *secTracks) {
-          if (secTrack->GetCreatorProcess()) {
-            G4String secProcessName = secTrack->GetCreatorProcess()->GetProcessName();
-            G4int motherPdgCode = particlePdgCode;
-            G4int daughterPdgCode = secTrack->GetDefinition()->GetPDGEncoding();
-            G4int motherTrackID = theTrack->GetTrackID();
-            G4int daughterTrackID = secTrack->GetTrackID();
-            G4ThreeVector mom_se = secTrack->GetMomentum();
-            G4LorentzVector v_se(secTrack->GetPosition(), 0);
-            const G4double daughterMass = secTrack->GetDefinition()->GetPDGMass();
-            G4LorentzVector p_se(mom_se,
-                                 std::sqrt(std::pow(daughterMass, 2)
-                                           + std::pow(mom_se.mag(), 2)));
-
-            gAnaMan.SetSecondaryVertex(daughterPdgCode, motherPdgCode, p_se, v_se,
-                                       daughterTrackID, motherTrackID);
-          } else {
-            G4cout << "Secondary particle has no creator process!" << G4endl;
-          }
+          gAnaMan.SetSecondaryVertex(daughterPdgCode, motherPdgCode, p_se, v_se,
+                                     daughterTrackID, motherTrackID);
+        } else {
+          G4cout << "Secondary particle has no creator process!" << G4endl;
         }
       }
     }

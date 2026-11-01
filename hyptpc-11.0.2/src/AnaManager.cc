@@ -512,6 +512,7 @@ AnaManager::BeginOfEventAction()
   // for trigger check
   m_focus_parent_id = -1;
   m_trig_flag_int = 0;
+  m_primary_track_ids.clear();
 
   // for checking decay particle
   m_decay_particle_code = 0;
@@ -2040,7 +2041,26 @@ AnaManager::IsInsideHtof(G4ThreeVector position) const
 void
 AnaManager::SetFocusParentID(G4int focus_parent_id)
 {
+  // First Decay that qualifies wins; later same-name decays do not overwrite.
+  if (m_focus_parent_id >= 0) return;
   m_focus_parent_id = focus_parent_id;
+}
+
+//_____________________________________________________________________________
+void
+AnaManager::RegisterPrimaryTrackID(G4int track_id)
+{
+  if (track_id <= 0) return;
+  if (IsPrimaryTrackID(track_id)) return;
+  m_primary_track_ids.push_back(track_id);
+}
+
+//_____________________________________________________________________________
+G4bool
+AnaManager::IsPrimaryTrackID(G4int track_id) const
+{
+  return std::find(m_primary_track_ids.begin(), m_primary_track_ids.end(),
+                   track_id) != m_primary_track_ids.end();
 }
 
 

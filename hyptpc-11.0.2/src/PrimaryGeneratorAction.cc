@@ -2,6 +2,8 @@
 
 #include "PrimaryGeneratorAction.hh"
 
+#include <algorithm>
+
 #include <G4Event.hh>
 #include <G4IonTable.hh>
 #include <G4ParticleGun.hh>
@@ -111,6 +113,10 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 void
 PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
+  // Per-event clear so a previous reaction's PDGs do not leak into beam events
+  // (e.g. Combine 720x → 7201) or other generators that do not refill the array.
+  std::fill(m_primary_pdg, m_primary_pdg + 10, -9999);
+
   // TGenPhaseSpace uses ROOT gRandom; re-seed once per run from G4 RNG
   // so jobs do not share the default gRandom stream. (Keep ROOT out of RunAction.)
   {
