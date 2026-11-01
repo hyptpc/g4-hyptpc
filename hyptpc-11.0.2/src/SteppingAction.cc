@@ -64,8 +64,21 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
   //            << " (TrackID: " << theTrack->GetTrackID() << ")" << G4endl;
   // }
 
-  // -- cal effective thickness and target/frame path lengths -----
-  static const G4int experiment = gConf.Get<G4int>("Experiment");
+  // Register gun primaries by Geant4 track ID (ParentID==0 and listed PDG).
+  // Before path collection so Combine beam steps can gate on IsPrimaryTrackID.
+  PrimaryGeneratorAction* generatorAction =
+    (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  if (theTrack->GetParentID() == 0) {
+    for (G4int i = 0; i < MaxPrimaryParticle; ++i) {
+      if (particlePdgCode == generatorAction->m_primary_pdg[i]) {
+        gAnaMan.RegisterPrimaryTrackID(theTrack->GetTrackID());
+        break;
+      }
+    }
+  }
+
+  // Effective thickness / frame path: FirstGenerator primary track
+  // (Combine reaction gate and non-Combine diagnostics both use these).
   if (prePVName == "TargetPV" ||
       prePVName == "TargetKaptonPV" ||
       prePVName == "TargetAlPV" ||
@@ -73,10 +86,9 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
       prePVName == "TargetGFRPPV" ||
       prePVName == "TargetG10TopPV" ||
       prePVName == "TargetG10BottomPV") {
-    G4int generator = gAnaMan.GetNextGenerator();
     const G4bool is_beam =
-      (experiment == 72 && generator == 7201 && particleName == "kaon-") ||
-      (experiment == 104 && generator == 10401 && particleName == "anti_proton");
+      gAnaMan.GetNextGenerator() == gAnaMan.GetFirstGenerator() &&
+      gAnaMan.IsPrimaryTrackID(theTrack->GetTrackID());
     if (is_beam) {
       const G4int volume_id = prePV->GetCopyNo();
       const auto density =
@@ -96,18 +108,6 @@ SteppingAction::UserSteppingAction(const G4Step* theStep)
         G4double effective_thickness = gAnaMan.GetEffectiveThickness();
         if (effective_thickness == -1.0) gAnaMan.SetEffectiveThickness(stepLength);
         else gAnaMan.SetEffectiveThickness((G4double) effective_thickness + stepLength);
-      }
-    }
-  }
-
-  // Register gun primaries by Geant4 track ID (ParentID==0 and listed PDG).
-  PrimaryGeneratorAction* generatorAction =
-    (PrimaryGeneratorAction*) G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
-  if (theTrack->GetParentID() == 0) {
-    for (G4int i = 0; i < MaxPrimaryParticle; ++i) {
-      if (particlePdgCode == generatorAction->m_primary_pdg[i]) {
-        gAnaMan.RegisterPrimaryTrackID(theTrack->GetTrackID());
-        break;
       }
     }
   }

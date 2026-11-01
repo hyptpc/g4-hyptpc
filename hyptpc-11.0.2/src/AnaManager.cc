@@ -1671,28 +1671,24 @@ AnaManager::AcceptCombineBeamEvent()
     }
   }
 
-  // Prefer a valid TGT (LH2) beam hit: store kinematics now.
-  if (!event.hits.at("TGT").empty()) {
-    const auto& p = event.hits.at("TGT")[0];
-    auto pdg_it = kCombineTgtBeamPdg.find(m_experiment);
-    const G4bool particle_pass =
-      (pdg_it != kCombineTgtBeamPdg.end() && p.GetPdgCode() == pdg_it->second);
-    if (particle_pass) {
-      m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
-      m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
-      G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
-      G4ParticleDefinition* particle = particle_table->FindParticle(p.GetPdgCode());
-      G4double mass = particle->GetPDGMass() / CLHEP::MeV;
-      G4LorentzVector v_beam(m_next_pos);
-      G4ThreeVector p3_beam(p.Px() / CLHEP::MeV, p.Py() / CLHEP::MeV,
-                            p.Pz() / CLHEP::MeV);
-      G4LorentzVector p_beam(p3_beam, std::hypot(p3_beam.mag(), mass));
-      if (event.hits.at("BEAM").empty()) {
-        SetBeamInfo(p.GetPdgCode(), p_beam, v_beam);
-      }
-      m_combine_beam_accepted = true;
-      return;
+  // Prefer a TGT (LH2) hit from a registered gun primary track.
+  // TParticle Daughter[0] holds Geant4 TrackID (see VHitInfo).
+  for (const auto& p : event.hits.at("TGT")) {
+    if (!IsPrimaryTrackID(p.GetDaughter(0))) continue;
+    m_next_pos.set(p.Vx() / CLHEP::mm, p.Vy() / CLHEP::mm, p.Vz() / CLHEP::mm);
+    m_next_mom.set(p.Px() / CLHEP::GeV, p.Py() / CLHEP::GeV, p.Pz() / CLHEP::GeV);
+    G4ParticleTable* particle_table = G4ParticleTable::GetParticleTable();
+    G4ParticleDefinition* particle = particle_table->FindParticle(p.GetPdgCode());
+    G4double mass = particle->GetPDGMass() / CLHEP::MeV;
+    G4LorentzVector v_beam(m_next_pos);
+    G4ThreeVector p3_beam(p.Px() / CLHEP::MeV, p.Py() / CLHEP::MeV,
+                          p.Pz() / CLHEP::MeV);
+    G4LorentzVector p_beam(p3_beam, std::hypot(p3_beam.mag(), mass));
+    if (event.hits.at("BEAM").empty()) {
+      SetBeamInfo(p.GetPdgCode(), p_beam, v_beam);
     }
+    m_combine_beam_accepted = true;
+    return;
   }
 
   // Frame BG path: accept only when IncludeTargetFrame is on and path has mom.

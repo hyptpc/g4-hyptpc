@@ -3754,6 +3754,7 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(v.v());
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
+  m_primary_pdg[0] = pdg;
 }
 
 //_____________________________________________________________________________
@@ -4681,6 +4682,7 @@ PrimaryGeneratorAction::GenerateE104OldBeamData(G4Event* anEvent)
   m_particle_gun->SetParticlePosition(v.v());
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
+  m_primary_pdg[0] = pdg;
 }
 
 //_____________________________________________________________________________

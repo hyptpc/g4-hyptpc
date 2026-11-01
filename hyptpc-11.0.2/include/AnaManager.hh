@@ -80,12 +80,6 @@ static const std::set<G4int> kHtofFwdProtonSegments{
   9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29
 };
 
-// Experiment ID -> PDG accepted at TGT for Combine beam handoff.
-static const std::unordered_map<G4int, G4int> kCombineTgtBeamPdg{
-  {72, -321},
-  {104, -2212}
-};
-
 //_____________________________________________________________________________
 struct CounterData
 {
