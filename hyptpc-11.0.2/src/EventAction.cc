@@ -2,6 +2,7 @@
 
 #include "EventAction.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <vector>
@@ -210,27 +211,26 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
       G4int nhits = HC->entries();
       G4int nhits_edep = HC_edep->entries();
 
-      G4int    pidtr[MaxHitsTPC]       = {0};
-      G4int    ptidtpc[MaxHitsTPC]     = {0};
-      G4int    ptidtpc_pid[MaxHitsTPC] = {0};
-      G4double pmtpc[MaxHitsTPC]       = {0.0};
-      G4int    qqtpc[MaxHitsTPC]       = {0};
-      G4double pxtpc[MaxHitsTPC]       = {0.0};
-      G4double pytpc[MaxHitsTPC]       = {0.0};
-      G4double pztpc[MaxHitsTPC]       = {0.0};
-      G4double pptpc[MaxHitsTPC]       = {0.0};
-      G4double vtxxtpc[MaxHitsTPC]     = {0.0};
-      G4double vtxytpc[MaxHitsTPC]     = {0.0};
-      G4double vtxztpc[MaxHitsTPC]     = {0.0};
-      G4double vtxpxtpc[MaxHitsTPC]    = {0.0};
-      G4double vtxpytpc[MaxHitsTPC]    = {0.0};
-      G4double vtxpztpc[MaxHitsTPC]    = {0.0};
-      // G4double vtxpptpc[MaxHitsTPC]  = {0.0};
-      G4double vtxenetpc[MaxHitsTPC]   = {0.0};
-      G4double detpc[MaxHitsTPC]       = {0.0};
-      G4int    laytpc[MaxHitsTPC]      = {0};
-      G4double lentpc[MaxHitsTPC]      = {0.0};
-      G4int    nparticle               = 0;
+      // Per Geant4 track summary; grows with track multiplicity (no 21-track cap).
+      std::vector<G4int>    pidtr;
+      std::vector<G4int>    ptidtpc;
+      std::vector<G4int>    ptidtpc_pid;
+      std::vector<G4double> pmtpc;
+      std::vector<G4int>    qqtpc;
+      std::vector<G4double> pxtpc;
+      std::vector<G4double> pytpc;
+      std::vector<G4double> pztpc;
+      std::vector<G4double> pptpc;
+      std::vector<G4double> vtxxtpc;
+      std::vector<G4double> vtxytpc;
+      std::vector<G4double> vtxztpc;
+      std::vector<G4double> vtxpxtpc;
+      std::vector<G4double> vtxpytpc;
+      std::vector<G4double> vtxpztpc;
+      std::vector<G4double> vtxenetpc;
+      std::vector<G4double> detpc;
+      std::vector<G4int>    laytpc;
+      std::vector<G4double> lentpc;
       std::map<G4int, G4int> tid_to_slot; // tid -> summary slot
 
       const G4int pad_configure = gSize.Get("TpcPadConfigure");
@@ -493,37 +493,33 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
             laytpc[slot] = laytpc[slot] + 1;
           }
           lentpc[slot] = tlength;
-        } else if (nparticle <= 20) {
-          slot = nparticle;
-          qqtpc[slot] = charge;
-          pmtpc[slot] = mass;
-          detpc[slot] = detpc[slot] + edep;
-          if (ilay > -1) {
-            laytpc[slot] = laytpc[slot] + 1;
-          }
-          pidtr[slot] = pid;
-          pxtpc[slot] = mom[0];
-          pytpc[slot] = mom[1];
-          pztpc[slot] = mom[2];
+        } else {
+          slot = static_cast<G4int>(pidtr.size());
+          qqtpc.push_back(charge);
+          pmtpc.push_back(mass);
+          detpc.push_back(edep);
+          laytpc.push_back(ilay > -1 ? 1 : 0);
+          pidtr.push_back(pid);
+          pxtpc.push_back(mom[0]);
+          pytpc.push_back(mom[1]);
+          pztpc.push_back(mom[2]);
 
           //////////////////////vertex information /////////////////////////
-          vtxpxtpc[slot] = vtxmom[0];
-          vtxpytpc[slot] = vtxmom[1];
-          vtxpztpc[slot] = vtxmom[2];
-          // vtxpptpc[slot] = std::hypot(vtxmom[0], vtxmom[1], vtxmom[2]);
+          vtxpxtpc.push_back(vtxmom[0]);
+          vtxpytpc.push_back(vtxmom[1]);
+          vtxpztpc.push_back(vtxmom[2]);
 
-          vtxxtpc[slot] = vtxpos[0];
-          vtxytpc[slot] = vtxpos[1];
-          vtxztpc[slot] = vtxpos[2];
+          vtxxtpc.push_back(vtxpos[0]);
+          vtxytpc.push_back(vtxpos[1]);
+          vtxztpc.push_back(vtxpos[2]);
 
-          vtxenetpc[slot] = vtxene;
+          vtxenetpc.push_back(vtxene);
 
-          pptpc[slot] = mom.mag();
-          lentpc[slot] = tlength;
-          ptidtpc[slot] = ptid;
-          ptidtpc_pid[slot] = ptid_pid;
+          pptpc.push_back(mom.mag());
+          lentpc.push_back(tlength);
+          ptidtpc.push_back(ptid);
+          ptidtpc_pid.push_back(ptid_pid);
           tid_to_slot[tid] = slot;
-          nparticle = nparticle + 1;
         }
 
         if (slot >= 0 && ilay > -1) { //-->  -1 : TPC, layer is from 0 to 38. 2012.10.30
@@ -561,7 +557,10 @@ EventAction::EndOfEventAction(const G4Event* anEvent)
         }
       }
 
-      for (G4int i = 0; i < nparticle; i++) {
+      // tpcData is fixed at MAXtpctrNum; only fill slots that fit.
+      const G4int n_tpc_summary =
+        std::min(static_cast<G4int>(pidtr.size()), MAXtpctrNum);
+      for (G4int i = 0; i < n_tpc_summary; i++) {
         gAnaMan.SetTPCData(i, pidtr[i], ptidtpc[i], ptidtpc_pid[i],
                            pxtpc[i], pytpc[i], pztpc[i], pptpc[i],
                            qqtpc[i], pmtpc[i], detpc[i], lentpc[i], laytpc[i],
