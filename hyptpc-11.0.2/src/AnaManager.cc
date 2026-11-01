@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <set>
 #include <sstream>
 #include <tuple>
 #include <vector>
@@ -1561,15 +1562,16 @@ AnaManager::EvaluateReactionTrigger()
 {
   const TrigChannel& channel = m_trig_channel.at(m_next_generator);
 
-  // TPC: for each checklist PDG, count unique layers in [0, 32).
+  // TPC: for each checklist PDG, require one track with enough unique layers in [0, 32).
+  // Do not union layers across different Geant4 tracks of the same PDG.
   const G4int n_species = static_cast<G4int>(channel.tpc_pdg.size());
-  std::vector<std::set<G4int>> layer_id_unique(n_species);
-  auto add_hit = [&](G4int pdg, G4int parent_id, G4int layer) {
+  std::vector<std::map<G4int, std::set<G4int>>> layers_by_track(n_species);
+  auto add_hit = [&](G4int pdg, G4int parent_id, G4int layer, G4int track_id) {
     if (layer < 0 || layer >= 32) return;
     for (G4int i = 0; i < n_species; ++i) {
       if (pdg != channel.tpc_pdg[i]) continue;
       if (channel.require_focus_parent && parent_id != m_focus_parent_id) continue;
-      layer_id_unique[i].insert(layer);
+      layers_by_track[i][track_id].insert(layer);
     }
   };
   static const G4bool tpc_pad_on = gConf.Get<G4bool>("TPCPadOn");
@@ -1578,16 +1580,23 @@ AnaManager::EvaluateReactionTrigger()
     // TPCSD only covers the gas volume, so its TParticle copy number is no layer.
     const G4int n_tpc_hit = std::min<G4int>(HitNum, MaxTrack);
     for (G4int ih = 0; ih < n_tpc_hit; ++ih)
-      add_hit(counterData[ih].particleID, counterData[ih].parentID, counterData[ih].iLay);
+      add_hit(counterData[ih].particleID, counterData[ih].parentID,
+              counterData[ih].iLay, counterData[ih].trackID);
   } else {
-    // Pads use TPCSD: TParticle mother 0 = parent track ID, mother 1 = copy number = layer.
+    // Pads use TPCSD: mother 0 = parent track ID, mother 1 = layer,
+    // daughter 0 = Geant4 track ID (see VHitInfo).
     for (const auto& it : event.hits.at("TPC"))
-      add_hit(it.GetPdgCode(), it.GetMother(0), it.GetMother(1));
+      add_hit(it.GetPdgCode(), it.GetMother(0), it.GetMother(1), it.GetDaughter(0));
   }
 
   G4int n_detected_track = 0;
   for (G4int i = 0; i < n_species; ++i) {
-    if (static_cast<G4int>(layer_id_unique[i].size()) >= m_trig_tpc_layer_multi) {
+    G4int max_layers = 0;
+    for (const auto& track_layers : layers_by_track[i]) {
+      const G4int n_layers = static_cast<G4int>(track_layers.second.size());
+      if (n_layers > max_layers) max_layers = n_layers;
+    }
+    if (max_layers >= m_trig_tpc_layer_multi) {
       ++n_detected_track;
     }
   }
