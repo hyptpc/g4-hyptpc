@@ -13,6 +13,8 @@ namespace DiffCrossSection
   std::vector<G4double> CoeffLinearInterpolation(const G4double mom_kaon, const std::vector<G4double>& mom_kaons, const std::unordered_map<G4double, std::vector<G4double>>& legendre_coeff);
   std::vector<G4double> CoeffSpline(const G4double mom_kaon);
   G4bool RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff);
+  // Cap check for two-body generator DCS loops; exceeding the limit is fatal.
+  void EnsureRejectionAttempt(G4int attempt, const G4String& where);
   G4bool EtaLambda(const G4double cos_theta, const G4double mom_kaon);
   G4bool PiZeroLambda(const G4double cos_theta, const G4double mom_kaon);
   G4bool PiZeroSigmaZero(const G4double cos_theta, const G4double mom_kaon);

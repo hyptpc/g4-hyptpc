@@ -3808,7 +3808,8 @@ PrimaryGeneratorAction::GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVEta_CM = *event.GetDecay(1);  // select eta
     LVEta_CM.Boost(-1.0*beta);
@@ -3891,7 +3892,8 @@ PrimaryGeneratorAction::GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
     LVPiZero_CM.Boost(-1.0*beta);
@@ -3965,7 +3967,8 @@ PrimaryGeneratorAction::GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVPiPlus_CM = *event.GetDecay(1);  // select pi^+
     LVPiPlus_CM.Boost(-1.0*beta);
@@ -4038,7 +4041,8 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVPiZero_CM = *event.GetDecay(1);  // select pi^0
     LVPiZero_CM.Boost(-1.0*beta);
@@ -4047,7 +4051,7 @@ PrimaryGeneratorAction::GenerateE72PiZeroSigmaZeroPhaseSpace(G4Event* anEvent)
     Double_t cos_theta = KaonMinusDirec_CM.Dot(PiZeroDirec_CM)/(KaonMinusDirec_CM.Mag()*PiZeroDirec_CM.Mag());
     gAnaMan.SetMomKaonLab(mom_kaon_lab);
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::PiZeroSigmaZero(cos_theta, mom_kaon_lab) ) break;    
+    if ( flat || DiffCrossSection::PiZeroSigmaZero(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -4111,7 +4115,8 @@ PrimaryGeneratorAction::GenerateE72PiMinusSigmaPlusPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVPiMinus_CM = *event.GetDecay(1);  // select pi^-
     LVPiMinus_CM.Boost(-1.0*beta);
@@ -4182,7 +4187,8 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVScatKaonMinus_CM = *event.GetDecay(1);  // select K^-
     LVScatKaonMinus_CM.Boost(-1.0*beta);
@@ -4191,7 +4197,7 @@ PrimaryGeneratorAction::GenerateE72KaonMinusProtonPhaseSpace(G4Event* anEvent)
     Double_t cos_theta = KaonMinusDirec_CM.Dot(ScatKaonMinusDirec_CM)/(KaonMinusDirec_CM.Mag()*ScatKaonMinusDirec_CM.Mag());
     gAnaMan.SetMomKaonLab(mom_kaon_lab);    
     gAnaMan.SetCosTheta(cos_theta);
-    if ( flat || DiffCrossSection::KaonMinusProton(cos_theta, mom_kaon_lab) ) break;    
+    if ( flat || DiffCrossSection::KaonMinusProton(cos_theta, mom_kaon_lab) ) break;
   }
 
   // -- gun events ---
@@ -4256,7 +4262,8 @@ PrimaryGeneratorAction::GenerateE72KaonZeroShortNeutronPhaseSpace(G4Event* anEve
   TGenPhaseSpace event;
   event.SetDecay(W, n_daughters, masses);
   const G4bool flat = gConf.Get<G4bool>("CSFlat");
-  while (true){
+  for (G4int iatt = 0; ; ++iatt) {
+    DiffCrossSection::EnsureRejectionAttempt(iatt, FUNC_NAME);
     event.Generate();
     TLorentzVector LVKaonZeroS_CM = *event.GetDecay(1);  // select K^0_s
     LVKaonZeroS_CM.Boost(-1.0*beta);

@@ -2,6 +2,7 @@
 
 #include "DiffCrossSectionMan.hh"
 
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
@@ -78,6 +79,22 @@ DiffCrossSectionMan::Initialize()
 
   m_range_min = m_spline_container.front()->GetXmin();
   m_range_max = m_spline_container.front()->GetXmax();
+  const G4double range_mid = 0.5*(m_range_min + m_range_max);
+
+  for (G4int i = 0, n = static_cast<G4int>(m_spline_container.size());
+       i < n; ++i) {
+    TSpline3* sp = m_spline_container[i];
+    const G4double y_min = sp->Eval(m_range_min);
+    const G4double y_mid = sp->Eval(range_mid);
+    const G4double y_max = sp->Eval(m_range_max);
+    if (!std::isfinite(y_min) || !std::isfinite(y_mid) || !std::isfinite(y_max)) {
+      G4cerr << "[DCS] Non-finite spline Eval for A" << i
+             << "_spline in " << m_file_name
+             << " at xmin/mid/xmax" << G4endl;
+      file->Close();
+      return false;
+    }
+  }
 
   file->Close();
 

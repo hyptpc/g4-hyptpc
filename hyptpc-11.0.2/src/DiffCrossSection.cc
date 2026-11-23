@@ -2,19 +2,52 @@
 
 #include "DiffCrossSection.hh"
 
+#include <cmath>
+
+#include <G4Exception.hh>
 #include <Randomize.hh>
 
-#include "FuncName.hh"
 #include "Kinematics.hh"
 #include "DiffCrossSectionMan.hh"
 
 namespace
 {
 const auto& gDcsMan = DiffCrossSectionMan::GetInstance();
+constexpr G4int kRejectionMaxAttempts = 1000000;
+
+G4double
+EvalLegendreSeries(const std::vector<G4double>& coeff, const G4double cos_theta)
+{
+  G4double sum = 0.0;
+  for (G4int order = 0, n_order = static_cast<G4int>(coeff.size());
+       order < n_order; ++order) {
+    sum += coeff[order]*Kinematics::Legendre(order, cos_theta);
+  }
+  return sum;
+}
+
+void
+FailInvalidDcs(const char* why)
+{
+  G4cerr << "[DCS] RejectionSampling: " << why << G4endl;
+  G4Exception("[DiffCrossSection::RejectionSampling()]",
+              "DCSInvalid", FatalException, why);
+}
 }
 
 namespace DiffCrossSection
 {
+
+//______________________________________________________________________________
+void
+EnsureRejectionAttempt(G4int attempt, const G4String& where)
+{
+  if (attempt < kRejectionMaxAttempts) return;
+  G4cerr << "[DCS] rejection sampling exceeded "
+         << kRejectionMaxAttempts << " attempts in " << where << G4endl;
+  G4Exception(where, "DCSAttemptLimit", FatalException,
+              "DCS rejection sampling exceeded attempt limit");
+}
 
 //______________________________________________________________________________
 std::vector<G4double>
@@ -67,6 +100,16 @@ CoeffSpline(const G4double mom_kaon)
 G4bool
 RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff)
 {
+  if (coeff.empty()) {
+    FailInvalidDcs("empty Legendre coefficient vector");
+  }
+  for (G4int order = 0, n_order = static_cast<G4int>(coeff.size());
+       order < n_order; ++order) {
+    if (!std::isfinite(coeff[order])) {
+      FailInvalidDcs("non-finite Legendre coefficient");
+    }
+  }
+
   // -- search maximum value -----
   G4double maximum_value = 0.0;
   G4double range_min = -1.0;
@@ -78,9 +121,11 @@ RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff)
     std::vector<G4double> diff_cs;
     for (G4int i = 0; i < n_points+1; i++) {
       G4double tmp_cos_theta = range_min + i*step;
-      G4double tmp_diff_cs = 0.0;
-      for (G4int order = 0, n_order = coeff.size(); order < n_order; order++) tmp_diff_cs += coeff[order]*Kinematics::Legendre(order, tmp_cos_theta);
-      diff_cs.push_back( tmp_diff_cs );
+      const G4double tmp_diff_cs = EvalLegendreSeries(coeff, tmp_cos_theta);
+      if (!std::isfinite(tmp_diff_cs)) {
+        FailInvalidDcs("non-finite DCS while estimating maximum");
+      }
+      diff_cs.push_back(tmp_diff_cs);
     }
     auto max_it = std::max_element(diff_cs.begin(), diff_cs.end());
     G4int index = std::distance(diff_cs.begin(), max_it);
@@ -90,9 +135,15 @@ RejectionSampling(const G4double cos_theta, const std::vector<G4double>& coeff)
     range_max = index==diff_cs.size()-1 ? 1.0 : prev_min + (index+1.0)*step;
   }
 
+  if (!std::isfinite(maximum_value) || maximum_value <= 0.0) {
+    FailInvalidDcs("estimated DCS maximum is non-finite or not positive");
+  }
+
   // -- calc. diff cross section and do rejection sampling -----
-  G4double eval_diff_cs = 0.0;
-  for (G4int order = 0, n_order = coeff.size(); order < n_order; order++) eval_diff_cs += coeff[order]*Kinematics::Legendre(order, cos_theta);
+  const G4double eval_diff_cs = EvalLegendreSeries(coeff, cos_theta);
+  if (!std::isfinite(eval_diff_cs)) {
+    FailInvalidDcs("non-finite DCS at sampled cos(theta)");
+  }
   return G4RandFlat::shoot(0.0, maximum_value) <= eval_diff_cs;
 }
 
