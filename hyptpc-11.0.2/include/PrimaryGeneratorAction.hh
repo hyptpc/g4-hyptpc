@@ -64,6 +64,8 @@ private:
   G4ParticleDefinition* m_LLphase;
   G4ParticleDefinition* m_HybridBaryon;
   G4double env_target_pos_z;
+  // Shared by 7201/7216/7217: fire one beam particle from m_beam pos/mom.
+  void GenerateE72BeamData(G4Event* anEvent, G4ParticleDefinition* particle);
 
 public:
   G4int m_primary_pdg[10];
@@ -142,7 +144,7 @@ public:
   void     GenerateE42HdibaryonPHSGLL(G4Event* anEvent);
   void     GenerateE42HdibaryonNonReso(G4Event* anEvent);
   // E72
-  void     GenerateE72OldBeamData(G4Event* anEvent); // 7201
+  void     GenerateE72KaonMinusBeamData(G4Event* anEvent); // 7201
   void     GenerateE72EtaLambdaPhaseSpace(G4Event* anEvent); // 7202
   void     GenerateE72PiZeroLambdaPhaseSpace(G4Event* anEvent); // 7203
   void     GenerateE72PiPlusSigmaMinusPhaseSpace(G4Event* anEvent); // 7204
@@ -157,6 +159,8 @@ public:
   void     GenerateE72PiPlusPiMinusSimgaZeroPhaseSpace(G4Event* anEvent); //7213
   void     GenerateE72PiMinusPiZeroSigmaPlusPhaseSpace(G4Event* anEvent); //7214
   void     GenerateE72PiPlusPiZeroSigmaMinusPhaseSpace(G4Event* anEvent); //7215
+  void     GenerateE72AntiProtonBeamData(G4Event* anEvent); //7216
+  void     GenerateE72PionMinusBeamData(G4Event* anEvent); //7217
  
   // KKpp
   void     GenerateKKppLL1(G4Event* anEvent);//#3001

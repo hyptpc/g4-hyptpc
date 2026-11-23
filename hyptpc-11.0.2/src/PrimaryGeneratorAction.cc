@@ -226,7 +226,7 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 4209: GenerateE42HdibaryonPHSGLL(anEvent); break; // H gen by phsg
   case 4501: GenerateE45ElasticPionPlus(anEvent); break;
   case 4502: GenerateE45ElasticPionMinus(anEvent); break;
-  case 7201: GenerateE72OldBeamData(anEvent); break; // old kaon beam data by Hashimoto-san
+  case 7201: GenerateE72KaonMinusBeamData(anEvent); break; // kaon- from BEAM data
   case 7202: GenerateE72EtaLambdaPhaseSpace(anEvent); break;
   case 7203: GenerateE72PiZeroLambdaPhaseSpace(anEvent); break;
   case 7204: GenerateE72PiPlusSigmaMinusPhaseSpace(anEvent); break;
@@ -241,6 +241,8 @@ PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   case 7213: GenerateE72PiPlusPiMinusSimgaZeroPhaseSpace(anEvent); break;
   case 7214: GenerateE72PiMinusPiZeroSigmaPlusPhaseSpace(anEvent); break;
   case 7215: GenerateE72PiPlusPiZeroSigmaMinusPhaseSpace(anEvent); break;
+  case 7216: GenerateE72AntiProtonBeamData(anEvent); break; // anti_proton from BEAM data (same as 7201)
+  case 7217: GenerateE72PionMinusBeamData(anEvent); break; // pi- from BEAM data (same as 7201)
     
   case 10401: GenerateE104OldBeamData( anEvent); break;
   case 10402: GenerateE104PhiPhi( anEvent); break;
@@ -3732,15 +3734,14 @@ PrimaryGeneratorAction::GenerateTest2(G4Event* anEvent)
 }
 
 //_____________________________________________________________________________
-//case 7201
+// Shared beam-through from BEAM ROOT (pos/mom in m_beam). Used by 7201/7216/7217.
 void
-PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
+PrimaryGeneratorAction::GenerateE72BeamData(G4Event* anEvent,
+                                            G4ParticleDefinition* particle)
 {
-  static const G4String particle_name = "kaon-";
-  static const auto KaonMinus = particleTable->FindParticle("kaon-");
-  static const auto pdg = KaonMinus->GetPDGEncoding();
-  static const auto mass = KaonMinus->GetPDGMass();
-  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam->mom.mag()*m_beam->mom.mag() + mass*mass)); 
+  const auto pdg  = particle->GetPDGEncoding();
+  const auto mass = particle->GetPDGMass();
+  G4LorentzVector p(m_beam->mom, std::sqrt(m_beam->mom.mag()*m_beam->mom.mag() + mass*mass));
   G4LorentzVector v(m_beam->pos, 0.);
   gAnaMan.SetBeamInfo(pdg, p, v);
   gAnaMan.SetMomKaonLab(0.0);
@@ -3748,13 +3749,21 @@ PrimaryGeneratorAction::GenerateE72OldBeamData(G4Event* anEvent)
   if(!gConf.Get<G4bool>("Combine"))gAnaMan.SetMomKaonLab(mom_kaon_lab);
   gAnaMan.SetCosTheta(-9999.0);
   gAnaMan.SetCosThetaLambda(-9999.0);
-  m_particle_gun->SetParticleDefinition(m_KaonMinus);
+  m_particle_gun->SetParticleDefinition(particle);
   m_particle_gun->SetParticleMomentumDirection(p.v());
   m_particle_gun->SetParticleEnergy(p.e() - mass);
   m_particle_gun->SetParticlePosition(v.v());
   m_particle_gun->GeneratePrimaryVertex(anEvent);
   gAnaMan.SetPrimaryParticle(0, pdg, p, v);
   m_primary_pdg[0] = pdg;
+}
+
+//_____________________________________________________________________________
+//case 7201: kaon- from BEAM data
+void
+PrimaryGeneratorAction::GenerateE72KaonMinusBeamData(G4Event* anEvent)
+{
+  GenerateE72BeamData(anEvent, m_KaonMinus);
 }
 
 //_____________________________________________________________________________
@@ -4325,7 +4334,7 @@ PrimaryGeneratorAction::GenerateE72UniformAntiProton(G4Event* anEvent)
 {
   G4double mom_p = m_beam_p0;
   G4ThreeVector mom_dir(0., 0., 1.);
-  G4double mass_p = m_AntiProton->GetPDGMass(); 
+  G4double mass_p = m_AntiProton->GetPDGMass();
   G4ThreeVector vtx = gGeom.GetGlobalPosition("BH2")*mm;
   G4double energy_p = sqrt(pow(mom_p,2) + pow(mass_p,2));
 
@@ -4352,6 +4361,22 @@ PrimaryGeneratorAction::GenerateE72UniformPionMinus(G4Event* anEvent)
   m_particle_gun->SetParticleEnergy(energy_p - mass_p);
   m_particle_gun->SetParticlePosition(vtx);
   m_particle_gun->GeneratePrimaryVertex(anEvent);
+}
+
+//_____________________________________________________________________________
+//case 7216: anti_proton from BEAM data (same kinematics path as 7201)
+void
+PrimaryGeneratorAction::GenerateE72AntiProtonBeamData(G4Event* anEvent)
+{
+  GenerateE72BeamData(anEvent, m_AntiProton);
+}
+
+//_____________________________________________________________________________
+//case 7217: pi- from BEAM data (same kinematics path as 7201)
+void
+PrimaryGeneratorAction::GenerateE72PionMinusBeamData(G4Event* anEvent)
+{
+  GenerateE72BeamData(anEvent, m_PionMinus);
 }
 
 //_____________________________________________________________________________
