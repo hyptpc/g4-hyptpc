@@ -1065,17 +1065,46 @@ DetectorConstruction::ConstructHypTPC()
                     th_lv, false, 1, m_check_overlaps);
   th_window_lv->SetVisAttributes(G4Colour::White());
 
+  // Window aperture xy from TpcGasVesselWindow; z there is unused.
+  // Foil stack (outer Al-Mylar x2, gap) from TpcGasVesselWindowMylar [mm].
+  const auto foil_param = gSize.GetSize("TpcGasVesselWindowMylar")*mm;
+  const G4double mylar_t = foil_param.x();
+  const G4double al_t = foil_param.y();
+  const G4double foil_gap = foil_param.z();
+  const G4int n_window_foil = 2;
+  const G4double foil_stack =
+    n_window_foil*(mylar_t + al_t) + (n_window_foil - 1)*foil_gap;
+  const G4double wall_full = gas_vessel_size[1] - p10_size[1];
+  const G4double p10_win_half = 0.5*(wall_full - foil_stack);
+  const G4double p10_win_r = p10_size[1] + p10_win_half;
+
   auto gv_window_solid = new G4Box("GasVesselWindowSolid",
                                    gas_vessel_window.x(),
                                    gas_vessel_window.y(),
-                                   // gas_vessel_window.z()
-                                   (gas_vessel_size[1] - p10_size[1])/2.
-                                   );
+                                   p10_win_half);
   auto gv_window_lv = new G4LogicalVolume(gv_window_solid,
                                           m_material_map["P10"],
                                           "GasVesselWindowLV");
   gv_window_lv->SetVisAttributes(G4Colour::White());
-  pos.set(0., (gas_vessel_size[1]+p10_size[1])/2., 0.);
+
+  auto gv_win_al_solid = new G4Box("GasVesselWindowAlSolid",
+                                   gas_vessel_window.x(),
+                                   gas_vessel_window.y(),
+                                   0.5*al_t);
+  auto gv_win_al_lv = new G4LogicalVolume(gv_win_al_solid,
+                                          m_material_map["Aluminum"],
+                                          "GasVesselWindowAlLV");
+  gv_win_al_lv->SetVisAttributes(G4Colour::Blue());
+  auto gv_win_mylar_solid = new G4Box("GasVesselWindowMylarSolid",
+                                      gas_vessel_window.x(),
+                                      gas_vessel_window.y(),
+                                      0.5*mylar_t);
+  auto gv_win_mylar_lv = new G4LogicalVolume(gv_win_mylar_solid,
+                                             m_material_map["Mylar"],
+                                             "GasVesselWindowMylarLV");
+  gv_win_mylar_lv->SetVisAttributes(G4Colour::Red());
+
+  pos.set(0., p10_win_r, 0.);
   for (G4int i=0; i<numSide; ++i) {
     rot = new G4RotationMatrix;
     rot->rotateX(90.*deg);
@@ -1084,6 +1113,25 @@ DetectorConstruction::ConstructHypTPC()
     new G4PVPlacement(rot, pos, gv_window_lv,
                       "GasVesselWindowPV"+std::to_string(i),
                       gv_lv, false, i, m_check_overlaps);
+
+    // Outer surface of the vessel wall; stack Al(out)+Mylar inward, twice.
+    const G4ThreeVector u = pos.unit();
+    G4double r = gas_vessel_size[1];
+    for (G4int ifoil=0; ifoil<n_window_foil; ++ifoil) {
+      r -= 0.5*al_t;
+      new G4PVPlacement(rot, u*r, gv_win_al_lv,
+                        "GasVesselWindowAlPV"+std::to_string(i),
+                        gv_lv, false, i*n_window_foil + ifoil,
+                        m_check_overlaps);
+      r -= 0.5*al_t;
+      r -= 0.5*mylar_t;
+      new G4PVPlacement(rot, u*r, gv_win_mylar_lv,
+                        "GasVesselWindowMylarPV"+std::to_string(i),
+                        gv_lv, false, i*n_window_foil + ifoil,
+                        m_check_overlaps);
+      r -= 0.5*mylar_t;
+      if (ifoil + 1 < n_window_foil) r -= foil_gap;
+    }
   }
   // P10
   const G4double rInnerP10[] = { p10_size[0], p10_size[0] };

@@ -32,7 +32,8 @@ TargetGFRP	97.0	100.0	100.0
 
 ### HypTPC
 TpcGasVessel		634	654	620
-TpcGasVesselWindow	246.9	540	0.1
+TpcGasVesselWindow	246.9	540	0.0 # xy only; z unused
+TpcGasVesselWindowMylar	0.05	0.0001	0.0 # mm: Mylar, Al coat, gap (x2; Al outward)
 TargetHolder		107.0	113.0	431
 TargetHolderYoffset	102.4 # holder bottom to beam center
 TargetHolderWindowPhiDz	32.0	116.0	100.0
