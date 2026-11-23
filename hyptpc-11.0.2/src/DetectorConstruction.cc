@@ -991,9 +991,15 @@ DetectorConstruction::ConstructHypTPC()
   const G4double phiTotal = 360*deg;
   const G4int numSide   = 8;
   const G4int numZPlane = 2;
-  // Gas Vessel
-  const G4double zPlaneGV[] = { -gas_vessel_size.z(),
-                                gas_vessel_size.z() };
+  // Window long clearances (mm): top, bottom. Hole stays centered at 0; Margin.z unused.
+  const auto win_margin = gSize.GetSize("TpcGasVesselWindowMargin")*mm;
+  const G4double margin_top = win_margin.x();
+  const G4double margin_bottom = win_margin.y();
+  // Gas Vessel: asymmetric ends (35/45) about the window centre (y=0).
+  const G4double zPlaneGV[] = {
+    -gas_vessel_window.y() - margin_bottom,
+     gas_vessel_window.y() + margin_top
+  };
   const G4double rInnerGV[] = { 0., 0. };
   const G4double rOuterGV[] = { gas_vessel_size[1],
                                 gas_vessel_size[1] };
@@ -1077,6 +1083,11 @@ DetectorConstruction::ConstructHypTPC()
   const G4double wall_full = gas_vessel_size[1] - p10_size[1];
   const G4double p10_win_half = 0.5*(wall_full - foil_stack);
   const G4double p10_win_r = p10_size[1] + p10_win_half;
+  // Foil covers the full octagon face (width and vessel length).
+  const G4double face_half = gas_vessel_size[1]*std::tan(CLHEP::pi/numSide);
+  const G4double foil_half_x = face_half;
+  const G4double foil_half_y = 0.5*(zPlaneGV[1] - zPlaneGV[0]);
+  const G4double foil_z0 = 0.5*(zPlaneGV[0] + zPlaneGV[1]);
 
   auto gv_window_solid = new G4Box("GasVesselWindowSolid",
                                    gas_vessel_window.x(),
@@ -1088,16 +1099,16 @@ DetectorConstruction::ConstructHypTPC()
   gv_window_lv->SetVisAttributes(G4Colour::White());
 
   auto gv_win_al_solid = new G4Box("GasVesselWindowAlSolid",
-                                   gas_vessel_window.x(),
-                                   gas_vessel_window.y(),
+                                   foil_half_x,
+                                   foil_half_y,
                                    0.5*al_t);
   auto gv_win_al_lv = new G4LogicalVolume(gv_win_al_solid,
                                           m_material_map["Aluminum"],
                                           "GasVesselWindowAlLV");
   gv_win_al_lv->SetVisAttributes(G4Colour::Blue());
   auto gv_win_mylar_solid = new G4Box("GasVesselWindowMylarSolid",
-                                      gas_vessel_window.x(),
-                                      gas_vessel_window.y(),
+                                      foil_half_x,
+                                      foil_half_y,
                                       0.5*mylar_t);
   auto gv_win_mylar_lv = new G4LogicalVolume(gv_win_mylar_solid,
                                              m_material_map["Mylar"],
@@ -1115,17 +1126,20 @@ DetectorConstruction::ConstructHypTPC()
                       gv_lv, false, i, m_check_overlaps);
 
     // Outer surface of the vessel wall; stack Al(out)+Mylar inward, twice.
+    // Offset along vessel length so foil spans the asymmetric zPlane ends.
     const G4ThreeVector u = pos.unit();
     G4double r = gas_vessel_size[1];
     for (G4int ifoil=0; ifoil<n_window_foil; ++ifoil) {
       r -= 0.5*al_t;
-      new G4PVPlacement(rot, u*r, gv_win_al_lv,
+      new G4PVPlacement(rot, u*r + G4ThreeVector(0., 0., foil_z0),
+                        gv_win_al_lv,
                         "GasVesselWindowAlPV"+std::to_string(i),
                         gv_lv, false, i*n_window_foil + ifoil,
                         m_check_overlaps);
       r -= 0.5*al_t;
       r -= 0.5*mylar_t;
-      new G4PVPlacement(rot, u*r, gv_win_mylar_lv,
+      new G4PVPlacement(rot, u*r + G4ThreeVector(0., 0., foil_z0),
+                        gv_win_mylar_lv,
                         "GasVesselWindowMylarPV"+std::to_string(i),
                         gv_lv, false, i*n_window_foil + ifoil,
                         m_check_overlaps);
